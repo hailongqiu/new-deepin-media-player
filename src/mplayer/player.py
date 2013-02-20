@@ -160,6 +160,7 @@ class LDMP(gobject.GObject):
         # init values.
         self.xid = xid
         self.player = Player()
+        # 加入读取配置文件, 设置-vo等选项.
         
     def play(self):                
         self.player.type = self.set_play_file_type() # 设置文件类型
@@ -777,7 +778,7 @@ class LDMP(gobject.GObject):
     '''播放器控制[快进，倒退，暂停]'''    
     def seek(self, seek_num):        
         '''Set rate of progress'''
-        if self.player.state == STARTING_STATE:
+        if self.player.state == STARTING_STATE or self.player.state == PAUSE_STATE:
             self.cmd('seek %d 2\n' % (seek_num))               
             
     def fseek(self, seek_num):
