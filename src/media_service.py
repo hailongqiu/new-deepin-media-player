@@ -21,14 +21,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import gobject
+import gtk
 import dbus
 import dbus.service
 import dbus.mainloop.glib
 
 '''
-as : 列表
-s  : 字符串
-(ss) : 元组
+as    : 列表
+s     : 字符串
+(ss)  : 元组
 a{ss} : 字典
 '''
 
@@ -38,30 +39,58 @@ class DemoException(dbus.DBusException):
     _dbus_error_name = 'com.deepin_media_player.DemoException'
 
 class SomeObject(dbus.service.Object):
+    def set_dmp(self, app):
+        self.app  = app
+        self.ldmp = app.ldmp
+
+    '''play video/audio file.'''
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
-                         in_signature='s', out_signature='')
-    def play(self, path):
-        print "play media player file...", path
+                         in_signature='', out_signature='')
+    def play(self):
+        print "play media player file..."
+        self.ldmp.play()
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
                          in_signature='', out_signature='')
-    def next(self):
+    def pause(self):
+        print "pause.. pause..pause.."
+        self.ldmp.pause()
+
+    @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
+                         in_signature='', out_signature='')
+    def stop(self):  
+        print "stop stop stop ..."
+        self.ldmp.stop()
+
+    @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
+                         in_signature='', out_signature='')
+    def next(self):  # next play file.
         print "next..next..next"
+        self.app.next()
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
                          in_signature='', out_signature='')
-    def prev(self):
+    def prev(self): # prev play file.
         print "prev...prev...prev"
+        self.app.prev()
+
+    @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
+                         in_signature='i', out_signature='')
+    def fseek(self, value): # prev play file.
+        print "prev...prev...prev"
+        self.ldmp.fseek(value)
 
 
-if __name__ == '__main__':
-    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
+                         in_signature='i', out_signature='')
+    def bseek(self, value): # prev play file.
+        print "prev...prev...prev"
+        self.ldmp.bseek(value)
 
-    session_bus = dbus.SessionBus()
-    name = dbus.service.BusName("com.deepin_media_player.SampleService", session_bus)
-    object = SomeObject(session_bus, '/deepin_media_player')
+    @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
+                         in_signature='', out_signature='')
+    def quit(self): # prev play file.
+        print "prev...prev...prev"
+        self.ldmp.quit()
+        gtk.main_quit()
 
-    #mainloop = gobject.MainLoop()
-    #mainloop.run()
-    import gtk
-    gtk.main()

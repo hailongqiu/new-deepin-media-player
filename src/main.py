@@ -21,11 +21,20 @@
 ############################################
 from media_player import MediaPlayer       #
 import gtk                                 #
+import dbus                                #
+import dbus.service                        #
+import dbus.mainloop.glib                  #
+from media_service import SomeObject       #
 ############################################
 # Linux Deepin Media Player version v 2.0  #
 ############################################
 gtk.gdk.threads_init()#thread init线程初始化.#
-MediaPlayer()                              #
+app = MediaPlayer()                        #
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+session_bus = dbus.SessionBus()            #
+name = dbus.service.BusName("com.deepin_media_player.SampleService", session_bus)
+app_ser = SomeObject(session_bus, '/deepin_media_player')
+app_ser.set_dmp(app)                  #
 gtk.main()                                 #
 ############################################
 # Kernel reference Gmtk code.              #

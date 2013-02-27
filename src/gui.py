@@ -58,3 +58,5 @@ class GUI(object):
         self.main_vbox.pack_start(self.screen_and_play_list_hbox, True, True)
         #
         self.app.main_box.pack_start(self.main_ali, True, True)
+
+

@@ -155,7 +155,7 @@ class LDMP(gobject.GObject):
         "error-msg":(gobject.SIGNAL_RUN_LAST,
                      gobject.TYPE_NONE,(gobject.TYPE_INT,)),
         }
-    def __init__(self, xid):
+    def __init__(self, xid=None):
         gobject.GObject.__init__(self)        
         # init values.
         self.xid = xid

@@ -47,14 +47,15 @@ from mplayer.playlist import PlayList, SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SIN
 
 class MediaPlayer(object):
     def __init__(self):
-        self.plugin_manage = PluginManage()
+        self.ldmp = LDMP()
+        #self.plugin_manage = PluginManage()
         self.gui = GUI()        
         self.play_list = PlayList() 
         # self.play_list.set_state(SINGLA_PLAY)
         # test play list.
         # self.play_list.append("http://start.linuxdeepin.com/zh_CN/")
         # self.play_list.append("file:///home/long/Desktop/test/123.mp3")
-        self.play_list.append("/home/long/Desktop/test/test.rmvb")
+        self.play_list.append("/media/文档/娱乐/电影/楚汉传奇/test.mp4")
         self.play_list.append("http://www.baidu.com")
         self.play_list.append("http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/030002010050D71213AC2A0109ACBF094EBA1F-15ED-793A-6F35-38A14136D34B?K=e14522dc10e3905d261cbe85")
         self.play_list.append("/home/long/Desktop/test/弃宝之岛-遥与魔法镜.mp4")
@@ -162,8 +163,7 @@ class MediaPlayer(object):
         
     def init_media_player(self, widget): # screen realize.        
         '''初始化mplayer后端'''
-        self.ldmp = LDMP(widget.window.xid)
-        
+        self.ldmp.xid = widget.window.xid
         self.ldmp.connect("get-time-pos", self.ldmp_get_time_pos)
         self.ldmp.connect("get-time-length", self.ldmp_get_time_length)
         self.ldmp.connect("end-media-player", self.ldmp_end_media_player)
@@ -178,7 +178,7 @@ class MediaPlayer(object):
         # self.ldmp.player.uri = "/home/long/Desktop/test/123.mp3"        
         # self.ldmp.play()                
         # 初始化插件系统.
-        self.init_plugin_manage()
+        #self.init_plugin_manage()
         
     def ldmp_get_time_pos(self, ldmp, pos, time):
         # print "pos:", pos
@@ -229,7 +229,6 @@ class MediaPlayer(object):
                         rect.x + rect.width/2 - self.background.get_width()/2, 
                         rect.y + rect.height/2 - self.background.get_height()/2 - 26)
                         
-    '''plug-in-->Public function inf.插件-->函数接口'''    
     # 上一曲.
     def prev(self):    
         play_file = self.play_list.get_prev_file()
