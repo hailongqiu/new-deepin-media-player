@@ -59,7 +59,7 @@ class Player(object):
         self.cache_size = 0 # 缓冲大小
         self.subtitle = []
         self.audio_track = None
-        self.af_export_filename = 0
+        self.af_export_filename = "/tmp/mplayer_af_export"
         self.brightness = 0
         self.contrast = 0
         self.gamma = 0
@@ -254,14 +254,12 @@ class LDMP(gobject.GObject):
         else:    
             self.command.append("2")
                     
-        '''
         if self.player.hardware_ac3:        
             self.command.append("-afm")
             self.command.append("hwac3,")
         else:    
             self.command.append("-af-add")
             self.command.append("export=%s:512" % (self.player.af_export_filename))
-        '''
 
         if self.player.flip_screen:
             self.command.append("-vf")
