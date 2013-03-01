@@ -48,17 +48,14 @@ from mplayer.playlist import PlayList, SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SIN
 class MediaPlayer(object):
     def __init__(self):
         self.ldmp = LDMP()
-        self.plugin_manage = PluginManage()
+        #self.plugin_manage = PluginManage()
         self.gui = GUI()        
         self.play_list = PlayList() 
         # self.play_list.set_state(SINGLA_PLAY)
         # test play list.
         # self.play_list.append("http://start.linuxdeepin.com/zh_CN/")
         # self.play_list.append("file:///home/long/Desktop/test/123.mp3")
-        self.play_list.append("/media/文档/娱乐/电影/楚汉传奇/test.mp4")
-        self.play_list.append("http://www.baidu.com")
-        self.play_list.append("http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/030002010050D71213AC2A0109ACBF094EBA1F-15ED-793A-6F35-38A14136D34B?K=e14522dc10e3905d261cbe85")
-        self.play_list.append("/home/long/Desktop/test/弃宝之岛-遥与魔法镜.mp4")
+        self.play_list.append("http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/0300020700512EF04F55EB054A57BFDA487345-5230-22DF-CB61-659FE89AFD50?K=67e3076fae5463d5241151f3")
         # self.play_list.append("/home/long/Desktop/test/(www.kk16.com)人再囧途之泰囧_TS抢先版国语.rmvb")
         # self.play_list.append("/home/long/Desktop/test/渡边危机（上layp）HD.mp4")
         # self.play_list.append("/home/long/Desktop/test/王的盛宴TC[www.il168.com].rmvb")
@@ -174,11 +171,11 @@ class MediaPlayer(object):
         # self.ldmp.player.ascept_state = ASCEPT_16X10_STATE
         # self.ldmp.player.vo = "vdpau"
         self.ldmp.player.type = TYPE_NETWORK
-        # self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
+        self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
         # self.ldmp.player.uri = "/home/long/Desktop/test/123.mp3"        
         # self.ldmp.play()                
         # 初始化插件系统.
-        self.init_plugin_manage()
+        #self.init_plugin_manage()
         
     def ldmp_get_time_pos(self, ldmp, pos, time):
         # print "pos:", pos

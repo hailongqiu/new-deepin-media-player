@@ -14,6 +14,9 @@ if __name__ == "__main__":
             
     iface = dbus.Interface(remote_object,
                            "com.deepin_media_player.SampleInterface")
-    print iface.play("i love c and linux /test/debus.com")
+    #print iface.play("i love c and linux /test/debus.com")
+    #iface.play()
     iface.next()
-    iface.prev()
+    #iface.stop()
+    #iface.prev()
+

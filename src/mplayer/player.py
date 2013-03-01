@@ -254,12 +254,14 @@ class LDMP(gobject.GObject):
         else:    
             self.command.append("2")
                     
+        '''
         if self.player.hardware_ac3:        
             self.command.append("-afm")
             self.command.append("hwac3,")
         else:    
             self.command.append("-af-add")
             self.command.append("export=%s:512" % (self.player.af_export_filename))
+        '''
 
         if self.player.flip_screen:
             self.command.append("-vf")
