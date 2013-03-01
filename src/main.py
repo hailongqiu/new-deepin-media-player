@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012 Deepin, Inc.
-#               2012 Hailong Qiu
+# Copyright (C) 2013 Deepin, Inc.
+#               2013 Hailong Qiu
 #
 # Author:     Hailong Qiu <356752238@qq.com>
 # Maintainer: Hailong Qiu <356752238@qq.com>
@@ -26,14 +26,14 @@ import dbus.service                        #
 import dbus.mainloop.glib                  #
 from media_service import SomeObject       #
 ############################################
-# Linux Deepin Media Player version v 2.0  #
+# Linux Deepin Media Player version v 3.0  #
 ############################################
 gtk.gdk.threads_init()#thread init线程初始化.#
 app = MediaPlayer()                        #
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 session_bus = dbus.SessionBus()            #
-name = dbus.service.BusName("com.deepin_media_player.SampleService", session_bus)
-app_ser = SomeObject(session_bus, '/deepin_media_player')
+name = dbus.service.BusName("com.deepin_media_player.SampleService" + app.dbus_id, session_bus)
+app_ser = SomeObject(session_bus, "/deepin_media_player")
 app_ser.set_dmp(app)                  #
 gtk.main()                                 #
 ############################################

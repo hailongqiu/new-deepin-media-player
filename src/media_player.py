@@ -28,6 +28,8 @@ from locales import _ # 国际化翻译.
 from utils import get_home_path
 from plugin_manage import PluginManage
 from gui import GUI # 播放器界面布局.
+import random
+import time
 import gtk
 import sys
 import os
@@ -47,16 +49,27 @@ from mplayer.playlist import PlayList, SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SIN
 
 class MediaPlayer(object):
     def __init__(self):
+        dbus_id_list = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time())).split("-")
+        dbus_id = ""
+        for num in dbus_id_list:
+            number = int(num) + 65
+            if ((65 <= number and number <= 90 ) or (97 <= number and number <= 122)):
+                dbus_id += "." + chr(number)
+            else:
+                dbus_id += "." + chr(random.randint(65, 90))
+        print "dbus_id:", dbus_id
+        self.dbus_id = dbus_id
+
         self.ldmp = LDMP()
-        #self.plugin_manage = PluginManage()
+        self.plugin_manage = PluginManage()
         self.gui = GUI()        
         self.play_list = PlayList() 
         # self.play_list.set_state(SINGLA_PLAY)
         # test play list.
         # self.play_list.append("http://start.linuxdeepin.com/zh_CN/")
         # self.play_list.append("file:///home/long/Desktop/test/123.mp3")
-        self.play_list.append("http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/0300020700512EF04F55EB054A57BFDA487345-5230-22DF-CB61-659FE89AFD50?K=67e3076fae5463d5241151f3")
-        # self.play_list.append("/home/long/Desktop/test/(www.kk16.com)人再囧途之泰囧_TS抢先版国语.rmvb")
+        #self.play_list.append("http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/0300020700512EF04F55EB054A57BFDA487345-5230-22DF-CB61-659FE89AFD50?K=67e3076fae5463d5241151f3")
+        self.play_list.append("/home/long/视频/test.mp4")
         # self.play_list.append("/home/long/Desktop/test/渡边危机（上layp）HD.mp4")
         # self.play_list.append("/home/long/Desktop/test/王的盛宴TC[www.il168.com].rmvb")
         
@@ -139,7 +152,7 @@ class MediaPlayer(object):
             elif self.ldmp.player.ascept_state == ASCEPT_FULL_STATE:
                 ascept_num = None
             elif self.ldmp.player.ascept_state == ASCEPT_DEFULAT:
-                ascept_num = self.ldmp.player.video_width / self.ldmp.player.video_height
+                ascept_num = float(self.ldmp.player.video_width) / float(self.ldmp.player.video_height)
             else:
                 ascept_num = None
                 set_flags(self.gui.screen)
@@ -171,11 +184,11 @@ class MediaPlayer(object):
         # self.ldmp.player.ascept_state = ASCEPT_16X10_STATE
         # self.ldmp.player.vo = "vdpau"
         self.ldmp.player.type = TYPE_NETWORK
-        self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
+        #self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
         # self.ldmp.player.uri = "/home/long/Desktop/test/123.mp3"        
         # self.ldmp.play()                
         # 初始化插件系统.
-        #self.init_plugin_manage()
+        self.init_plugin_manage()
         
     def ldmp_get_time_pos(self, ldmp, pos, time):
         # print "pos:", pos

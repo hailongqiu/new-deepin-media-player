@@ -28,3 +28,4 @@ PROGRAM_NAME = "deepin-media-player" # appcation name. 应用程序名字.
 PROGRAM_VERSION = "2.0" # version. 版本号.
 #
 DEBUG = True
+
