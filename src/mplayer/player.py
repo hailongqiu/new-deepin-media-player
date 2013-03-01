@@ -47,6 +47,7 @@ class Player(object):
         self.video_height = 0 # 视频的高
         self.video_present = False        
         self.type = TYPE_FILE # 播放文件类型.                                
+        self.flip_screen = None # 旋转画面.
         self.force_cache = 0
         self.state = STOPING_STATE # 当前播放状态.{停止,暂停,正在播放}
         self.channel_state = CHANNEL_NORMAL_STATE # 声道选择状态 {左右,正常}    
@@ -259,6 +260,11 @@ class LDMP(gobject.GObject):
         else:    
             self.command.append("-af-add")
             self.command.append("export=%s:512" % (self.player.af_export_filename))
+
+        if self.player.flip_screen:
+            self.command.append("-vf")
+            self.command.append(self.player.flip_screen)
+
         # 添加初始化设置.        
         self.command.append("-quiet")    
         self.command.append("-slave")    
@@ -476,7 +482,7 @@ class LDMP(gobject.GObject):
             
             self.command.append("%s" % (self.player.uri))    
             
-        # print self.command
+        print self.command
         # 链接管道.
         self.mp_id = subprocess.Popen(self.command, 
                                       stdin = subprocess.PIPE,
