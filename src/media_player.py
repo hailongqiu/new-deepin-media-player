@@ -190,7 +190,7 @@ class MediaPlayer(object):
         # self.ldmp.player.uri = "/home/long/Desktop/test/123.mp3"        
         # self.ldmp.play()                
         # 初始化插件系统.
-        #self.init_plugin_manage()
+        self.init_plugin_manage()
         
     def ldmp_get_time_pos(self, ldmp, pos, time):
         # print "pos:", pos
