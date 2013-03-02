@@ -94,6 +94,7 @@ class MediaPlayer(object):
         self.background = app_theme.get_pixbuf("player.png").get_pixbuf()        
         self.gui.screen.connect("realize", self.init_media_player)
         self.gui.screen.connect("expose-event", self.screen_expose_event)
+        self.gui.screen.connect("configure-event", self.screen_configure_event)
         self.gui.screen_frame.connect("expose-event", self.screen_frame_expose_event)
         
         # show gui window.
@@ -238,6 +239,10 @@ class MediaPlayer(object):
                         self.background, 
                         rect.x + rect.width/2 - self.background.get_width()/2, 
                         rect.y + rect.height/2 - self.background.get_height()/2 - 26)
+
+    def screen_configure_event(self, widget, event):
+        self.set_ascept_restart() # 设置分辨率.
+
                         
     # 上一曲.
     def prev(self):    
