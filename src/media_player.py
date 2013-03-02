@@ -92,14 +92,15 @@ class MediaPlayer(object):
         '''screen events init.'''
         self.draw_check = True
         self.background = app_theme.get_pixbuf("player.png").get_pixbuf()        
+        self.gui.screen_frame_event.add_events(gtk.gdk.ALL_EVENTS_MASK)
         self.gui.screen.connect("realize", self.init_media_player)
         self.gui.screen.connect("expose-event", self.screen_expose_event)
         self.gui.screen.connect("configure-event", self.screen_configure_event)
         self.gui.screen_frame.connect("expose-event", self.screen_frame_expose_event)
-        
+        self.gui.screen_frame_event.connect("button-press-event", self.screen_frame_event_button_press_event)
         # show gui window.
         self.gui.app.window.show_all()
-                
+
     '''初始化插件系统'''    
     def init_plugin_manage(self):
         # 加载自带插件.
@@ -189,7 +190,7 @@ class MediaPlayer(object):
         # self.ldmp.player.uri = "/home/long/Desktop/test/123.mp3"        
         # self.ldmp.play()                
         # 初始化插件系统.
-        self.init_plugin_manage()
+        #self.init_plugin_manage()
         
     def ldmp_get_time_pos(self, ldmp, pos, time):
         # print "pos:", pos
@@ -233,17 +234,20 @@ class MediaPlayer(object):
         rect = widget.allocation
         if self.draw_check: # 是否画播放器屏幕显示的背景.
             cr.set_source_rgb(*color_hex_to_cairo("#0D0D0D")) # 1f1f1f
-            cr.rectangle(rect.x-2, rect.y-26, rect.width, rect.height)
+            cr.rectangle(rect.x-2, rect.y, rect.width, rect.height)
             cr.fill()
             draw_pixbuf(cr,
                         self.background, 
                         rect.x + rect.width/2 - self.background.get_width()/2, 
-                        rect.y + rect.height/2 - self.background.get_height()/2 - 26)
+                        rect.y + rect.height/2 - self.background.get_height()/2)
 
     def screen_configure_event(self, widget, event):
         self.set_ascept_restart() # 设置分辨率.
 
                         
+    def screen_frame_event_button_press_event(self, widget, event):
+        print "i love c an dlinux.........", event
+
     # 上一曲.
     def prev(self):    
         play_file = self.play_list.get_prev_file()

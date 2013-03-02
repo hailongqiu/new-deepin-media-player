@@ -7,7 +7,7 @@ if __name__ == "__main__":
     bus = dbus.SessionBus()
 
     try:
-        remote_object = bus.get_object("com.deepin_media_player.SampleService.V.D.B.R.X.N",
+        remote_object = bus.get_object("com.deepin_media_player.SampleService.M.D.C.L.u.c",
                                        '/deepin_media_player')
     except dbus.DbusException:
         sys.exit(1)

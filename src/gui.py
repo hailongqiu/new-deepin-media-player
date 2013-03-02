@@ -49,11 +49,14 @@ class GUI(object):
         '''movie screen. 电影播放屏幕.'''
         # 播放屏幕和播放列表的HBOX.
         self.screen_and_play_list_hbox = gtk.HBox()
+        self.screen_frame_event = gtk.EventBox()
         self.screen_frame = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
         self.screen = gtk.DrawingArea()
+        self.screen_frame_event.add(self.screen_frame)
         self.screen_frame.add(self.screen)
         #
-        self.screen_and_play_list_hbox.pack_start(self.screen_frame, True, True)
+        #self.screen_and_play_list_hbox.pack_start(self.screen_frame, True, True)
+        self.screen_and_play_list_hbox.pack_start(self.screen_frame_event, True, True)
         #
         self.main_vbox.pack_start(self.screen_and_play_list_hbox, True, True)
         #
