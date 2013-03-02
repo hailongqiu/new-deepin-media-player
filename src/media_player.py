@@ -49,17 +49,7 @@ from mplayer.playlist import PlayList, SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SIN
 
 class MediaPlayer(object):
     def __init__(self):
-        dbus_id_list = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time())).split("-")
-        dbus_id = ""
-        for num in dbus_id_list:
-            number = int(num) + 65
-            if ((65 <= number and number <= 90 ) or (97 <= number and number <= 122)):
-                dbus_id += "." + chr(number)
-            else:
-                dbus_id += "." + chr(random.randint(65, 90))
-        print "dbus_id:", dbus_id
-        self.dbus_id = dbus_id
-
+        self.init_dbus_id()
         self.ldmp = LDMP()
         self.plugin_manage = PluginManage()
         self.gui = GUI()        
@@ -101,8 +91,23 @@ class MediaPlayer(object):
         # show gui window.
         self.gui.app.window.show_all()
 
-    '''初始化插件系统'''    
-    def init_plugin_manage(self):
+    def init_dbus_id(self): # 初始化DBUS ID 唯一值.
+        dbus_id_list = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time())).split("-")
+        dbus_id = ""
+        dbus_id_list[0] = random.randint(0, 1000)
+        dbus_id_list[1] = random.randint(0, 1000)
+        dbus_id_list[2] = random.randint(0, 1000)
+        dbus_id_list[3] = random.randint(0, 1000)
+        for num in dbus_id_list:
+            number = int(num) + 65
+            if ((65 <= number and number <= 90 ) or (97 <= number and number <= 122)):
+                dbus_id += "." + chr(number)
+            else:
+                dbus_id += "." + chr(random.randint(65, 90))
+        print "dbus_id:", dbus_id
+        self.dbus_id = dbus_id
+
+    def init_plugin_manage(self): # 初始化插件系统.
         # 加载自带插件.
         for zip_file in os.listdir("plugins"):
             try:
@@ -185,8 +190,8 @@ class MediaPlayer(object):
         
         # self.ldmp.player.ascept_state = ASCEPT_16X10_STATE
         # self.ldmp.player.vo = "vdpau"
-        self.ldmp.player.type = TYPE_NETWORK
-        #self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
+        # self.ldmp.player.type = TYPE_NETWORK
+        self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
         # self.ldmp.player.uri = "/home/long/Desktop/test/123.mp3"        
         # self.ldmp.play()                
         # 初始化插件系统.
@@ -212,6 +217,7 @@ class MediaPlayer(object):
         self.player_end_init()
         
     def player_end_init(self):        
+        # 播放完毕，重置播放设置.
         self.ldmp.player.video_width = 0
         self.ldmp.player.video_height = 0
         self.set_draw_background(0, 0)
@@ -221,21 +227,23 @@ class MediaPlayer(object):
         
     def set_draw_background(self, video_width, video_height):
         if video_width == 0 or video_height == 0:            
-            self.draw_check = True
+            self.draw_check = True # 是否画logo.
         else:
             self.draw_check = False
         self.set_ascept_restart() # 改变屏幕比例.    
         
-    def ldmp_error_msg(self, ldmp, error_code):
+    def ldmp_error_msg(self, ldmp, error_code): # 接收后端错误信息.
         print "ldmp_error_msg->error_code:", error_code
         
     def screen_expose_event(self, widget, event):    
         cr = widget.window.cairo_create()
         rect = widget.allocation
         if self.draw_check: # 是否画播放器屏幕显示的背景.
+            # 画周围logo黑边.
             cr.set_source_rgb(*color_hex_to_cairo("#0D0D0D")) # 1f1f1f
             cr.rectangle(rect.x-2, rect.y, rect.width, rect.height)
             cr.fill()
+            # draw deepin media player logo.
             draw_pixbuf(cr,
                         self.background, 
                         rect.x + rect.width/2 - self.background.get_width()/2, 
@@ -245,7 +253,7 @@ class MediaPlayer(object):
         self.set_ascept_restart() # 设置分辨率.
 
                         
-    def screen_frame_event_button_press_event(self, widget, event):
+    def screen_frame_event_button_press_event(self, widget, event): # 连接屏幕单击/双击事件.
         print "i love c an dlinux.........", event
 
     # 上一曲.
