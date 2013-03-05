@@ -313,13 +313,18 @@ class MediaPlayer(object):
 
     def screen_frame_event_button_motoin_notify_event(self, widget, event):
         if self.move_win_check:
-            self.move_window_function()
+            self.move_window_function(event)
 
-    def move_window_function(self): # move window 移动窗口.
-        self.gui.app.window.begin_move_drag(self.save_move_button, 
-                                            self.save_move_x, 
-                                            self.save_move_y, 
-                                            self.save_move_time) 
+    def move_window_function(self, event): # move window 移动窗口.
+        move_width = 5
+        new_move_x = int(event.x_root)
+        new_move_y = int(event.y_root)
+        if not ((self.save_move_x - move_width <= new_move_x <= self.save_move_x + move_width) and 
+            (self.save_move_y - move_width <= new_move_y <= self.save_move_y + move_width)):
+            self.gui.app.window.begin_move_drag(self.save_move_button, 
+                                                self.save_move_x, 
+                                                self.save_move_y, 
+                                                self.save_move_time) 
 
     # 上一曲.
     def prev(self):    
