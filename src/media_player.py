@@ -27,6 +27,7 @@ from dtk.ui.utils import color_hex_to_cairo
 from locales import _ # 国际化翻译.
 from utils import get_home_path
 from plugin_manage import PluginManage
+from mplayer.timer import Timer
 from gui import GUI # 播放器界面布局.
 import random
 import time
@@ -51,20 +52,15 @@ class MediaPlayer(object):
     def __init__(self):
         self.init_dbus_id()
         self.ldmp = LDMP()
-        self.plugin_manage = PluginManage()
+        # init double timer.
+        self.init_double_timer()
+        self.init_move_window()
+        #self.plugin_manage = PluginManage()
         self.gui = GUI()        
         self.play_list = PlayList() 
         # self.play_list.set_state(SINGLA_PLAY)
-        # test play list.
-        # self.play_list.append("http://start.linuxdeepin.com/zh_CN/")
-        # self.play_list.append("file:///home/long/Desktop/test/123.mp3")
-        #self.play_list.append("http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/0300020700512EF04F55EB054A57BFDA487345-5230-22DF-CB61-659FE89AFD50?K=67e3076fae5463d5241151f3")
         self.play_list.append("/home/long/视频/test.mp4")
-        # self.play_list.append("/home/long/Desktop/test/渡边危机（上layp）HD.mp4")
-        # self.play_list.append("/home/long/Desktop/test/王的盛宴TC[www.il168.com].rmvb")
-        
         self.argv_path_list = sys.argv # save command argv.        
-        
         '''application events init.'''
         self.gui.app.titlebar.min_button.connect("clicked", self.app_window_min_button_clicked)        
         self.gui.app.window.connect("destroy", self.app_window_quit)
@@ -78,7 +74,6 @@ class MediaPlayer(object):
         # self.app.window.connect("key-release-event", )
         # self.app.window.connect("scroll_event", )
         # self.app.window.connect("check-resize",)         
-                
         '''screen events init.'''
         self.draw_check = True
         self.background = app_theme.get_pixbuf("player.png").get_pixbuf()        
@@ -88,6 +83,8 @@ class MediaPlayer(object):
         self.gui.screen.connect("configure-event", self.screen_configure_event)
         self.gui.screen_frame.connect("expose-event", self.screen_frame_expose_event)
         self.gui.screen_frame_event.connect("button-press-event", self.screen_frame_event_button_press_event)
+        self.gui.screen_frame_event.connect("button-release-event", self.screen_frame_event_button_release_event)
+        self.gui.screen_frame_event.connect("motion-notify-event", self.screen_frame_event_button_motoin_notify_event)
         # show gui window.
         self.gui.app.window.show_all()
 
@@ -106,6 +103,21 @@ class MediaPlayer(object):
                 dbus_id += "." + chr(random.randint(65, 90))
         print "dbus_id:", dbus_id
         self.dbus_id = dbus_id
+
+    def init_double_timer(self):
+        self.interval = 300
+        self.timer = Timer(self.interval)
+        self.double_check = False
+        self.save_double_x = 0
+        self.save_double_y = 0
+        self.timer.connect("Tick", self.timer_tick_event)
+
+    def init_move_window(self):
+        self.move_win_check = False
+        self.save_move_button = None
+        self.save_move_time   = None
+        self.save_move_x = 0
+        self.save_move_y = 0
 
     def init_plugin_manage(self): # 初始化插件系统.
         # 加载自带插件.
@@ -130,7 +142,6 @@ class MediaPlayer(object):
         
     def app_window_quit(self, widget): # 窗口销毁.destroy
         self.ldmp.quit()
-        # print "app_window_quit function", "window quit!!"
         
     def app_window_configure_event(self, widget, event): # configure-event
         self.set_ascept_restart() # 设置分辨率.
@@ -168,7 +179,6 @@ class MediaPlayer(object):
         except Exception, e:
             set_ascept_function(self.gui.screen_frame, None)
             print "set_ascept_restart[error]:", e
-                    
             
     '''screen event conect function.播放屏幕事件连接函数'''
     def screen_frame_expose_event(self, widget, event):
@@ -191,11 +201,11 @@ class MediaPlayer(object):
         # self.ldmp.player.ascept_state = ASCEPT_16X10_STATE
         # self.ldmp.player.vo = "vdpau"
         # self.ldmp.player.type = TYPE_NETWORK
-        self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
-        # self.ldmp.player.uri = "/home/long/Desktop/test/123.mp3"        
-        # self.ldmp.play()                
+        # self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
+        self.ldmp.player.uri = "/home/long/视频/test.mp4"        
+        self.ldmp.play()                
         # 初始化插件系统.
-        self.init_plugin_manage()
+        # self.init_plugin_manage()
         
     def ldmp_get_time_pos(self, ldmp, pos, time):
         # print "pos:", pos
@@ -241,7 +251,7 @@ class MediaPlayer(object):
         if self.draw_check: # 是否画播放器屏幕显示的背景.
             # 画周围logo黑边.
             cr.set_source_rgb(*color_hex_to_cairo("#0D0D0D")) # 1f1f1f
-            cr.rectangle(rect.x-2, rect.y, rect.width, rect.height)
+            cr.rectangle(rect.x, rect.y, rect.width, rect.height)
             cr.fill()
             # draw deepin media player logo.
             draw_pixbuf(cr,
@@ -252,9 +262,64 @@ class MediaPlayer(object):
     def screen_configure_event(self, widget, event):
         self.set_ascept_restart() # 设置分辨率.
 
-                        
-    def screen_frame_event_button_press_event(self, widget, event): # 连接屏幕单击/双击事件.
-        print "i love c an dlinux.........", event
+    def screen_frame_event_button_press_event(self, widget, event):
+        if event.button == 1:
+            # 保存双击 x_root 和 y_root 坐标, 用于判断是否单击/双击区域内.
+            self.save_double_x = int(event.x_root)
+            self.save_double_y = int(event.y_root)
+            # 保存 event 的 button, x_root, y_root, time, 用于移动窗口.
+            self.save_move_button = event.button
+            self.save_move_x = int(event.x_root)
+            self.save_move_y = int(event.y_root)
+            self.save_move_time = event.time
+            # 设置移动标志位.
+            self.move_win_check = True
+
+    def screen_frame_event_button_release_event(self, widget, event): # 连接屏幕单击/双击事件.
+        if event.button == 1:
+            self.move_win_check = False # 取消移动窗口.
+            new_double_x = int(event.x_root)
+            new_double_y = int(event.y_root)
+            double_width = 5
+            # 判断如果点击下去移动了以后的距离,才进行单击和双击.
+            if ((self.save_double_x - double_width <= new_double_x <= self.save_double_x + double_width) and 
+                (self.save_double_y - double_width <= new_double_y <= self.save_double_y + double_width)):
+                if not self.timer.Enabled:
+                    self.timer.Interval = self.interval
+                    self.timer.Enabled = True
+                else:
+                    self.double_check  = True
+
+                if self.timer.Enabled and self.double_check:
+                    self.double_clicked_connect_function()
+                    self.set_double_bit_false()
+            else:
+                self.set_double_bit_false()
+            
+    def timer_tick_event(self, tick):
+        self.click_connect_function()
+        self.set_double_bit_false()
+
+    def double_clicked_connect_function(self):
+        print "你双击了............."
+
+    def click_connect_function(self):
+        print "你单击了........."
+        self.ldmp.pause()
+
+    def set_double_bit_false(self):
+        self.double_check = False
+        self.timer.Enabled = False
+
+    def screen_frame_event_button_motoin_notify_event(self, widget, event):
+        if self.move_win_check:
+            self.move_window_function()
+
+    def move_window_function(self): # move window 移动窗口.
+        self.gui.app.window.begin_move_drag(self.save_move_button, 
+                                            self.save_move_x, 
+                                            self.save_move_y, 
+                                            self.save_move_time) 
 
     # 上一曲.
     def prev(self):    
