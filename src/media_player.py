@@ -264,40 +264,49 @@ class MediaPlayer(object):
 
     def screen_frame_event_button_press_event(self, widget, event):
         if event.button == 1:
-            # 保存双击 x_root 和 y_root 坐标, 用于判断是否单击/双击区域内.
-            self.save_double_x = int(event.x_root)
-            self.save_double_y = int(event.y_root)
-            # 保存 event 的 button, x_root, y_root, time, 用于移动窗口.
-            self.save_move_button = event.button
-            self.save_move_x = int(event.x_root)
-            self.save_move_y = int(event.y_root)
-            self.save_move_time = event.time
-            # 设置移动标志位.
-            self.move_win_check = True
+            self.save_double_data(event)
+            self.save_move_data(event)
+
+    def save_double_data(self, event):
+        # 保存双击 x_root 和 y_root 坐标, 用于判断是否单击/双击区域内.
+        self.save_double_x = int(event.x_root)
+        self.save_double_y = int(event.y_root)
+
+    def save_move_data(self, event):
+        # 保存 event 的 button, x_root, y_root, time, 用于移动窗口.
+        self.save_move_button = event.button
+        self.save_move_x = int(event.x_root)
+        self.save_move_y = int(event.y_root)
+        self.save_move_time = event.time
+        # 设置移动标志位.
+        self.move_win_check = True
 
     def screen_frame_event_button_release_event(self, widget, event): # 连接屏幕单击/双击事件.
         if event.button == 1:
-            self.move_win_check = False # 取消移动窗口.
-            new_double_x = int(event.x_root)
-            new_double_y = int(event.y_root)
-            double_width = 5
-            # 判断如果点击下去移动了以后的距离,才进行单击和双击.
-            if ((self.save_double_x - double_width <= new_double_x <= self.save_double_x + double_width) and 
-                (self.save_double_y - double_width <= new_double_y <= self.save_double_y + double_width)):
-                if not self.timer.Enabled:
-                    self.timer.Interval = self.interval
-                    self.timer.Enabled = True
-                else:
-                    self.double_check  = True
+            self.run_double_and_click(event)
 
-                if self.timer.Enabled and self.double_check:
-                    self.double_clicked_connect_function()
-                    self.set_double_bit_false()
+    def run_double_and_click(self, event):
+        self.move_win_check = False # 取消移动窗口.
+        new_double_x = int(event.x_root)
+        new_double_y = int(event.y_root)
+        double_width = 5
+        # 判断如果点击下去移动了以后的距离,才进行单击和双击.
+        if ((self.save_double_x - double_width <= new_double_x <= self.save_double_x + double_width) and 
+            (self.save_double_y - double_width <= new_double_y <= self.save_double_y + double_width)):
+            if not self.timer.Enabled:
+                self.timer.Interval = self.interval
+                self.timer.Enabled = True
             else:
+                self.double_check  = True
+
+            if self.timer.Enabled and self.double_check:
+                self.double_clicked_connect_function() # 执行双击的代码.
                 self.set_double_bit_false()
+        else:
+            self.set_double_bit_false()
             
     def timer_tick_event(self, tick):
-        self.click_connect_function()
+        self.click_connect_function() # 执行单击的代码.
         self.set_double_bit_false()
 
     def double_clicked_connect_function(self):
