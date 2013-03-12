@@ -204,7 +204,10 @@ class MediaPlayer(object):
         # self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
         # self.ldmp.player.flip_screen = "mirror"
         # self.ldmp.player.flip_screen = "rotate=2"
-        self.ldmp.player.uri = "/home/long/视频/test.mp4"        
+        #self.ldmp.player.uri = "mms://112.230.192.196/zb10"        
+        #self.ldmp.player.uri = "mms://112.230.192.196/zb17"        
+        self.ldmp.player.uri = "mms://112.230.192.196/zb12"
+        self.ldmp.player.cache_size = 1000
         self.ldmp.play()                
         # 初始化插件系统.
         # self.init_plugin_manage()
