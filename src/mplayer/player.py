@@ -501,7 +501,7 @@ class LDMP(gobject.GObject):
                 
         # IO_HUP[Monitor the pipeline is disconnected].
         self.watch_in_id = gobject.io_add_watch(self.mplayer_out, 
-                                                gobject.gobject.IO_IN, 
+                                                gobject.IO_IN, 
                                                 self.player_thread_reader)
         self.watch_err_id = gobject.io_add_watch(self.mplayer_err, 
                                                  gobject.IO_IN, 
@@ -524,35 +524,17 @@ class LDMP(gobject.GObject):
     '''获取Mplayer时间.''' # t12345
     def get_percent_pos(self): # 获取当前位置为整数的百分比 
         self.cmd('get_percent_pos\n')
-        # return self.get_info("ANS_PERCENT_POSITION")
-            
+
     def get_sub_visibility(self):    
         self.cmd("get_sub_visibility\n")
         
     def get_time_length(self):    
         self.cmd('get_time_length\n')
-        # return self.get_info("ANS_LENGTH")
     
     def get_time_pos(self): # 当前位置用秒表示，采用浮点数.
         self.cmd('get_time_pos\n')
-        # return self.get_info("ANS_TIME_POSITION").split("\n")[0]
                                         
-    def get_info(self, info_flags): # 获取返回信息.
-        while True:
-            try:
-                line = self.mplayer_out.readline()
-            except StandardError:
-                break
-                            
-            if not line:
-                break
-            
-            if line.strip().startswith(info_flags):
-                return line.replace(info_flags, "")
-            else:
-                return line
-            
-    '''字幕控制''' # s123456
+    '''字幕控制''' 
     def sub_add(self, sub_file):
         '''Load subtitle'''
         if self.player.state == STARTING_STATE: # STARTING_STATE
@@ -845,7 +827,8 @@ class LDMP(gobject.GObject):
         try:
             buffer = source.readline()
         except:
-            return False
+            return True
+        '''
         if buffer == gobject.IO_STATUS_ERROR:
             if DEBUG:
                 print "GIO IO Error:", buffer
@@ -854,8 +837,8 @@ class LDMP(gobject.GObject):
             if DEBUG:
                 if buffer.find("ANS") == None:
                     print buffer
-            #        
-            #
+        '''
+        if buffer:
             if buffer.startswith("Cache fill"):
                 print "Cache fill:", buffer
                 # percent = buffer.replace("Cache fill:")
@@ -883,10 +866,15 @@ class LDMP(gobject.GObject):
             # 
             if buffer.startswith("ANS_TIME_POSITION"):
                 pos =  float(buffer.replace("ANS_TIME_POSITION=", "").split("\n")[0])
-                if pos >= 0:
+                old_position = self.player.position # 1234567
+                self.player.position = pos
+                if old_position != self.player.position:
+                    #print "postion:", self.player.position
                     self.emit("get-time-pos", pos, length_to_time(pos))
+                '''
                 if pos >= int(self.player.length): # 结束播放.
                     self.quit()
+                '''
             #   
             if buffer.startswith("ID_START_TIME"):
                 self.player.start_time = float(buffer.replace("ID_START_TIME=", "").split("\n")[0] )

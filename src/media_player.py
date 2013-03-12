@@ -55,7 +55,7 @@ class MediaPlayer(object):
         # init double timer.
         self.init_double_timer()
         self.init_move_window()
-        #self.plugin_manage = PluginManage()
+        self.plugin_manage = PluginManage()
         self.gui = GUI()        
         self.play_list = PlayList() 
         # self.play_list.set_state(SINGLA_PLAY)
@@ -204,13 +204,14 @@ class MediaPlayer(object):
         # self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
         # self.ldmp.player.flip_screen = "mirror"
         # self.ldmp.player.flip_screen = "rotate=2"
-        #self.ldmp.player.uri = "mms://112.230.192.196/zb10"        
-        #self.ldmp.player.uri = "mms://112.230.192.196/zb17"        
-        self.ldmp.player.uri = "mms://112.230.192.196/zb12"
+        # self.ldmp.player.uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
+        #self.ldmp.player.uri = "mms://112.230.192.196/zb10"
+        self.ldmp.player.uri = "http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000202005136AE51C4AD05737ED4888FD0AD-5715-6BCE-6FEB-6CEBD054C4A0?K=e291a95697149570261ce358"        
+        #self.ldmp.player.uri = "/home/long/视频/test.mp4"
         self.ldmp.player.cache_size = 1000
         self.ldmp.play()                
         # 初始化插件系统.
-        # self.init_plugin_manage()
+        self.init_plugin_manage()
         
     def ldmp_get_time_pos(self, ldmp, pos, time):
         # print "pos:", pos
@@ -238,6 +239,7 @@ class MediaPlayer(object):
         self.set_draw_background(0, 0)
         
     def ldmp_screen_changed(self, ldmp, video_width, video_height):
+        #print "ldmp_screen_changed...", "video_width:", video_width, "video_height:", video_height
         self.set_draw_background(video_width, video_height) # 是否画播放器屏幕显示的背景.
         
     def set_draw_background(self, video_width, video_height):
