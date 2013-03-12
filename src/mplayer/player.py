@@ -59,11 +59,12 @@ class Player(object):
         self.cache_size = 0 # 缓冲大小
         self.subtitle = []
         self.audio_track = None
-        self.af_export_filename = "/tmp/mplayer_af_export"
-        self.brightness = 0
-        self.contrast = 0
-        self.gamma = 0
-        self.hue = 0
+        self.af_export_filename = "/tmp/mplayer_af_export" # af 临时保存文件.
+        # 设置/调整视频参数.
+        self.brightness = 0 #
+        self.contrast   = 0 # 
+        self.gamma      = 0 #    
+        self.hue        = 0 # 色彩.
         self.osdlevel = 0
         self.saturation = 0        
         self.profile = None
@@ -173,7 +174,8 @@ class LDMP(gobject.GObject):
             self.command.append("-profile")
             self.command.append(self.player.profile)
             
-        if self.player.vo:
+        if self.player.vo: # mplayer -vo help | grep xv 
+            # 视频输出选项. 
             self.command.append("-vo")
             if self.player.vo.startswith('vdpau'):
                 #
@@ -233,7 +235,7 @@ class LDMP(gobject.GObject):
             self.command.append("-vc")
             self.command.append("%s" % (codecs))
             
-        if self.player.ao:    
+        if self.player.ao: # 音频输出选项.   
             self.command.append("-ao")
             self.command.append("%s" % (self.player.ao))
             
@@ -261,7 +263,8 @@ class LDMP(gobject.GObject):
             self.command.append("-af-add")
             self.command.append("export=%s:512" % (self.player.af_export_filename))
 
-        if self.player.flip_screen:
+        if self.player.flip_screen: # 旋转画面. 
+            # 水平翻转 mirror, 垂直翻转-flip, rotate=(0-7), 
             self.command.append("-vf")
             self.command.append(self.player.flip_screen)
 
@@ -422,21 +425,21 @@ class LDMP(gobject.GObject):
                 i += 1
                 
         ############## 判断播放类型        
-        if self.player.type == TYPE_FILE:
+        if self.player.type == TYPE_FILE: # 普通播放类型.
             # if filename:
                 if self.player.force_cache and self.player.cache_size >= 32:
                     self.command.append("-cache")
                     self.command.append("%d" % (self.player.cache_size))
                 # self.command.append(str(filename))    
                 self.command.append(str(self.player.uri))    
-        elif self.player.type == TYPE_CD:
+        elif self.player.type == TYPE_CD: # CD类型.
             self.command.append("-cache")
             self.command.append("%d" % (self.cache_size))
             self.command.append("%s" % (self.uri))
             if self.player.media_device:
                 self.command.append("-dvd-device")
                 self.command.append("%s" % (self.media_device))
-        elif self.player.type == TYPE_DVD: # DVD播放.
+        elif self.player.type == TYPE_DVD: # DVD类型.
             self.command.append("-mouse-movements")
             self.command.append("-nocache")
             self.command.append("dvdnav://")
@@ -459,7 +462,7 @@ class LDMP(gobject.GObject):
             else:    
                 self.command.append("-nocache")
             self.command.append("%s" % (self.player.uri))
-        elif self.player.type == TYPE_DVB and self.player.type == TYPE_TV:
+        elif self.player.type == TYPE_DVB and self.player.type == TYPE_TV: # TV播放.
             if self.player.tv_device:
                 self.command.append("-tv:device")
                 self.command.append("%s" % (self.player.tv_device))

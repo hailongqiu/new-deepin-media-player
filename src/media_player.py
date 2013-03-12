@@ -202,6 +202,8 @@ class MediaPlayer(object):
         # self.ldmp.player.vo = "vdpau"
         # self.ldmp.player.type = TYPE_NETWORK
         # self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
+        # self.ldmp.player.flip_screen = "mirror"
+        # self.ldmp.player.flip_screen = "rotate=2"
         self.ldmp.player.uri = "/home/long/视频/test.mp4"        
         self.ldmp.play()                
         # 初始化插件系统.
