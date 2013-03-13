@@ -791,7 +791,7 @@ class LDMP(gobject.GObject):
             self.cmd('pause \n')
             
     def stop(self):    
-        if self.player.state == STARTING_STATE:
+        if self.player.state in [STARTING_STATE, PAUSE_STATE]:
             self.quit()
             
     '''截图'''

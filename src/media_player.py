@@ -22,6 +22,7 @@
 
 
 from skin import app_theme
+import dtk.ui.tooltip as Tooltip
 from dtk.ui.draw import draw_pixbuf
 from dtk.ui.utils import color_hex_to_cairo
 from locales import _ # 国际化翻译.
@@ -32,6 +33,7 @@ from gui import GUI # 播放器界面布局.
 from mplayer.timer import Timer
 # mplayer后端.
 from mplayer.player import LDMP, set_ascept_function, unset_flags, set_flags
+from mplayer.player import STARTING_STATE, PAUSE_STATE
 from mplayer.player import ASCEPT_4X3_STATE, ASCEPT_16X9_STATE, ASCEPT_5X4_STATE
 from mplayer.player import ASCEPT_16X10_STATE, ASCEPT_1_85X1_STATE, ASCEPT_2_35X1_STATE, ASCEPT_FULL_STATE, ASCEPT_DEFULAT
 from mplayer.player import (ERROR_RETRY_WITH_MMSHTTP, ERROR_RESOLVE_AF_INET, ERROR_SOCKET_CONNECT,
@@ -342,20 +344,36 @@ class MediaPlayer(object):
         self.fullscreen_function() # 全屏和退出全屏处理函数.
 
     def fullscreen_function(self):
+        gui_plugin_name_list = ["ldmp-gui-sys-playlist", 
+                                "ldmp-gui-sys-control-panel"
+                               ] 
         if not self.fullscreen_check: # 判断是否全屏.
             self.gui.app.hide_titlebar() # 隐藏标题栏.
-            self.gui_plugins.plugins_dict["ldmp-gui-sys-playlist"].stop() # 隐藏播放列表.
+            for plugin_name in gui_plugin_name_list:
+                self.gui_plugins.plugins_dict[plugin_name].stop() # 隐藏界面层组件.
             self.gui.main_ali.set_padding(0, 0, 0, 0) # 设置下,左右的距离.
             self.gui.app.window.fullscreen() # 全屏.
             self.fullscreen_check = True
         else:
             self.gui.app.show_titlebar()
-            self.gui_plugins.plugins_dict["ldmp-gui-sys-playlist"].start()
+            for plugin_name in gui_plugin_name_list:
+                self.gui_plugins.plugins_dict[plugin_name].start()
             self.gui.main_ali.set_padding(0, 2, 2, 2)
             self.gui.app.window.unfullscreen()
             self.fullscreen_check = False
 
     def click_connect_function(self):
+        # 播放控制面板.
+        control_panel = self.gui_plugins.plugins_dict["ldmp-gui-sys-control-panel"].control_panel
+        start_button  = control_panel.start_button
+        # 设置播放控制面板的 暂停/播放 按钮的状态.
+        if self.ldmp.player.state == STARTING_STATE:
+            start_button.set_start_bool(True)
+            Tooltip.text(start_button, _("Start"))
+        elif self.ldmp.player.state == PAUSE_STATE:
+            start_button.set_start_bool(False)
+            Tooltip.text(start_button, _("Pause"))
+        # 暂停/继续.
         self.ldmp.pause()
 
     def set_double_bit_false(self):
