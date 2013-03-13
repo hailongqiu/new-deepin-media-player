@@ -27,13 +27,9 @@ from dtk.ui.utils import color_hex_to_cairo
 from locales import _ # 国际化翻译.
 from utils import get_home_path
 from plugin_manage import PluginManage
-from mplayer.timer import Timer
+from load_gui_plugins import LoadSysPlugins
 from gui import GUI # 播放器界面布局.
-import random
-import time
-import gtk
-import sys
-import os
+from mplayer.timer import Timer
 # mplayer后端.
 from mplayer.player import LDMP, set_ascept_function, unset_flags, set_flags
 from mplayer.player import ASCEPT_4X3_STATE, ASCEPT_16X9_STATE, ASCEPT_5X4_STATE
@@ -47,48 +43,26 @@ from mplayer.playlist import PlayList, SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SIN
 # 播放列表 .       0        1       2         3          4
 #           { 单曲播放、顺序播放、随机播放、单曲循环播放、列表循环播放、}
 #            SINGLA_PLAY ... ...                ...LIST_LOOP
+import random
+import time
+import gtk
+import sys
+import os
 
 class MediaPlayer(object):
     def __init__(self):
-        self.init_dbus_id()
-        self.ldmp = LDMP()
+        self.__init_dbus_id()
+        self.__init_values()
         # init double timer.
-        self.init_double_timer()
-        self.init_move_window()
-        self.plugin_manage = PluginManage()
-        self.gui = GUI()        
-        self.play_list = PlayList() 
-        # self.play_list.set_state(SINGLA_PLAY)
-        self.play_list.append("/home/long/视频/test.mp4")
-        self.argv_path_list = sys.argv # save command argv.        
-        '''application events init.'''
-        self.gui.app.titlebar.min_button.connect("clicked", self.app_window_min_button_clicked)        
-        self.gui.app.window.connect("destroy", self.app_window_quit)
-        self.gui.app.window.connect("configure-event", self.app_window_configure_event)
-        self.gui.app.window.connect("check-resize", self.app_window_check_resize)
-        # self.app.window.connect("window-state-event", )
-        # self.app.window.connect("leave-notify-event", )
-        # self.app.window.connect("focus-out-event", )
-        # self.app.window.connect("focus-in-event", )
-        # self.app.window.connect("key-press-event", )
-        # self.app.window.connect("key-release-event", )
-        # self.app.window.connect("scroll_event", )
-        # self.app.window.connect("check-resize",)         
-        '''screen events init.'''
-        self.draw_check = True
-        self.background = app_theme.get_pixbuf("player.png").get_pixbuf()        
-        self.gui.screen_frame_event.add_events(gtk.gdk.ALL_EVENTS_MASK)
-        self.gui.screen.connect("realize", self.init_media_player)
-        self.gui.screen.connect("expose-event", self.screen_expose_event)
-        self.gui.screen.connect("configure-event", self.screen_configure_event)
-        self.gui.screen_frame.connect("expose-event", self.screen_frame_expose_event)
-        self.gui.screen_frame_event.connect("button-press-event", self.screen_frame_event_button_press_event)
-        self.gui.screen_frame_event.connect("button-release-event", self.screen_frame_event_button_release_event)
-        self.gui.screen_frame_event.connect("motion-notify-event", self.screen_frame_event_button_motoin_notify_event)
+        self.__init_double_timer()
+        self.__init_move_window()
+        self.__init_gui_app_events()
+        self.__init_gui_screen()
+        self.__init_gui_plugins() # 初始化界面层组件.
         # show gui window.
         self.gui.app.window.show_all()
 
-    def init_dbus_id(self): # 初始化DBUS ID 唯一值.
+    def __init_dbus_id(self): # 初始化DBUS ID 唯一值.
         dbus_id_list = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time())).split("-")
         dbus_id = ""
         dbus_id_list[0] = random.randint(0, 1000)
@@ -104,7 +78,19 @@ class MediaPlayer(object):
         print "dbus_id:", dbus_id
         self.dbus_id = dbus_id
 
-    def init_double_timer(self):
+    def __init_values(self):
+        self.ldmp = LDMP()
+        self.gui = GUI()        
+        self.play_list = PlayList() 
+        self.gui_plugins = LoadSysPlugins() # 初始化界面层组件.
+        #self.plugin_manage = PluginManage()
+        self.fullscreen_check = False
+        #
+        # self.play_list.set_state(SINGLA_PLAY)
+        self.play_list.append("/home/long/视频/test.mp4")
+        self.argv_path_list = sys.argv # save command argv.        
+
+    def __init_double_timer(self):
         self.interval = 300
         self.timer = Timer(self.interval)
         self.double_check = False
@@ -112,12 +98,48 @@ class MediaPlayer(object):
         self.save_double_y = 0
         self.timer.connect("Tick", self.timer_tick_event)
 
-    def init_move_window(self):
+    def __init_move_window(self):
         self.move_win_check = False
         self.save_move_button = None
         self.save_move_time   = None
         self.save_move_x = 0
         self.save_move_y = 0
+
+    def __init_gui_app_events(self):
+        '''application events init.'''
+        self.gui.app.titlebar.min_button.connect("clicked", self.app_window_min_button_clicked)        
+        self.gui.app.window.connect("destroy", self.app_window_quit)
+        self.gui.app.window.connect("configure-event", self.app_window_configure_event)
+        self.gui.app.window.connect("check-resize", self.app_window_check_resize)
+        # self.app.window.connect("window-state-event", )
+        # self.app.window.connect("leave-notify-event", )
+        # self.app.window.connect("focus-out-event", )
+        # self.app.window.connect("focus-in-event", )
+        # self.app.window.connect("key-press-event", )
+        # self.app.window.connect("key-release-event", )
+        # self.app.window.connect("scroll_event", )
+        # self.app.window.connect("check-resize",)         
+
+    def __init_gui_screen(self):
+        '''screen events init.'''
+        self.draw_check = True
+        self.background = app_theme.get_pixbuf("player.png").get_pixbuf()        
+        self.gui.screen_frame_event.add_events(gtk.gdk.ALL_EVENTS_MASK)
+        self.gui.screen.connect("realize", self.init_media_player)
+        self.gui.screen.connect("expose-event", self.screen_expose_event)
+        self.gui.screen.connect("configure-event", self.screen_configure_event)
+        self.gui.screen_frame.connect("expose-event", self.screen_frame_expose_event)
+        self.gui.screen_frame_event.connect("button-press-event", self.screen_frame_event_button_press_event)
+        self.gui.screen_frame_event.connect("button-release-event", self.screen_frame_event_button_release_event)
+        self.gui.screen_frame_event.connect("motion-notify-event", self.screen_frame_event_button_motoin_notify_event)
+
+    def __init_gui_plugins(self):
+        # 初始化界面组件.
+        for key in self.gui_plugins.plugins_dict.keys():
+            plug = self.gui_plugins.plugins_dict[key]
+            plug.init_values(self)
+            if plug.auto(): # 是否自动运行.
+                plug.start() # 加载界面组件.
 
     def init_plugin_manage(self): # 初始化插件系统.
         # 加载自带插件.
@@ -206,12 +228,11 @@ class MediaPlayer(object):
         # self.ldmp.player.flip_screen = "rotate=2"
         # self.ldmp.player.uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
         #self.ldmp.player.uri = "mms://112.230.192.196/zb10"
-        self.ldmp.player.uri = "http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000202005136AE51C4AD05737ED4888FD0AD-5715-6BCE-6FEB-6CEBD054C4A0?K=e291a95697149570261ce358"        
-        #self.ldmp.player.uri = "/home/long/视频/test.mp4"
+        self.ldmp.player.uri = "/home/long/视频/test.mp4"
         self.ldmp.player.cache_size = 1000
         self.ldmp.play()                
         # 初始化插件系统.
-        self.init_plugin_manage()
+        #self.init_plugin_manage()
         
     def ldmp_get_time_pos(self, ldmp, pos, time):
         # print "pos:", pos
@@ -318,9 +339,23 @@ class MediaPlayer(object):
 
     def double_clicked_connect_function(self):
         print "你双击了............."
+        self.fullscreen_function() # 全屏和退出全屏处理函数.
+
+    def fullscreen_function(self):
+        if not self.fullscreen_check: # 判断是否全屏.
+            self.gui.app.hide_titlebar() # 隐藏标题栏.
+            self.gui_plugins.plugins_dict["ldmp-gui-sys-playlist"].stop() # 隐藏播放列表.
+            self.gui.main_ali.set_padding(0, 0, 0, 0) # 设置下,左右的距离.
+            self.gui.app.window.fullscreen() # 全屏.
+            self.fullscreen_check = True
+        else:
+            self.gui.app.show_titlebar()
+            self.gui_plugins.plugins_dict["ldmp-gui-sys-playlist"].start()
+            self.gui.main_ali.set_padding(0, 2, 2, 2)
+            self.gui.app.window.unfullscreen()
+            self.fullscreen_check = False
 
     def click_connect_function(self):
-        print "你单击了........."
         self.ldmp.pause()
 
     def set_double_bit_false(self):

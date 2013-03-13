@@ -25,9 +25,13 @@ from constant import DEBUG
 import threading
 import gobject        
 import gtk
+import sys
 import gio
 import os
 
+
+def add_sys_path(path):
+    sys.path.append(path)
 
 ########################################################
 ## 打开对话框
@@ -112,6 +116,7 @@ def time_add_zero(time_to):
         time_to = "0" + str(time_to)
     return str(time_to)
 
+# 获取当前用户的目录
 def get_home_path():
     return os.path.expanduser("~")
 
@@ -142,11 +147,6 @@ def size_to_format(size, unit='Byte'): # size 转换成k/b/g/t/p/e->B显示.
     else:
         return size_to_format(size/1024.0, diskunit[diskunit.index(unit) + 1])                
     
-
-def debug_msg(message):
-    if DEBUG:
-        print "'%s'" % (message)
-
         
 ##########################################
 ## 线程扫描目录.  
