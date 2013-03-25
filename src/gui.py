@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2011 ~ 2012 Deepin, Inc.
-#               2011 ~ 2012 Wang Yong
+#               2011 ~ 2012 Hailong Qiu
 # 
-# Author:     Wang Yong <lazycat.manatee@gmail.com>
-# Maintainer: Wang Yong <lazycat.manatee@gmail.com>
+# Author:     Hailong Qiu <lazycat.manatee@gmail.com>
+# Maintainer: Hailong Qiu <lazycat.manatee@gmail.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 from skin import app_theme
 from dtk.ui.application import Application
+from dtk.ui.paned import HPaned
 from locales import _
 import gtk
 
@@ -56,6 +57,7 @@ class GUI(object):
         self.screen_frame.add(self.screen)
         #
         #self.screen_and_play_list_hbox.pack_start(self.screen_frame, True, True)
+        
         self.screen_and_play_list_hbox.pack_start(self.screen_frame_event, True, True)
         #
         self.main_vbox.pack_start(self.screen_and_play_list_hbox, True, True)

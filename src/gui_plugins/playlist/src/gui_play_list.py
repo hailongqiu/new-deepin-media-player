@@ -26,6 +26,7 @@ import gtk
 class GuiPlayList(object):
     def __init__(self):
         self.play_list = gtk.Button("播放列表")
+        self.play_list.set_size_request(150, -1)
      		  
     def init_values(self, this): # 初始化传过来的变量.
         self.gui = this.gui
@@ -40,6 +41,7 @@ class GuiPlayList(object):
         self.gui.screen_and_play_list_hbox.pack_start(self.play_list, False, False)
         self.gui.screen_and_play_list_hbox.show_all()
         print "start plugin..."
+
 		  
     def stop(self): # 关闭插件.
         if len(self.gui.screen_and_play_list_hbox.get_children()) >= 2:
