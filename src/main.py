@@ -28,7 +28,7 @@ from media_service import SomeObject       #
 ############################################
 # Linux Deepin Media Player version v 3.0  #
 ############################################
-gtk.gdk.threads_init()#thread init线程初始化.#
+gtk.gdk.threads_init()#         线程初始化.#
 app = MediaPlayer()                        #
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 session_bus = dbus.SessionBus()            #
@@ -37,5 +37,5 @@ app_ser = SomeObject(session_bus, "/deepin_media_player")
 app_ser.set_dmp(app)                  #
 gtk.main()                                 #
 ############################################
-# Kernel reference Gmtk code.              #
+# The core code reference Gmtk code.       #
 ############################################
