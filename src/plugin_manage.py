@@ -21,7 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from utils import get_home_path
+from widget.utils import get_home_path
 import os
 import sys
 

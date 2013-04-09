@@ -23,7 +23,7 @@
 import os
 import sys
 from mplayer.ini import Config
-from utils import add_sys_path
+from widget.utils import add_sys_path
 
 #
 # 获取 gui_plugins 的绝对路径.

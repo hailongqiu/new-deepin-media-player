@@ -26,7 +26,7 @@ import dtk.ui.tooltip as Tooltip
 from dtk.ui.draw import draw_pixbuf
 from dtk.ui.utils import color_hex_to_cairo
 from locales import _ # 国际化翻译.
-from utils import get_home_path
+from widget.utils import get_home_path
 from plugin_manage import PluginManage
 from load_gui_plugins import LoadSysPlugins
 from gui import GUI # 播放器界面布局.
@@ -63,6 +63,7 @@ class MediaPlayer(object):
         self.__init_gui_plugins() # 初始化界面层组件.
         # show gui window.
         self.gui.app.window.show_all()
+        self.gui.screen.window.set_composited(True)
 
     def __init_dbus_id(self): # 初始化DBUS ID 唯一值.
         dbus_id_list = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time())).split("-")
@@ -229,9 +230,9 @@ class MediaPlayer(object):
         # self.ldmp.player.flip_screen = "mirror"
         # self.ldmp.player.flip_screen = "rotate=2"
         # self.ldmp.player.uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
-        self.ldmp.player.uri = "mms://112.230.192.196/zb10"
-        #self.ldmp.player.uri = "/home/long/视频/test.mp4"
-        self.ldmp.player.cache_size = 1000
+        #self.ldmp.player.uri = "mms://112.230.192.196/zb10"
+        self.ldmp.player.uri = "/home/long/视频/test.mp4"
+        #self.ldmp.player.cache_size = 1000
         self.ldmp.play()                
         # 初始化插件系统.
         #self.init_plugin_manage()
@@ -321,19 +322,20 @@ class MediaPlayer(object):
         new_double_y = int(event.y_root)
         double_width = 5
         # 判断如果点击下去移动了以后的距离,才进行单击和双击.
-        if ((self.save_double_x - double_width <= new_double_x <= self.save_double_x + double_width) and 
-            (self.save_double_y - double_width <= new_double_y <= self.save_double_y + double_width)):
-            if not self.timer.Enabled:
-                self.timer.Interval = self.interval
-                self.timer.Enabled = True
-            else:
-                self.double_check  = True
+        if self.gui.not_in_system_widget():
+            if ((self.save_double_x - double_width <= new_double_x <= self.save_double_x + double_width) and 
+                (self.save_double_y - double_width <= new_double_y <= self.save_double_y + double_width)):
+                if not self.timer.Enabled:
+                    self.timer.Interval = self.interval
+                    self.timer.Enabled = True
+                else:
+                    self.double_check  = True
 
-            if self.timer.Enabled and self.double_check:
-                self.double_clicked_connect_function() # 执行双击的代码.
+                if self.timer.Enabled and self.double_check:
+                    self.double_clicked_connect_function() # 执行双击的代码.
+                    self.set_double_bit_false()
+            else:
                 self.set_double_bit_false()
-        else:
-            self.set_double_bit_false()
             
     def timer_tick_event(self, tick):
         self.click_connect_function() # 执行单击的代码.
@@ -349,30 +351,36 @@ class MediaPlayer(object):
                                ] 
         if not self.fullscreen_check: # 判断是否全屏.
             self.gui.app.hide_titlebar() # 隐藏标题栏.
+            '''
             for plugin_name in gui_plugin_name_list:
                 self.gui_plugins.plugins_dict[plugin_name].stop() # 隐藏界面层组件.
+            '''
             self.gui.main_ali.set_padding(0, 0, 0, 0) # 设置下,左右的距离.
             self.gui.app.window.fullscreen() # 全屏.
             self.fullscreen_check = True
         else:
             self.gui.app.show_titlebar()
+            '''
             for plugin_name in gui_plugin_name_list:
                 self.gui_plugins.plugins_dict[plugin_name].start()
+            '''
             self.gui.main_ali.set_padding(0, 2, 2, 2)
             self.gui.app.window.unfullscreen()
             self.fullscreen_check = False
 
     def click_connect_function(self):
         # 播放控制面板.
-        control_panel = self.gui_plugins.plugins_dict["ldmp-gui-sys-control-panel"].control_panel
-        start_button  = control_panel.start_button
+        #control_panel = self.gui_plugins.plugins_dict["ldmp-gui-sys-control-panel"].control_panel
+        #start_button  = control_panel.start_button
         # 设置播放控制面板的 暂停/播放 按钮的状态.
+        '''
         if self.ldmp.player.state == STARTING_STATE:
             start_button.set_start_bool(True)
             Tooltip.text(start_button, _("Start"))
         elif self.ldmp.player.state == PAUSE_STATE:
             start_button.set_start_bool(False)
             Tooltip.text(start_button, _("Pause"))
+        '''
         # 暂停/继续.
         self.ldmp.pause()
 
@@ -385,15 +393,16 @@ class MediaPlayer(object):
             self.move_window_function(event)
 
     def move_window_function(self, event): # move window 移动窗口.
-        move_width = 5
-        new_move_x = int(event.x_root)
-        new_move_y = int(event.y_root)
-        if not ((self.save_move_x - move_width <= new_move_x <= self.save_move_x + move_width) and 
-            (self.save_move_y - move_width <= new_move_y <= self.save_move_y + move_width)):
-            self.gui.app.window.begin_move_drag(self.save_move_button, 
-                                                self.save_move_x, 
-                                                self.save_move_y, 
-                                                self.save_move_time) 
+        if self.gui.not_in_system_widget():
+            move_width = 5
+            new_move_x = int(event.x_root)
+            new_move_y = int(event.y_root)
+            if not ((self.save_move_x - move_width <= new_move_x <= self.save_move_x + move_width) and 
+                (self.save_move_y - move_width <= new_move_y <= self.save_move_y + move_width)):
+                self.gui.app.window.begin_move_drag(self.save_move_button, 
+                                                    self.save_move_x, 
+                                                    self.save_move_y, 
+                                                    self.save_move_time) 
 
     # 上一曲.
     def prev(self):    
