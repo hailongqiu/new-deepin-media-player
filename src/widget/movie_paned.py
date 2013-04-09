@@ -51,18 +51,15 @@ class Paned(gtk.Bin):
         self.__child2 = None
         self.__child2_move_width = 250
         self.__child2_min_width  = 220
-        self.__save_move_width   = 0
-        self.__move_check = False # 是否移动.
+        self.save_move_width   = 0
+        self.move_check = False # 是否移动paned.
         self.show_check = False # 是否显示handle图片.
         #
         self.__handle = None
         self.__handle_pos_x = self.__child2_move_width
         self.__handle_pos_y = 0
-        self.__handle_pos_w = 8
+        self.__handle_pos_w = 7
         self.__handle_pos_h = self.allocation.height
-        self.__handle_press_check = False
-        self.__handle_move_check  = False
-        self.__handle_move_save_x = 0
         #
         self.in_pixbuf = gtk.gdk.pixbuf_new_from_file("test.png")
         self.out_pixbuf = gtk.gdk.pixbuf_new_from_file("test2.png")
@@ -227,7 +224,8 @@ class Paned(gtk.Bin):
             else:
                 pixbuf = self.in_pixbuf
             self.__handle_pos_h = pixbuf.get_height()
-            y = self.allocation.y + self.allocation.height/2 - self.__handle_pos_h/2
+            #
+            y = 0 + self.allocation.height/2 - self.__handle_pos_h/2
             cr.set_source_pixbuf(pixbuf, 
                                  self.__handle_pos_x - self.__handle_pos_w - 1, 
                                  y)
@@ -238,31 +236,22 @@ class Paned(gtk.Bin):
         if e.window == self.__handle:
             self.show_check = True
             self.queue_draw()
-            #
-            min_x = self.__handle_pos_x 
-            max_x = self.__handle_pos_x + self.__handle_pos_w
-            if not (min_x <= int(e.x) <= max_x):
-                self.__handle_press_check = False
-            if self.__handle_move_check and self.__move_check: 
-                width = self.get_move_width()
-                width_padding = int(e.x) - self.__handle_move_save_x
-                self.set_move_width(width - width_padding)
-                self.__set_all_size()
             return False
         else:
-            min_y = 0
-            max_y = 0 + self.top_win_h
-            min_x = 0
-            max_x = 0 + self.top_window.get_size()[0]
-            if min_y <= int(e.y) <= max_y and min_x <= int(e.x) <= max_x:
+            #
+            if self.__in_top_win(e):
                 if e.window != self.bottom_window:
                     self.top_window.show()
                     self.top_win_show_check = True
-            min_y = 0 + self.allocation.height - self.bottom_win_h
-            max_y = 0 + self.allocation.height 
-            if min_y <= int(e.y) <= max_y and min_x <= int(e.x) <= max_x:
+            else:
+                self.top_window.hide()
+                self.top_win_show_check = False
+            #
+            '''
+            if self.__in_bottom_win(e):
                 self.bottom_window.show()
                 self.bottom_win_show_check = True
+            '''
             #
             self.show_check = False
             self.queue_draw()
@@ -270,24 +259,10 @@ class Paned(gtk.Bin):
 
     def do_button_press_event(self, e):
         #print "do_button_press_event..."
-        if e.window == self.__handle:
-            self.__handle_press_check = True
-            self.__handle_move_check  = True
-            self.__handle_move_save_x = int(e.x)
         return False
 
     def do_button_release_event(self, e):
         #print "do_button_release_event..."
-        if e.window == self.__handle:
-            if self.__handle_press_check:
-                if self.get_move_width() == 0:
-                    self.set_move_width(self.__save_move_width)
-                    self.__set_all_size()
-                else:
-                    self.set_jmp_end()
-                    self.__set_all_size()
-        self.__handle_press_check = False
-        self.__handle_move_check  = False
         return False
 
     def do_enter_notify_event(self, e):
@@ -300,11 +275,28 @@ class Paned(gtk.Bin):
             self.show_check = False
             self.queue_draw()
         elif e.window == self.top_window:
-            self.top_window.hide()
-            self.top_win_show_check = False
+            if not self.__in_top_win(e):
+                self.top_window.hide()
+                self.top_win_show_check = False
+        '''
         elif e.window == self.bottom_window:
             self.bottom_window.hide()
             self.bottom_win_show_check = False
+        '''
+
+    def __in_top_win(self, e):
+        min_y = 0
+        max_y = 0 + self.top_win_h
+        min_x = 0
+        max_x = 0 + self.top_window.get_size()[0]
+        return (min_y <= int(e.y) <= max_y and min_x <= int(e.x) <= max_x)
+
+    def __in_bottom_win(self, e):
+        min_x = 0
+        max_x = 0 + self.top_window.get_size()[0]
+        min_y = 0 + self.allocation.height - self.bottom_win_h
+        max_y = 0 + self.allocation.height 
+        return (min_y <= int(e.y) <= max_y and min_x <= int(e.x) <= max_x)
 
     def do_size_allocate(self, allocation):
         self.allocation = allocation
@@ -312,9 +304,9 @@ class Paned(gtk.Bin):
         self.allocation.x = 0
         self.allocation.y = 0
         # 
-        self.__set_all_size()
+        self.set_all_size()
 
-    def __set_all_size(self):
+    def set_all_size(self):
         if self.flags() & gtk.REALIZED:
             self.window.move_resize(*self.allocation)
         # 左边的控件.
@@ -423,11 +415,11 @@ class Paned(gtk.Bin):
         return self.__child2_move_width
 
     def set_jmp_end(self):
-        self.__save_move_width = self.__child2_move_width
+        self.save_move_width = self.__child2_move_width
         self.__child2_move_width = 0
 
     def set_move_check(self, move_check): # 是否支持移动.
-        self.__move_check = move_check
+        self.move_check = move_check
 
 gobject.type_register(Paned) 
 

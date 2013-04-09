@@ -135,6 +135,8 @@ class MediaPlayer(object):
         self.gui.screen_frame_event.connect("button-press-event", self.screen_frame_event_button_press_event)
         self.gui.screen_frame_event.connect("button-release-event", self.screen_frame_event_button_release_event)
         self.gui.screen_frame_event.connect("motion-notify-event", self.screen_frame_event_button_motoin_notify_event)
+        self.gui.screen_frame_event.connect("leave-notify-event", self.screen_frame_event_leave_notify_event)
+
 
     def __init_gui_plugins(self):
         # 初始化界面组件.
@@ -314,6 +316,9 @@ class MediaPlayer(object):
 
     def screen_frame_event_button_release_event(self, widget, event): # 连接屏幕单击/双击事件.
         if event.button == 1:
+            # setting screen paned handle.
+            self.gui.set_paned_handle(event)
+            # move app window.
             self.run_double_and_click(event)
 
     def run_double_and_click(self, event):
@@ -342,13 +347,15 @@ class MediaPlayer(object):
         self.set_double_bit_false()
 
     def double_clicked_connect_function(self):
-        print "你双击了............."
+        #print "你双击了............."
         self.fullscreen_function() # 全屏和退出全屏处理函数.
 
     def fullscreen_function(self):
+        '''
         gui_plugin_name_list = ["ldmp-gui-sys-playlist", 
                                 "ldmp-gui-sys-control-panel"
                                ] 
+        '''
         if not self.fullscreen_check: # 判断是否全屏.
             self.gui.app.hide_titlebar() # 隐藏标题栏.
             '''
@@ -391,6 +398,10 @@ class MediaPlayer(object):
     def screen_frame_event_button_motoin_notify_event(self, widget, event):
         if self.move_win_check:
             self.move_window_function(event)
+        #
+        if self.__in_bottom_window_check(widget, event):
+            self.gui.screen_paned.bottom_window.show()
+            self.gui.screen_paned.bottom_win_show_check = True
 
     def move_window_function(self, event): # move window 移动窗口.
         if self.gui.not_in_system_widget():
@@ -404,6 +415,21 @@ class MediaPlayer(object):
                                                     self.save_move_y, 
                                                     self.save_move_time) 
 
+    def screen_frame_event_leave_notify_event(self, widget, event):
+        if self.__in_bottom_window_check(widget, event):
+            self.gui.screen_paned.bottom_window.show()
+            self.gui.screen_paned.bottom_win_show_check = True
+        else:
+            self.gui.screen_paned.bottom_window.hide()
+            self.gui.screen_paned.bottom_win_show_check = False
+
+    def __in_bottom_window_check(self, widget, event):
+        min_x = 0
+        max_x = self.gui.screen_paned.top_window.get_size()[0]
+        min_y = widget.allocation.height - self.gui.screen_paned.bottom_win_h
+        max_y = widget.allocation.height
+        return ((min_y <= int(event.y) < max_y) and 
+            (min_x <= int(event.x) < max_x))
     # 上一曲.
     def prev(self):    
         play_file = self.play_list.get_prev_file()

@@ -58,9 +58,13 @@ class GUI(object):
         test_hbox.pack_start(gtk.Button("fdf"), False, False)
         test_hbox.pack_start(gtk.Button("fdf"), False, False)
         self.screen_paned.add_top_widget(test_hbox)
-        '''
-        self.screen_paned.add_bottom_widget()
-        '''
+        test2_hbox = gtk.HBox()
+        test2_hbox.pack_start(gtk.Button("bottom"), False, False)
+        test2_hbox.pack_start(gtk.Button("bottom"), False, False)
+        test2_hbox.pack_start(gtk.Button("bottom"), False, False)
+        test2_hbox.pack_start(gtk.Button("bottom"), False, False)
+        test2_hbox.pack_start(gtk.Button("bottom"), False, False)
+        self.screen_paned.add_bottom_widget(test2_hbox)
         self.screen_frame_event = self.screen_paned
         self.screen_frame = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
         self.screen = gtk.DrawingArea()
@@ -74,9 +78,20 @@ class GUI(object):
         #
         self.app.main_box.pack_start(self.main_ali, True, True)
 
+    ################################################################################
     def not_in_system_widget(self):
         # 判断handle toolbar 是否显示出来了.
         return (not self.screen_paned.show_check and 
                 not self.screen_paned.top_win_show_check and
                 not self.screen_paned.bottom_win_show_check) 
+
+    def set_paned_handle(self, event):
+        if self.screen_paned.show_check and (0 <= event.x <= 7):
+            if self.screen_paned.get_move_width() == 0:
+                self.screen_paned.set_move_width(self.screen_paned.save_move_width)
+                self.screen_paned.set_all_size()
+            else:
+                self.screen_paned.set_jmp_end()
+                self.screen_paned.set_all_size()
+
 
