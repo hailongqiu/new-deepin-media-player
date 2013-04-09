@@ -29,6 +29,9 @@ import gtk
 import sys
 import gio
 import os
+import cairo
+import pangocairo
+import pango
 
 
 def add_sys_path(path):
