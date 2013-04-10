@@ -183,7 +183,10 @@ class ListView(ListViewBase):
 
     def __listview_ctrl_a_event(self):
         #print "__listview_ctrl_a_event..."
-        self.__single_items = self.items[:]
+        if len(self.items) == len(self.__single_items):
+            self.__single_items = []
+        else:
+            self.__single_items = self.items[:]
         self.on_queue_draw_area()
 
     def __init_settings(self):
@@ -209,7 +212,8 @@ class ListView(ListViewBase):
         self.__single_columns_hd  = None
 
     def __init_values_columns(self):
-        self.__columns_padding_height = 30
+        self.__columns_padding_height = 0
+        self.__columns_show_check = False
         self.__move_column_check = False
         self.__save_move_column_x = 0
         self.__save_move_column_index  = 0
@@ -331,6 +335,25 @@ class ListView(ListViewBase):
         else:
             self.__motion_items = None
         #
+        # items 滚动移动..
+        if self.__save_press_items_check:
+            index  = self.__save_press_items_index
+            save_y = self.__save_press_items_y
+            move_y = int(event.y)
+            #
+            scroll_win  = get_match_parent(self, ["ScrolledWindow"])
+            vadjustment = scroll_win.get_vadjustment()
+            if vadjustment:
+                value = vadjustment.get_value()
+                min_y = scroll_win.allocation.y
+                max_y = scroll_win.allocation.y + scroll_win.allocation.height
+                max_value  = vadjustment.get_upper() - vadjustment.get_page_size()
+                if max_value > 0:
+                    if move_y - value < min_y:
+                        vadjustment.set_value(value - self.__items_padding_height)
+                    elif move_y - value > max_y:
+                        vadjustment.set_value(value + self.__items_padding_height)
+
         self.on_queue_draw_area()
 
     def __listview_button_press_event(self, widget, event):
@@ -348,6 +371,7 @@ class ListView(ListViewBase):
             if press_check and press_index != None:
                 self.__save_press_items_index = press_index
                 self.__save_press_items_check = press_check
+                self.__save_press_items_y     = int(event.y)
             
             if move_index != None and move_check:
                 for item in self.__single_items:
@@ -408,6 +432,7 @@ class ListView(ListViewBase):
                 for insert_item in self.__single_items:
                     self.items.remove(insert_item)
                     self.items.add_insert(insert_index, insert_item)
+            self.__save_press_items_check = False
 
     def __listview_enter_notify_event(self, widget, event):
         #print "__listview_enter_enter...notify_event..."
@@ -451,12 +476,13 @@ class ListView(ListViewBase):
         save_rect = rect
         e.cr = cr
         e.rect = (rect.x, 
-                  rect.y + offset_y + self.__items_padding_height, 
+                  rect.y + offset_y + self.__columns_padding_height,
                   rect.width, 
                   rect.height)
         self.on_draw_item(e)
         # 画标题头.
-        self.__draw_view_details_column(offset_y, cr, rect)
+        if self.__columns_show_check:
+            self.__draw_view_details_column(offset_y, cr, rect)
         # 优化listview.
         # 获取滚动窗口.
         scroll_win = get_match_parent(self, "ScrolledWindow")

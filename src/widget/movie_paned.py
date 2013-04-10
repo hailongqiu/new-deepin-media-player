@@ -22,11 +22,14 @@
 
 
 import gtk
+import os
 from gtk import gdk
 import gobject
 from movie_window import MovieWindow
 from color import alpha_color_hex_to_cairo
 #from listview import ListView
+from skin import app_theme
+
 
 
 
@@ -58,11 +61,11 @@ class Paned(gtk.Bin):
         self.__handle = None
         self.__handle_pos_x = self.__child2_move_width
         self.__handle_pos_y = 0
-        self.__handle_pos_w = 7
+        self.__handle_pos_w = 6
         self.__handle_pos_h = self.allocation.height
         #
-        self.in_pixbuf = gtk.gdk.pixbuf_new_from_file("test.png")
-        self.out_pixbuf = gtk.gdk.pixbuf_new_from_file("test2.png")
+        self.in_pixbuf = app_theme.get_pixbuf("paned/in.png").get_pixbuf()
+        self.out_pixbuf = app_theme.get_pixbuf("paned/out.png").get_pixbuf()
 
     def do_realize(self):
         gtk.Bin.do_realize(self)
