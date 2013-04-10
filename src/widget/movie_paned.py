@@ -52,8 +52,8 @@ class Paned(gtk.Bin):
         self.bottom_child = None
         self.__child1 = None
         self.__child2 = None
-        self.__child2_move_width = 250
-        self.__child2_min_width  = 220
+        self.__child2_move_width = 175
+        self.__child2_min_width  = 175
         self.save_move_width   = 0
         self.move_check = False # 是否移动paned.
         self.show_check = False # 是否显示handle图片.
@@ -272,6 +272,7 @@ class Paned(gtk.Bin):
         if e.window == self.__handle:
             self.show_check = True
             self.queue_draw()
+            self.__handle.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
 
     def do_leave_notify_event(self, e):
         if e.window == self.__handle:

@@ -22,6 +22,7 @@
 
 
 
+from skin import app_theme
 from draw import draw_text, draw_pixbuf
 from color import color_hex_to_cairo, alpha_color_hex_to_cairo
 from utils import get_text_size, get_match_parent, get_offset_coordinate
@@ -31,6 +32,7 @@ from listview_base import ListViewBase
 from listview_base import View, Text
 from keymap import get_keyevent_name, ctrl_mask_check, shift_mask_check
 import pango
+import cairo
 import gtk
 
 
@@ -210,6 +212,9 @@ class ListView(ListViewBase):
         #
         self.__motion_columns_hd  = None
         self.__single_columns_hd  = None
+        #
+        self.__drag_rect    = (None, None, None)
+        self.drag_preview_pixbuf = None
 
     def __init_values_columns(self):
         self.__columns_padding_height = 0
@@ -299,9 +304,11 @@ class ListView(ListViewBase):
 
     def __scroll_win_event(self):
         self.on_queue_draw_area()
+        '''
         self.window.process_updates(True)
         self.window.process_updates(True)
         self.on_queue_draw_area()
+        '''
 
     def __listview_motion_notify_event(self, widget, event):
         #print "__listview_motion_notify_event..."
@@ -338,22 +345,53 @@ class ListView(ListViewBase):
         # items 滚动移动..
         if self.__save_press_items_check:
             index  = self.__save_press_items_index
-            save_y = self.__save_press_items_y
-            move_y = int(event.y)
-            #
-            scroll_win  = get_match_parent(self, ["ScrolledWindow"])
-            vadjustment = scroll_win.get_vadjustment()
-            if vadjustment:
-                value = vadjustment.get_value()
-                min_y = scroll_win.allocation.y
-                max_y = scroll_win.allocation.y + scroll_win.allocation.height
-                max_value  = vadjustment.get_upper() - vadjustment.get_page_size()
-                if max_value > 0:
-                    if move_y - value < min_y:
-                        vadjustment.set_value(value - self.__items_padding_height)
-                    elif move_y - value > max_y:
-                        vadjustment.set_value(value + self.__items_padding_height)
+            if self.items[index] in self.__single_items:
+                save_y = self.__save_press_items_y
+                move_y = int(event.y)
+                # 保存画拖动的线的坐标.
+                scroll_win  = get_match_parent(self, ["ScrolledWindow"])
+                vadjustment = scroll_win.get_vadjustment()
+                # set drag icon.
+                #####################################################################
+                if self.drag_preview_pixbuf == None:
+                    width = 180
+                    height = 150
+                    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+                    w = surface.get_width()
+                    h = surface.get_height()
+                    cr = cairo.Context(surface)
+                    item_width = 0
+                    for item in self.__single_items:
+                        draw_text(cr, item.sub_items[0].text, 0, item_width)
+                        item_width += 30
+                        if item_width % 150 == 0:
+                            break
+                    surface.write_to_png("/tmp/drag.png")
 
+                self.drag_preview_pixbuf  = gtk.gdk.pixbuf_new_from_file("/tmp/drag.png")
+                self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.display_get_default(),
+                                                      self.drag_preview_pixbuf,
+                                                      0, 0))
+                ##########################################################################
+                if vadjustment:
+                    value = vadjustment.get_value()
+                    min_y = scroll_win.allocation.y
+                    max_y = scroll_win.allocation.y + scroll_win.allocation.height
+                    max_value  = vadjustment.get_upper() - vadjustment.get_page_size()
+                    if max_value > 0:
+                        if move_y - value < min_y:
+                            vadjustment.set_value(value - self.__items_padding_height)
+                        elif move_y - value > max_y and (row_index < len(self.items)):
+                            vadjustment.set_value(value + self.__items_padding_height)
+                if move_y > save_y:
+                    if row_index == None:
+                        row_index = len(self.items)
+                self.__drag_rect = (row_index,  
+                                    self.__items_padding_height, 
+                                    scroll_win.allocation.width)
+        else:
+            self.window.set_cursor(None)
+        #
         self.on_queue_draw_area()
 
     def __listview_button_press_event(self, widget, event):
@@ -433,6 +471,8 @@ class ListView(ListViewBase):
                     self.items.remove(insert_item)
                     self.items.add_insert(insert_index, insert_item)
             self.__save_press_items_check = False
+            self.__drag_rect = (None, None, None)
+            self.drag_preview_pixbuf = None
 
     def __listview_enter_notify_event(self, widget, event):
         #print "__listview_enter_enter...notify_event..."
@@ -479,6 +519,7 @@ class ListView(ListViewBase):
                   rect.y + offset_y + self.__columns_padding_height,
                   rect.width, 
                   rect.height)
+        e.drag_rect = self.__drag_rect
         self.on_draw_item(e)
         # 画标题头.
         if self.__columns_show_check:
@@ -619,8 +660,14 @@ class ListView(ListViewBase):
     ################################################
     ## @ on_draw_item : 连. 当 owner_draw 设置为真的时候发生.
     def __on_draw_item_hd(self, e):
-        #print "__on_draw_item_hd..."
-        pass
+        #print "__on_draw_item_hd...", e.drag_rect
+        e.cr.set_source_rgba(*alpha_color_hex_to_cairo(("#1f1f1f",1.0)))
+        e.cr.rectangle(*e.rect)
+        e.cr.fill()
+        if e.drag_rect[0] != None:
+            drag_pixbuf = app_theme.get_pixbuf("listview/drag_line.png").get_pixbuf()
+            drag_pixbuf = drag_pixbuf.scale_simple(e.drag_rect[2], 5, gtk.gdk.INTERP_BILINEAR)
+            draw_pixbuf(e.cr, drag_pixbuf, 0, e.drag_rect[0] * e.drag_rect[1])
 
     @property
     def on_draw_item(self, e):
@@ -644,23 +691,32 @@ class ListView(ListViewBase):
     def __on_draw_sub_item_hd(self, e):
         if e.double_items == e.item:
             e.text_color = "#0000FF"
-            text_size=10
+            text_size=9
+            e.cr.set_source_rgba(0, 0, 0, 0.5)
+            e.cr.rectangle(e.x, e.y, e.w, e.h)
+            e.cr.fill()
         elif e.item in e.single_items:
             e.text_color = "#00FF00"
-            text_size=10
+            text_size=9
+            e.cr.set_source_rgba(0, 0, 0, 0.5)
+            e.cr.rectangle(e.x, e.y, e.w, e.h)
+            e.cr.fill()
         elif e.motion_items == e.item:
             e.text_color  = "#FF0000"
-            text_size=12
+            text_size=9
+            e.cr.set_source_rgba(0, 0, 0, 0.5)
+            e.cr.rectangle(e.x, e.y, e.w, e.h)
+            e.cr.fill()
         else:
-            e.text_color = "#000000"
-            text_size=10
+            e.text_color = "#FFFFFF"
+            text_size=9
 
         e.draw_text(e.cr, 
                   str(e.text), 
-                  e.x, e.y, e.w, e.h,
+                  e.x + 10, e.y, e.w, e.h,
                   text_color=e.text_color, 
                   text_size=text_size,
-                  alignment=Text.CENTER)
+                  alignment=Text.LEFT)
         
     @property
     def on_draw_sub_item(self, e):
@@ -683,7 +739,7 @@ class ListView(ListViewBase):
         # 设置listview的高度和宽度.
         rect = self.allocation
         listview_height =  (len(self.items)) * self.__items_padding_height + self.__columns_padding_height
-        listview_width  =  138 # 额外添加 188 的宽度.
+        listview_width  =  0 #138 # 额外添加 188 的宽度.
         for column in self.columns:
             listview_width += column.width 
         if (rect.height != listview_height) or (rect.width != listview_width):
@@ -811,6 +867,7 @@ class ItemEventArgs(object):
         self.state   = 0 # 状态.
         # item.
         self.item    = None
+        self.drag_rect = None
         # Bounds
         self.x =  0
         self.y =  0
@@ -880,6 +937,9 @@ if __name__ == "__main__":
         elif e.motion_columns == e.column:
             e.cr.set_source_rgba(*alpha_color_hex_to_cairo(("#0000FF", 0.1)))
             e.text_color = "#0000FF"
+            e.cr.set_source_rgba(0, 0, 1, 0.1)
+            e.cr.rectangle(e.x, e.y, e.w, e.h)
+            e.fill()
         else:
             e.cr.set_source_rgba(*alpha_color_hex_to_cairo(("#FF00FF", 0.1)))
             e.text_color = "#FF00FF"
@@ -898,7 +958,6 @@ if __name__ == "__main__":
         #
 
     def listview1_test_on_draw_sub_item(e):
-
         if e.double_items == e.item:
             e.text_color = "#0000FF"
             text_size=10
@@ -908,8 +967,11 @@ if __name__ == "__main__":
         elif e.motion_items == e.item:
             e.text_color  = "#FF0000"
             text_size=12
+            e.cr.set_source_rgba(0, 0, 0, 0.5)
+            e.cr.rectangle(e.x, e.y, e.w, e.h)
+            e.cr.fill()
         else:
-            e.text_color = "#000000"
+            e.text_color = "#FFFFFF"
             text_size=10
 
         e.draw_text(e.cr, 
@@ -919,10 +981,9 @@ if __name__ == "__main__":
                   text_size=text_size,
                   alignment=Text.CENTER)
 
+
     def listview1_test_on_draw_item(e):
-        e.cr.set_source_rgba(0, 0, 0, 0.5)
-        e.cr.rectangle(*e.rect)
-        e.cr.fill()
+        pass
 
     def test_listview_double_items(listview, double_items, row, col, item_x, item_y):
         #print double_items.sub_items[0], row, col, item_x, item_y
@@ -971,9 +1032,9 @@ if __name__ == "__main__":
     #listview1.items_height = 130
     #listview1.columns_height = 150
     # 连接主要绘制函数.
-    listview1.on_draw_column_heade =  listview1_test_on_draw_column_heade
-    listview1.on_draw_sub_item     =  listview1_test_on_draw_sub_item
-    listview1.on_draw_item = listview1_test_on_draw_item
+    #listview1.on_draw_column_heade =  listview1_test_on_draw_column_heade
+    #listview1.on_draw_sub_item     =  listview1_test_on_draw_sub_item
+    #listview1.on_draw_item = listview1_test_on_draw_item
     listview1.columns.add("姓名")
     listview1.columns.add_range(["性别", "职业", "国籍", "企业", "前景", "背景",
                                  "性别", "职业", "国籍", "企业", "前景", "背景",
@@ -989,6 +1050,7 @@ if __name__ == "__main__":
                               ["linus", "男", "内核开发", "荷兰"]])
     #
     scroll_win = gtk.ScrolledWindow()
+    scroll_win.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
     scroll_win.add_with_viewport(listview1)
     vbox = gtk.VBox()
     test_btn = gtk.Button("test")

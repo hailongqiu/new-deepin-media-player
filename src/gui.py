@@ -4,8 +4,8 @@
 # Copyright (C) 2011 ~ 2012 Deepin, Inc.
 #               2011 ~ 2012 Hailong Qiu
 # 
-# Author:     Hailong Qiu <lazycat.manatee@gmail.com>
-# Maintainer: Hailong Qiu <lazycat.manatee@gmail.com>
+# Author:     Hailong Qiu <356752238@qq.com>
+# Maintainer: Hailong Qiu <356752238@qq.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ from skin import app_theme
 from dtk.ui.application import Application
 from widget.movie_paned import Paned
 from widget.movie_window import MovieWindow
+from playlistview import PlayListView
 from locales import _
 import gtk
 
@@ -50,35 +51,28 @@ class GUI(object):
         self.main_ali.set_padding(0, 2, 2, 2)
         '''movie screen. 电影播放屏幕.'''
         # 播放屏幕和播放列表的HBOX.
+        self.play_list_view = PlayListView()
         self.screen_paned = Paned()
-        test_hbox = gtk.HBox()
-        test_hbox.pack_start(gtk.Button("fdf"), False, False)
-        test_hbox.pack_start(gtk.Button("fdf"), False, False)
-        test_hbox.pack_start(gtk.Button("fdf"), False, False)
-        test_hbox.pack_start(gtk.Button("fdf"), False, False)
-        test_hbox.pack_start(gtk.Button("fdf"), False, False)
-        self.screen_paned.add_top_widget(test_hbox)
-        test2_hbox = gtk.HBox()
-        test2_hbox.pack_start(gtk.Button("bottom"), False, False)
-        test2_hbox.pack_start(gtk.Button("bottom"), False, False)
-        test2_hbox.pack_start(gtk.Button("bottom"), False, False)
-        test2_hbox.pack_start(gtk.Button("bottom"), False, False)
-        test2_hbox.pack_start(gtk.Button("bottom"), False, False)
-        self.screen_paned.add_bottom_widget(test2_hbox)
-        self.screen_frame_event = self.screen_paned
         self.screen_frame = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
         self.screen = gtk.DrawingArea()
         self.screen_frame.add(self.screen)
+        '''
+        self.screen_paned.add_top_widget()
+        self.screen_paned.add_bottom_widget()
+        '''
         #
+        self.screen_frame_event = self.screen_paned
         self.screen_paned.screen = self.screen
+        #
         self.screen_paned.add1(self.screen_frame)
-        self.screen_paned.add2(gtk.Button("播放列表"))
+        self.screen_paned.add2(self.play_list_view.play_list_vbox)
         #
         self.main_vbox.pack_start(self.screen_paned, True, True)
         #
         self.app.main_box.pack_start(self.main_ali, True, True)
 
     ################################################################################
+
     def not_in_system_widget(self):
         # 判断handle toolbar 是否显示出来了.
         return (not self.screen_paned.show_check and 
