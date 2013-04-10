@@ -424,12 +424,13 @@ class MediaPlayer(object):
             self.gui.screen_paned.bottom_win_show_check = False
 
     def __in_bottom_window_check(self, widget, event):
-        min_x = 0
-        max_x = self.gui.screen_paned.top_window.get_size()[0]
-        min_y = widget.allocation.height - self.gui.screen_paned.bottom_win_h
-        max_y = widget.allocation.height
-        return ((min_y <= int(event.y) < max_y) and 
-            (min_x <= int(event.x) < max_x))
+        if event.window == self.gui.screen_paned.window:
+            min_x = 0
+            max_x = self.gui.screen_paned.top_window.get_size()[0]
+            min_y = widget.allocation.height - self.gui.screen_paned.bottom_win_h
+            max_y = widget.allocation.height
+            return ((min_y <= int(event.y) < max_y) and 
+                (min_x <= int(event.x) < max_x))
     # 上一曲.
     def prev(self):    
         play_file = self.play_list.get_prev_file()

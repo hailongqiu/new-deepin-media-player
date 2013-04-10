@@ -535,7 +535,7 @@ class ListView(ListViewBase):
         end_y   = offset_y + viewport.allocation.height - self.__columns_padding_height
         #start_index  = max(start_y / self.__items_padding_height, 0)
         start_index  = max(int(scroll_win.get_vadjustment().get_value() / self.__items_padding_height), 0)
-        end_index    = (start_index + (scroll_rect_h - self.__columns_padding_height)/ self.__items_padding_height) + 1
+        end_index    = (start_index + (scroll_rect_h - self.__columns_padding_height)/ self.__items_padding_height) + 2
         # 
         # 剪切出绘制items的区域,防止绘制到标题头上.
         cr.save()

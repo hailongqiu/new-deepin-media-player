@@ -240,7 +240,7 @@ class Paned(gtk.Bin):
             self.show_check = True
             self.queue_draw()
             return False
-        else:
+        if e.window == self.window:
             #
             if self.__in_top_win(e):
                 if e.window != self.bottom_window:
@@ -256,6 +256,7 @@ class Paned(gtk.Bin):
                 self.bottom_win_show_check = True
             '''
             #
+        else:
             self.show_check = False
             self.queue_draw()
         return False
