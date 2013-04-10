@@ -88,7 +88,10 @@ class ListView(ListViewBase):
                     self.on_queue_draw_area()
                     # 滚动窗口.
                     if row_index + 1 == end_index:
-                        vadjustment.set_value(value + self.__items_padding_height)
+                        if row_index == len(self.items) - 1:
+                            self.__listview_end_event()
+                        else:
+                            vadjustment.set_value(value + self.__items_padding_height)
     
     def __listview_up_event(self):
         #print "__listview_up_event.."

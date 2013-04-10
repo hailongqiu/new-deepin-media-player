@@ -24,7 +24,7 @@ from skin import app_theme
 from dtk.ui.application import Application
 from widget.movie_paned import Paned
 from widget.movie_window import MovieWindow
-from playlistview import PlayListView
+from widget.playlistview import PlayListView
 from locales import _
 import gtk
 
