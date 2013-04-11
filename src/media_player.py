@@ -118,10 +118,14 @@ class MediaPlayer(object):
         # self.app.window.connect("leave-notify-event", )
         # self.app.window.connect("focus-out-event", )
         # self.app.window.connect("focus-in-event", )
-        # self.app.window.connect("key-press-event", )
+        self.gui.app.window.connect("key-press-event", self.app_window_key_press_event)
         # self.app.window.connect("key-release-event", )
         # self.app.window.connect("scroll_event", )
         # self.app.window.connect("check-resize",)         
+
+    def app_window_key_press_event(self, widget, event):
+        if event.keyval == 32:
+            self.ldmp.pause()
 
     def __init_gui_screen(self):
         '''screen events init.'''

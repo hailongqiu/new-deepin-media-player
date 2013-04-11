@@ -371,10 +371,11 @@ class ListView(ListViewBase):
                             break
                     surface.write_to_png("/tmp/drag.png")
 
-                self.drag_preview_pixbuf  = gtk.gdk.pixbuf_new_from_file("/tmp/drag.png")
-                self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.display_get_default(),
-                                                      self.drag_preview_pixbuf,
-                                                      0, 0))
+                if self.window.get_cursor() == None:
+                    self.drag_preview_pixbuf  = gtk.gdk.pixbuf_new_from_file("/tmp/drag.png")
+                    self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.display_get_default(),
+                                                          self.drag_preview_pixbuf,
+                                                          0, 0))
                 ##########################################################################
                 if vadjustment:
                     value = vadjustment.get_value()

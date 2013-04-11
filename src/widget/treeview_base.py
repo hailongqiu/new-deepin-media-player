@@ -33,8 +33,6 @@ class TreeViewBase(gtk.Container):
         self.__init_values()
 
     def __init_values(self):
-        self.nodes = Nodes()
-        self.nodes.connect("update-data", self.__nodes_update_data_event)
         #self.add_events(gtk.gdk.ALL_EVENTS_MASK)
         #
         self.header_height = 35
@@ -44,9 +42,6 @@ class TreeViewBase(gtk.Container):
 
     def __init_values_columns(self):
         self.columns = []
-
-    def __nodes_update_data_event(self, nodes):
-        print "__nodes_update_data_event..."
         
     def do_map(self):
         print "do..map.."
@@ -223,7 +218,7 @@ class TreeViewBase(gtk.Container):
         pass
 
     def do_size_allocate(self, allocation):
-        print "do_size_allocate...", allocation
+        print "do_size_allocate..."
         gtk.Container.do_size_allocate(self, allocation)
         for child in self.children():
             allocation = gdk.Rectangle()
@@ -258,58 +253,15 @@ gobject.type_register(TreeViewBase)
 
 
 
-class Nodes(list):
+class Node(list):
     def __init__(self):
-        list.__init__(self)
-        self.__init_values()
-
-
-    def __init_values(self):
-        self.__function_point = None
-        self.text = ""
-
-    def add(self, list):
-        nodes = Nodes()
-        nodes.connect("update-data", self.__nodes_update_data_event)
-        nodes.text = list
-        self.append(nodes)
-        self.emit()
-
-    def __nodes_update_data_event(self, nodes):
-        self.emit()
-
-    def add_range(self, lists):
-        self.__add_range_function(lists)
-        self.emit()
-
-    def __add_range_function(self, lists):
+        Node.__init__(self)
         pass
-
-    def connect(self, event_name, function_point):
-        if event_name == "update-data":
-            self.__function_point = function_point
-
-    def emit(self):
-        if self.__function_point:
-            self.__function_point(self)
-        
-
 
 if __name__ == "__main__":
     win = gtk.Window(gtk.WINDOW_TOPLEVEL)
     win.set_size_request(300, 300)
     treeview_base = TreeViewBase()
-    # root 节点.
-    treeview_base.nodes.text = "root"
-    # root1.
-    treeview_base.nodes.add("root1")
-    treeview_base.nodes[0].add("root1-1")
-    treeview_base.nodes[0].add("root1-2")
-    treeview_base.nodes[0].add("root1-3")
-    treeview_base.nodes[0][0].add("root1-1-1")
-    treeview_base.nodes[0][0].add("root1-1-2")
-    print treeview_base.nodes[0][0][0].text
-    #########################################
     treeview_base.set_size_request(1500, 1500)
     scroll_win = gtk.ScrolledWindow()
     scroll_win.add_with_viewport(treeview_base)
