@@ -44,7 +44,7 @@ class PlayListView(object):
         self.list_view.columns[1].width = 75
         #
         self.scroll_win.add_with_viewport(self.list_view)
-        self.play_list_vbox.pack_start(gtk.Button("网络列表"), False, False)
+        #self.play_list_vbox.pack_start(gtk.Button("网络列表"), False, False)
         self.play_list_vbox.pack_start(self.scroll_win, True, True)
         #
         #
