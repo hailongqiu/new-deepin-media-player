@@ -24,11 +24,16 @@
 
 from utils import get_match_parent
 from utils import propagate_expose
+from draw  import draw_text, draw_pixbuf
+from utils import get_text_size
 import gtk
 from gtk import gdk
 import gobject
 import random
 
+
+def type_check(type_name, type_str):
+    return type(type_name).__name__ == type_str
 
 class TreeViewChild(object):
     widget = None
@@ -47,13 +52,35 @@ class TreeViewBase(gtk.Container):
         #
         self.header_height = 35
         self.node_height = 35
+        #
         self.children = []
+        #
+        self.__nodes_list = []
         self.nodes = Nodes()
         self.nodes.connect("update-data", self.__nodes_update_data_event)
+        self.nodes.connect("added-data",  self.__nodes_added_data_event)
+        self.nodes.connect("remove-data", self.__nodes_remove_data_event)
         self.__init_values_columns()
 
-    def __nodes_update_data_event(self, nodes):
-        print "__nodes_update_data_event..."
+    def __nodes_update_data_event(self, node):
+        # 当有数据更新时,进行重绘.
+        print "__nodes_update_data_event... nodes;", node.text
+
+    def __nodes_added_data_event(self, node):
+        # 添加数据更新树型结构的映射列表.
+        if node.parent == self.nodes:
+            self.__nodes_list.append(node.nodes)
+        else:
+            parent = node.parent
+            node_to_parent_index = parent.index(node)
+            parent_to_list_index = self.__nodes_list.index(parent)
+            self.__nodes_list.insert(parent_to_list_index + node_to_parent_index,
+                                     node.nodes)
+        
+
+    def __nodes_remove_data_event(self, node):
+        # 当有数据删除时,更新映射列表.
+        print "__nodes_remove_data_event...: 删除-->", node.text
 
     def __init_values_columns(self):
         self.columns = []
@@ -126,16 +153,12 @@ class TreeViewBase(gtk.Container):
     def do_expose_event(self, e):
         gtk.Container.do_expose_event(self, e)
         if e.window == self.window:
-            cr = self.window.cairo_create()
-            cr.set_source_rgba(0, 0, 1, 0.1)
-            cr.rectangle(0, 0 + self.index * self.node_height, self.allocation.width, self.node_height)
-            cr.fill()
-        #propagate_expose(self, e)
+            pass
         #
         return False
 
     def do_motion_notify_event(self, e):
-        print "do--mo--no--ev", e.x
+        #print "do--mo--no--ev", e.x
         if e.window == self.window:
             self.index = int(e.y) / self.node_height
             self.queue_draw()
@@ -143,27 +166,63 @@ class TreeViewBase(gtk.Container):
 
     def do_button_press_event(self, e):
         print "do_button_press_event..."
+        self.__save_y = 0
+        self.__save_node = None
+        self.__end_node  = None
+        node = self.__get_tree_view_nodes_data(e, self.nodes)
+        if node:
+            print "找到了:", node.text, node.leave
+        #print "node:", node.text
+
         return False
+
+    def __get_tree_view_nodes_data(self, e, nodes):
+        index = int(e.y / self.node_height)
+        for node in nodes:
+            print node
+            if int(self.__save_y / self.node_height) == index:
+                #print "node.text:", node.text
+                #self.__save_node = node
+                return node
+            if node.is_expanded:
+                if node.nodes:
+                    self.__save_y += self.node_height
+                    node = self.__get_tree_view_nodes_data(e, node.nodes)
+                    if node:
+                        return node
+                else:
+                    self.__save_y += self.node_height
+            else:
+                self.__save_y += self.node_height
 
     def do_button_release_event(self, e):
         print "do_button_release_event..."
         return False
 
     def do_enter_notify_event(self, e):
-        print "do_enter_notify_event..."
+        #print "do_enter_notify_event..."
         return False
 
     def do_leave_notify_event(self, e):
-        print "do_leave_notify_event..."
+        #print "do_leave_notify_event..."
         return False
 
+    def do_key_press_event(self, e):
+        print "do_key_press_event..."
+
+    def do_key_release_event(self, e):
+        print "do_key_release_event..."
+
     def do_size_request(self, req):
+        '''
         for child in self.children:
             child.widget.size_request()
+        '''
 
     def do_size_allocate(self, allocation):
         print "do_size_allocate..."
         gtk.Container.do_size_allocate(self, allocation)
+        '''
         for child in self.children:
             allocation = gdk.Rectangle()
             allocation.x  = child.x
@@ -171,6 +230,7 @@ class TreeViewBase(gtk.Container):
             allocation.width = child.w 
             allocation.height = child.h 
             child.widget.size_allocate(allocation)
+        '''
         #
         if self.get_realized():
             self.window.move_resize(
@@ -179,15 +239,25 @@ class TreeViewBase(gtk.Container):
                     self.allocation.width,
                     self.allocation.height)
 
+    def do_show(self):
+        gtk.Container.do_show(self)
+        #self.edit_entry.set_visible(False)
+
     def do_destroy(self):
         print "do_destroy..."
 
     def do_forall(self, include_internals, callback, data):
+        '''
         for child in self.children:
             callback(child.widget, data)
+        '''
+        pass
 
     def add_widget(self, child, x=0, y=0, w=0, h=0):
-        child.set_parent(self)
+        if self.window:
+            child.set_parent_window(self.window)
+        else:
+            child.set_parent(self)
         tree_view_child = TreeViewChild()
         tree_view_child.widget = child
         tree_view_child.x = x
@@ -199,12 +269,21 @@ class TreeViewBase(gtk.Container):
 gobject.type_register(TreeViewBase)
 
 
+class NodesEvent(object):
+    def __init__(self):
+        self.cr = None
+        self.x  = 0
+        self.y  = 0
+        self.w  = 0
+        self.h  = 0
+        self.node = None
+
 
 class Nodes(list):
     def __init__(self):
         list.__init__(self)
         self.this = None
-        self.__function_point = None
+        self.__function_dict = {}
 
     def add(self, text):
         node = Node()
@@ -213,30 +292,47 @@ class Nodes(list):
         if self.this:
             node.leave  = self.this.leave + 1
         node.connect("update-data", self.__node_update_data_event)
+        node.connect("added-data",  self.__node_added_data_event)
+        node.connect("remove-data", self.__node_remove_data_event)
         self.append(node)
-        self.emit()
+        self.emit("added-data", node)
         return node
 
+    def delete(self, node):
+        self.remove(node)
+        self.emit("remove-data", node)
+        for child_node in node.nodes:
+            node.nodes.delete(child_node)
+
     def __node_update_data_event(self, node):
-        self.emit()
+        self.emit("update-data", node)
+
+    def __node_added_data_event(self, node):
+        self.emit("added-data", node)
+
+    def __node_remove_data_event(self, node):
+        self.emit("remove-data", node)
 
     def connect(self, event_name, function_point):
-        if event_name == "update-data":
-            self.__function_point = function_point
+        self.__function_dict[event_name] = function_point
 
-    def emit(self):
-        if self.__function_point:
-            self.__function_point(self)
+    def emit(self, event_name, *arg):
+        if self.__function_dict.has_key(event_name):
+            self.__function_dict[event_name](*arg)
 
 class Node(object):
     def __init__(self):
-        self.__function_point = None
+        self.__function_dict = {}
         self.text  = ""
+        #self.sub_items = SubItems()
+        self.__pixbuf      = None
         self.children = []
         #
         self.nodes = Nodes()
         self.nodes.this = self
         self.nodes.connect("update-data", self.__nodes_update_data_event)
+        self.nodes.connect("added-data",  self.__nodes_added_data_event)
+        self.nodes.connect("remove-data", self.__nodes_remove_data_event)
         #
         self.parent = None # 获取当前树节点的夫节点.
         self.leave  = 0    # 树的深度,不懂的看数据结构.
@@ -246,25 +342,47 @@ class Node(object):
         self.__prev_node  = []   # 获取上一个同级节点.
         self.__index      = None # 获取树节点在树节点集合中的位置.
         ####################
-        self.is_editing  = False # 是否可编辑状态.
-        self.is_expanded = False # 是否展开状态.
+        self.is_expanded = True # 是否展开状态.
         self.is_selected = False # 是否选中状态.
-        self.is_visible  = False # 是否可见.
+        self.is_editing  = False # 是否可编辑状态.
+        ####################
         self.node_font   = None  # 字体.
-        self.image       = None
         self.next_visible_node = None # 获取下一个可见树节点.
-
+        self.is_visible  = True # 是否可见.
 
     def __nodes_update_data_event(self, nodes):
-        self.emit()
+        self.emit("update-data", nodes)
+
+    def __nodes_added_data_event(self, nodes):
+        self.emit("added-data", nodes)
+
+    def __nodes_remove_data_event(self, nodes):
+        self.emit("remove-data", nodes)
 
     def connect(self, event_name, function_point):
-        if event_name == "update-data":
-            self.__function_point = function_point
+        self.__function_dict[event_name] = function_point
 
-    def emit(self):
-        if self.__function_point:
-            self.__function_point(self)
+    def emit(self, event_name, *arg):
+        if self.__function_dict.has_key(event_name):
+            self.__function_dict[event_name](*arg)
+
+    '''
+    def add_widget(self, child_widget):
+        self.children.append(child_widget)
+    '''
+
+    @property
+    def text(self):
+        return self.__text
+
+    @text.setter
+    def text(self, text):
+        self.__text = text
+        self.emit("update-data", self)
+
+    @text.getter
+    def text(self):
+        return self.__text
 
     @property
     def last_node(self):
@@ -299,7 +417,6 @@ class Node(object):
         # 获取上一个同级节点.
         if self.parent:
             index = self.parent.index(self)
-            print "prev index:", index
             if index:
                 node = self.parent[index - 1]
                 self.__prev_node = node
@@ -315,7 +432,6 @@ class Node(object):
     def next_node(self):
         if self.parent:
             index = self.parent.index(self)
-            print "next index:", index
             if index < len(self.parent) - 1:
                 node = self.parent[index + 1]
                 self.__next_node = node
@@ -337,43 +453,52 @@ class Node(object):
             return _index
         return None
 
+    @property
+    def pixbuf(self):
+        return self.__pixbuf
 
+    @pixbuf.getter
+    def pixbuf(self):
+        return self.__pixbuf
+
+    @pixbuf.setter
+    def pixbuf(self, pixbuf):
+        self.__pixbuf = pixbuf
+        #self.emit()
+
+    @pixbuf.deleter
+    def pixbuf(self, pixbuf):
+        del self.__pixbuf
 
 
 if __name__ == "__main__":
     win = gtk.Window(gtk.WINDOW_TOPLEVEL)
     win.set_size_request(300, 300)
     treeview_base = TreeViewBase()
-    treeview_base.add_widget(gtk.Button("fjkdsf"))
-    treeview_base.add_widget(gtk.Button("fjkdsf"))
-    treeview_base.add_widget(gtk.Button("fjkdsf"))
-    treeview_base.add_widget(gtk.Entry(), x=0, y=35)
-    treeview_base.add_widget(gtk.CheckButton(label="fjdskf"), x=100, y=35)
-    treeview_base.add_widget(gtk.CheckButton(label="fjdskf"), x=180, y=35)
-    treeview_base.add_widget(gtk.CheckButton(label="fjdskf"), x=0, y=35*2)
-    test_combo = gtk.combo_box_new_text()
-    test_combo.append_text("option1 ")
-    test_combo.append_text("option1 ")
-    test_combo.append_text("option1 ")
-    test_combo.append_text("option1 ")
-    test_widget = gtk.HScale()
-    test_widget.set_range(0, 100)
-    test_image = gtk.Image()
-    test_image.set_from_file("logo.png")
-    treeview_base.add_widget(test_combo, x=100, y=35*2)
-    treeview_base.add_widget(test_widget, x=200, y=35*2)
-    treeview_base.add_widget(test_image, x=280, y=35*2)
-    treeview_base.set_size_request(1500, 1500)
+    treeview_base.set_size_request(1500, 15000)
     scroll_win = gtk.ScrolledWindow()
     #
     node1 = treeview_base.nodes.add("root1")
     node2 = treeview_base.nodes.add("root2")
     node3 = treeview_base.nodes.add("root3")
     node4 = treeview_base.nodes.add("root4")
+    '''
+    for i in range(1, 30000):
+        treeview_base.nodes.add("root" + str(i))
+    '''
     node1_1 = node1.nodes.add("roo1-1")
     node1_2 = node1.nodes.add("roo1-2")
     node1_3 = node1.nodes.add("roo1-3")
     node1_1_1 = node1_1.nodes.add("root1-1-1")
+    node1_1_2 = node1_1.nodes.add("root1-1-2")
+    node1_2_1 = node1_2.nodes.add("root1-2-1")
+    node1_4 = node1.nodes.add("roo1-4")
+    node1_5 = node1.nodes.add("roo1-5")
+    print node1.nodes[1].next_node.text
+    print node1.nodes[1].prev_node.text
+    node1.nodes[1].text = "fjdskf"
+    treeview_base.nodes.delete(node1)
+    #
     #
     scroll_win.add_with_viewport(treeview_base)
     win.add(scroll_win)
