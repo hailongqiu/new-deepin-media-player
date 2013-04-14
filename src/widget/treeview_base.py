@@ -23,9 +23,10 @@
 
 
 from utils import get_match_parent
-from utils import propagate_expose
-from draw  import draw_text, draw_pixbuf
+#from utils import propagate_expose
 from utils import get_text_size
+from draw  import draw_text, draw_pixbuf
+from color import alpha_color_hex_to_cairo, color_hex_to_cairo
 import gtk
 from gtk import gdk
 import gobject
@@ -48,14 +49,18 @@ class TreeViewBase(gtk.Container):
         self.__init_values()
 
     def __init_values(self):
-        self.index = 0
         self.add_events(gtk.gdk.ALL_EVENTS_MASK)
         #
         self.header_height = 35
-        self.node_height = 35
+        self.node_height   = 35
+        self.leave_width   = 20
         #
         self.children = []
         #
+        self.paint_nodes_event = self.__paint_nodes_event
+        self.paint_nodes_background = self.__paint_nodes_background
+        #
+        self.__function_dict = {}
         self.__nodes_list = []
         self.nodes = Nodes()
         self.nodes.connect("update-data", self.__nodes_update_data_event)
@@ -66,12 +71,15 @@ class TreeViewBase(gtk.Container):
 
     def __nodes_update_data_event(self, node):
         # 当有数据更新时,进行重绘.
-        print "__nodes_update_data_event... nodes;", node.text
+        # 判断是否在重绘的区域内,如果不是,只设置数据.
+        if self.tree_view_find_node_in_draw_area(node):
+            self.tree_view_queue_draw_area()
 
     def __nodes_added_data_event(self, node):
         # 添加数据更新树型结构的映射列表.
         if node.parent == self.nodes:
-            self.__nodes_list.append(node.nodes)
+            self.__nodes_list.append(node)
+            self.__tree_view_set_add_size()
        
     def __nodes_is_expanded_event(self, node):
         #print "__nodes_is_expanded_event", node.text
@@ -88,7 +96,6 @@ class TreeViewBase(gtk.Container):
                 else:
                     for child_node in node.nodes:
                         self.__nodes_add_data(child_node)
-                        #child_node.is_expanded = True
         elif not node.is_expanded:
             for flase_child_node in node.nodes:
                 flase_child_node.is_expanded = False
@@ -97,24 +104,42 @@ class TreeViewBase(gtk.Container):
     def __nodes_add_data(self, node):
         parent = node.parent
         node_to_parent_index = parent.index(node)
-        parent_to_list_index = self.__nodes_list.index(parent)
+        parent_to_list_index = self.__nodes_list.index(parent.this)
         index = parent_to_list_index + node_to_parent_index + 1
-        self.__nodes_list.insert(index, node.nodes)
+        self.__nodes_list.insert(index, node)
+        self.__tree_view_set_add_size()
 
     def __nodes_remove_data(self, node):
-        parent = node.parent
-        node_to_parent_index = parent.index(node)
-        parent_to_list_index = self.__nodes_list.index(parent)
-        index = parent_to_list_index + 1
+        index = self.__nodes_list.index(node)
         self.__nodes_list.pop(index)
+        self.__tree_view_set_remove_size()
+
+    def __tree_view_set_add_size(self):
+        size = self.get_size_request()
+        self.set_size_request(size[0], size[1] + self.node_height)
+
+    def __tree_view_set_remove_size(self):
+        size = self.get_size_request()
+        self.set_size_request(size[0], size[1] - self.node_height)
 
     def __nodes_remove_data_event(self, node):
         # 当有数据删除时,更新映射列表.
-        print "__nodes_remove_data_event...: 删除-->", node.text
-        #print self.__nodes_list[6].this.text
+        print "remove............", node.text
+        if node in self.__nodes_list:
+            self.__nodes_list.remove(node)
+        # 判断删除的数据是否在重绘区域,如果不是,不进行重绘.
+        if self.tree_view_find_node_in_draw_area(node):
+            self.tree_view_queue_draw_area()
 
     def __init_values_columns(self):
         self.columns = []
+
+    def connect_event(self, event_name, function_potion):
+        self.__function_dict[event_name] = function_point
+
+    def emit(self, event_name, *arg):
+        if self.__function_dict.has_key(event_name):
+            self.__function_dict[event_name](*arg)
         
     def do_map(self):
         print "do..map.."
@@ -144,7 +169,7 @@ class TreeViewBase(gtk.Container):
         self.queue_resize()
 
     def __list_view_adjustments_changed(self, adjustments):
-        pass
+        self.tree_view_queue_draw_area()
 
     def __init_window(self):
         self.window = gdk.Window(
@@ -185,36 +210,116 @@ class TreeViewBase(gtk.Container):
         gtk.Container.do_expose_event(self, e)
         if e.window == self.window:
             cr = self.window.cairo_create()
-            y_padding = 0
-            for nodes in self.__nodes_list[0:100]:
-                x = 10 + nodes.this.leave * 20
-                y = y_padding 
-                cr.rectangle(x - 10, y + self.node_height/2, 10, 1)
-                cr.fill()
-                draw_text(cr, nodes.this.text, x, y+ get_text_size(nodes.this.text)[1]/2, text_color="#0000FF")
+            start_index  = max(int(self.scroll_win.get_vadjustment().get_value() / self.node_height), 0)
+            end_index    = (start_index + (self.scroll_win.allocation.height) / self.node_height) + 1
+            y_padding = 0 + start_index * self.node_height
+            # draw background.
+            x = 0
+            y = 0 + start_index * self.node_height 
+            w = self.scroll_win.allocation.width
+            h = self.scroll_win.allocation.height + self.node_height * 2
+            self.paint_nodes_background(cr, x, y, w, h)
+            # draw node.
+            for node in self.__nodes_list[start_index:end_index]:
+                node_event = NodesEvent()
+                node_event.cr = cr
+                node_event.node = node
+                node_event.x = 0
+                node_event.y = y_padding
+                node_event.w = self.scroll_win.allocation.width
+                node_event.h = self.node_height #self.scroll_win.allocation.height
+                '''
+                node_event.draw_text = draw_text # 写成 set/get , 忽略 cr参数.
+                node_event.draw_pixbuf = draw_pixbuf # 写成 set/get , 忽略 cr参数.
+                '''
+                self.paint_nodes_event(node_event)
                 y_padding += self.node_height
-            cr.set_source_rgba(1, 0, 0, 0.1)
-            cr.rectangle(0, 0 + self.index * self.node_height, self.allocation.width, self.node_height)
-            cr.fill()
         #
+        return False
+
+    def __paint_nodes_background(self, cr, x, y, w, h):
+        cr.set_source_rgba(0, 0, 0, 0.85)
+        cr.rectangle(x, y, w, h)
+        cr.fill()
+
+    def __paint_nodes_event(self, node_event):
+        if node_event.node.leave == 0: # 根节点.
+            x = node_event.x + 10 
+            if node_event.node.is_expanded:
+                draw_text(node_event.cr, 
+                          "-", 
+                          node_event.x, 
+                          node_event.y + get_text_size("+")[1]/2)
+            else:
+                draw_text(node_event.cr, 
+                          "+", 
+                          node_event.x, 
+                          node_event.y + get_text_size("+")[1]/2)
+        else:
+            x_padding = node_event.node.leave * self.leave_width
+            x = node_event.x + 10 + x_padding
+            if node_event.node.is_expanded:
+                draw_text(node_event.cr, 
+                          "*", 
+                          node_event.x + x_padding, 
+                          node_event.y + get_text_size("*")[1]/2)
+            else:
+                if node_event.node.leave < 2:
+                    draw_text(node_event.cr, 
+                              ">", 
+                              node_event.x + x_padding, 
+                              node_event.y + get_text_size(">")[1]/2)
+        draw_text(node_event.cr, 
+                  node_event.node.text, 
+                  x,
+                  node_event.y + get_text_size(node_event.node.text)[1]/2)
+
+    def tree_view_queue_draw_area(self):
+        self.scroll_win = get_match_parent(self, ["ScrolledWindow"])
+        if self.scroll_win:
+            start_index  = max(int(self.scroll_win.get_vadjustment().get_value() / self.node_height), 0)
+            end_index    = (start_index + (self.scroll_win.allocation.height) / self.node_height) + 1
+            w = self.scroll_win.allocation.width
+            h = self.scroll_win.allocation.height
+        else:
+            start_index = 0
+            end_index = self.allocation.height / self.allocation.height
+            w = self.allocation.width
+            h = self.allocation.height
+        x = 0
+        y = 0 + start_index * self.node_height 
+        self.queue_draw_area(x, y, w, h)
+
+    def tree_view_find_node_in_draw_area(self, node):
+        if node in self.__nodes_list:
+            index = self.__nodes_list.index(node)
+            #
+            self.scroll_win = get_match_parent(self, "ScrolledWindow")
+            if self.scroll_win:
+                start_index  = max(int(self.scroll_win.get_vadjustment().get_value() / self.node_height), 0)
+                end_index    = (start_index + (self.scroll_win.allocation.height) / self.node_height) + 1
+            else:
+                start_index = 0
+                end_index = 0
+            if start_index <= index <= end_index:
+                return True
         return False
 
     def do_motion_notify_event(self, e):
         #print "do--mo--no--ev", e.x
         if e.window == self.window:
-            self.index = int(e.y) / self.node_height
-            self.queue_draw()
+            index = int(e.y) / self.node_height
+            self.tree_view_queue_draw_area()
         return False
 
     def do_button_press_event(self, e):
-        node = self.__nodes_list[int(e.y/self.node_height)].this
-        print self.__nodes_list[6].this.text == self.__nodes_list[12]
-        print "press:", node.text
         #node.is_expanded = False #not node.is_expanded
-        node.is_expanded = not node.is_expanded
         #node.is_expanded = True
-        self.queue_draw()
+        node = self.__nodes_list[int(e.y/self.node_height)]
+        node.is_expanded = not node.is_expanded
+        self.tree_view_queue_draw_area()
         return False
+
 
     def do_button_release_event(self, e):
         #print "do_button_release_event..."
@@ -287,6 +392,14 @@ class TreeViewBase(gtk.Container):
         tree_view_child.h = max(h, self.node_height)
         self.children.append(tree_view_child)
 
+    ############################################################
+    def delete(self, node): # 删除数据.
+        node.parent.delete(node)
+
+    def expanded_all(self): # 展开所有节点.
+        pass
+
+
 gobject.type_register(TreeViewBase)
 
 
@@ -298,6 +411,10 @@ class NodesEvent(object):
         self.w  = 0
         self.h  = 0
         self.node = None
+        '''
+        self.draw_pixbuf
+        self.draw_text
+        '''
 
 
 class Nodes(list):
@@ -321,9 +438,9 @@ class Nodes(list):
         return node
 
     def delete(self, node):
-        self.remove(node)
         self.emit("remove-data", node)
-        for child_node in node.nodes:
+        self.remove(node)
+        for child_node in node.nodes[:]:
             node.nodes.delete(child_node)
 
     def __node_update_data_event(self, node):
@@ -516,38 +633,52 @@ class Node(object):
 
 
 if __name__ == "__main__":
+    def test_paint_nodes_event(e):
+        if e.node.leave == 0: # 根节点.
+            draw_text(e.cr, 
+                      e.node.text, 
+                      e.x + e.w/2 - get_text_size(e.node.text)[0]/2, 
+                      e.y + e.h/2 - get_text_size(e.node.text)[1]/2)
+            e.cr.set_source_rgba(1, 1, 1, 1.0)
+            e.cr.rectangle(e.x, e.y, e.w, e.h)
+            e.cr.stroke()
+        elif e.node.leave == 1:
+            pixbuf = gtk.gdk.pixbuf_new_from_file("logo.png")
+            pixbuf = pixbuf.scale_simple(e.h, e.h, gtk.gdk.INTERP_BILINEAR)
+            draw_pixbuf(e.cr, pixbuf, e.x + e.w/2 - pixbuf.get_width()/2, e.y)
+            draw_text(e.cr, 
+                      e.node.text, 
+                      e.x + e.w/2 - get_text_size(e.node.text)[1]/2 + pixbuf.get_width(),
+                      e.y + e.h/2 - get_text_size(e.node.text)[1]/2)
+        
+
     win = gtk.Window(gtk.WINDOW_TOPLEVEL)
     win.set_size_request(300, 300)
     treeview_base = TreeViewBase()
-    treeview_base.set_size_request(1500, 15000)
+    treeview_base.paint_nodes_event = test_paint_nodes_event
     scroll_win = gtk.ScrolledWindow()
     #
-    node1 = treeview_base.nodes.add("root1")
-    node2 = treeview_base.nodes.add("root2")
-    node2_2 = node2.nodes.add("root2-1")
-    node3 = treeview_base.nodes.add("root3")
-    node4 = treeview_base.nodes.add("root4")
-    for i in range(1, 3000):
-        treeview_base.nodes.add("root" + str(i))
-    node1_1 = node1.nodes.add("roo1-1")
-    node1_1_1 = node1_1.nodes.add("root1-1-1")
-    node1_1_1_1 = node1_1_1.nodes.add("root1-1-1-1")
-    node1_1_2 = node1_1.nodes.add("root1-1-2")
-    node1_1_2.nodes.add("root1_1_2_1")
-    node1_2 = node1.nodes.add("roo1-2")
-    node1_3 = node1.nodes.add("roo1-3")
-    node1_4 = node1.nodes.add("roo1-4")
-    node1_5 = node1.nodes.add("roo1-5")
-    node1_6 = node1.nodes.add("roo1-6")
-    print node1.nodes[1].next_node.text
-    print node1.nodes[1].prev_node.text
-    #node1.nodes[1].text = "fjdskf"
-    #treeview_base.nodes.delete(node1)
-    node1_1_1_1.is_expanded = True
-    node1.is_expanded = True
-    node1_1_1.is_expanded = True
-    node1_1_2.is_expanded = True
-    node2.is_expanded = True
+    node1 = treeview_base.nodes.add("小学")
+    node2 = treeview_base.nodes.add("初中")
+    node3 = treeview_base.nodes.add("高中")
+    node4 = treeview_base.nodes.add("大学")
+    node5 = treeview_base.nodes.add("社会")
+    for i in range(1, 10000):
+        treeview_base.nodes.add("test" + str(i))
+    print treeview_base.nodes[9999].text
+    for i in range(1, 7):
+        node1.nodes.add(str(i) + "年级")
+        node1.nodes[0].nodes.add("1年级(" + str(i) + ")班")
+    node1.nodes[0].nodes[0].nodes.add("小明")
+    node1.nodes[0].nodes[0].nodes.add("小王")
+    node1.nodes[0].nodes[0].nodes.add("小张")
+    node1.nodes[0].nodes[0].nodes.add("小红")
+    node1.nodes[0].nodes[0].is_expanded = True
+    for i in range(1, 4):
+        node2.nodes.add("初" + str(i))
+        node3.nodes.add("高" + str(i))
+        node4.nodes.add("大" + str(i))
+        node4.nodes[0].nodes.add("软件班级ZB4890" + str(i))
     #
     scroll_win.add_with_viewport(treeview_base)
     win.add(scroll_win)
