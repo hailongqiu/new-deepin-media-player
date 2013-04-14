@@ -74,7 +74,7 @@ class TreeViewBase(gtk.Container):
             self.__nodes_list.append(node.nodes)
        
     def __nodes_is_expanded_event(self, node):
-        print "__nodes_is_expanded_event", node.text
+        #print "__nodes_is_expanded_event", node.text
         if node.is_expanded:
             if node.nodes: # 判断是否有子节点.
                 if node.leave: # 判断是不是根节点.
@@ -89,24 +89,24 @@ class TreeViewBase(gtk.Container):
                     for child_node in node.nodes:
                         self.__nodes_add_data(child_node)
                         #child_node.is_expanded = True
-        elif node.is_expanded == False and node.nodes in self.__nodes_list:
-            print "[[[[[[[[[[[[[[[[[[[[[[[[[[[[", node.text
-            '''
-            if node.nodes:
-                for node in node.nodes:
-                    self.__nodes_list.remove(node.nodes)
-                self.__nodes_list.remove(node.nodes)
-
-            '''
-            print "]]]]]]]]]]]]]]]]]]]]]]]]]]]]]"
+        elif not node.is_expanded:
+            for flase_child_node in node.nodes:
+                flase_child_node.is_expanded = False
+                self.__nodes_remove_data(flase_child_node)
 
     def __nodes_add_data(self, node):
         parent = node.parent
         node_to_parent_index = parent.index(node)
         parent_to_list_index = self.__nodes_list.index(parent)
-        self.__nodes_list.insert(parent_to_list_index + node_to_parent_index + 1,
-                                 node.nodes)
+        index = parent_to_list_index + node_to_parent_index + 1
+        self.__nodes_list.insert(index, node.nodes)
 
+    def __nodes_remove_data(self, node):
+        parent = node.parent
+        node_to_parent_index = parent.index(node)
+        parent_to_list_index = self.__nodes_list.index(parent)
+        index = parent_to_list_index + 1
+        self.__nodes_list.pop(index)
 
     def __nodes_remove_data_event(self, node):
         # 当有数据删除时,更新映射列表.
@@ -207,9 +207,12 @@ class TreeViewBase(gtk.Container):
         return False
 
     def do_button_press_event(self, e):
-        #print "do_button_press_event..."
-        self.__nodes_list[int(e.y/self.node_height)].this.is_expanded = True
-        #print self.__nodes_list[int(e.y/self.node_height)].this.leave
+        node = self.__nodes_list[int(e.y/self.node_height)].this
+        print self.__nodes_list[6].this.text == self.__nodes_list[12]
+        print "press:", node.text
+        #node.is_expanded = False #not node.is_expanded
+        node.is_expanded = not node.is_expanded
+        #node.is_expanded = True
         self.queue_draw()
         return False
 
@@ -403,7 +406,8 @@ class Node(object):
 
     @is_expanded.setter
     def is_expanded(self, check):
-        if self.__is_expanded != check:
+        # 判断 is_expanded 不能相同 却 nodes不为空.
+        if self.__is_expanded != check and self.nodes:
             self.__is_expanded = check
             self.emit("is-expanded", self)
 
@@ -528,21 +532,22 @@ if __name__ == "__main__":
     node1_1 = node1.nodes.add("roo1-1")
     node1_1_1 = node1_1.nodes.add("root1-1-1")
     node1_1_1_1 = node1_1_1.nodes.add("root1-1-1-1")
-    node1_2 = node1.nodes.add("roo1-2")
     node1_1_2 = node1_1.nodes.add("root1-1-2")
     node1_1_2.nodes.add("root1_1_2_1")
+    node1_2 = node1.nodes.add("roo1-2")
     node1_3 = node1.nodes.add("roo1-3")
     node1_4 = node1.nodes.add("roo1-4")
     node1_5 = node1.nodes.add("roo1-5")
+    node1_6 = node1.nodes.add("roo1-6")
     print node1.nodes[1].next_node.text
     print node1.nodes[1].prev_node.text
     #node1.nodes[1].text = "fjdskf"
     #treeview_base.nodes.delete(node1)
-    #node1_1_1_1.is_expanded = True
+    node1_1_1_1.is_expanded = True
+    node1.is_expanded = True
     node1_1_1.is_expanded = True
-    #node1.is_expanded = True
-    #node2.is_expanded = True
-    #
+    node1_1_2.is_expanded = True
+    node2.is_expanded = True
     #
     scroll_win.add_with_viewport(treeview_base)
     win.add(scroll_win)
