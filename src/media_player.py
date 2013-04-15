@@ -237,9 +237,9 @@ class MediaPlayer(object):
         # self.ldmp.player.flip_screen = "rotate=2"
         # self.ldmp.player.uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
         #self.ldmp.player.uri = "mms://112.230.192.196/zb10"
-        #self.ldmp.player.uri = "/home/long/视频/test.mp4"
+        self.ldmp.player.uri = "/home/long/视频/test4.mkv"
         #self.ldmp.player.cache_size = 1000
-        #self.ldmp.play()                
+        self.ldmp.play()                
         # 初始化插件系统.
         #self.init_plugin_manage()
         

@@ -930,14 +930,15 @@ class LDMP(gobject.GObject):
                 
             if buffer.startswith("ID_SUBTITLE_ID="): 
                 print "ID_SUBTITLE_ID:", buffer
+                #if False: # 有BUG, 需要调整.
                 id = buffer.replace("ID_SUBTITLE_ID=", "").split("\n")[0]
                 lang = "Unknown"
                 name = "Unknown"
-                sub_text = "%s (%s) - id" % (lang, name, id)
+                sub_text = "%s (%s) - %s" % (lang, name, str(id))
                 self.player.subtitle.append(sub_text)                
                 
             if buffer.startswith("ID_SID_"):
-                print "ID_SID:", buffer.split("_")
+                print "ID_SID:", buffer.split("_")[3]
                 # id = buffer
                 # buffer.readline()
                 # if buffer.startswith("_LANG="):                    

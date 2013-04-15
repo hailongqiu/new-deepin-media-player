@@ -25,7 +25,8 @@ from dtk.ui.application  import Application
 from widget.movie_paned  import Paned
 from widget.movie_window import MovieWindow
 from widget.playlistview import PlayListView
-from toolbar      import ToolBar
+from widget.toolbar      import ToolBar
+from widget.bottom_toolbar import BottomToolBar
 from locales import _
 import gtk
 
@@ -58,10 +59,9 @@ class GUI(object):
         self.screen = gtk.DrawingArea()
         self.screen_frame.add(self.screen)
         self.top_toolbar = ToolBar()
+        self.bottom_toolbar = BottomToolBar()
         self.screen_paned.add_top_widget(self.top_toolbar.hbox_hframe)
-        '''
-        self.screen_paned.add_bottom_widget()
-        '''
+        self.screen_paned.add_bottom_widget(self.bottom_toolbar.vbox)
         #
         self.screen_frame_event = self.screen_paned
         self.screen_paned.screen = self.screen

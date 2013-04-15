@@ -44,7 +44,7 @@ class Paned(gtk.Bin):
         self.alpha = 1.0
         self.handle_alpha = 1.0
         self.top_win_h = 25
-        self.bottom_win_h = 50
+        self.bottom_win_h = 40
         self.top_win_show_check = False
         self.bottom_win_show_check = False
         #
