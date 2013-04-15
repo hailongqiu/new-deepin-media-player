@@ -48,7 +48,7 @@ class PlayListView(object):
         self.play_list_vbox.pack_start(self.scroll_win, True, True)
         #
         #
-        for i in range(1, 20000):
+        for i in range(1, 2000):
             self.list_view.items.add([str(i) + "楚汉传奇+", "12:12:12", "/home/long/视屏" + str(i)])
 
     def list_view_double_items(self, listview, double_items, row, col, item_x, item_y):

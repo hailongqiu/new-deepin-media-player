@@ -22,12 +22,9 @@
 
 
 import gtk
-import os
 from gtk import gdk
 import gobject
-from movie_window import MovieWindow
 from color import alpha_color_hex_to_cairo
-#from listview import ListView
 from skin import app_theme
 
 
@@ -63,6 +60,8 @@ class Paned(gtk.Bin):
         self.__handle_pos_y = 0
         self.__handle_pos_w = 6
         self.__handle_pos_h = self.allocation.height
+        #
+        self.paint_bottom_window = self.__paint_bottom_window
         #
         self.in_pixbuf = app_theme.get_pixbuf("paned/in.png").get_pixbuf()
         self.out_pixbuf = app_theme.get_pixbuf("paned/out.png").get_pixbuf()
@@ -190,7 +189,10 @@ class Paned(gtk.Bin):
         gtk.Bin.do_expose_event(self, e)
         #
         self.__paint_top_window(e)
-        self.__paint_bottom_window(e)
+        if e.window == self.bottom_window:
+            self.paint_bottom_window(e)
+            gtk.Bin.do_expose_event(self, e)
+            return False
         self.__paint_screen(e)
         self.__paint_handle(e)
         return False
@@ -205,13 +207,12 @@ class Paned(gtk.Bin):
             return False
 
     def __paint_bottom_window(self, e):
-        if e.window == self.bottom_window:
-            bottom_rect = self.bottom_window.get_size()
-            cr = self.bottom_window.cairo_create()
-            cr.set_source_rgba(*alpha_color_hex_to_cairo(("#ebebeb", 0.1)))
-            cr.rectangle(0, 0, bottom_rect[0], bottom_rect[1])
-            cr.fill()
-            return False
+        bottom_rect = self.bottom_window.get_size()
+        cr = self.bottom_window.cairo_create()
+        cr.set_source_rgba(*alpha_color_hex_to_cairo(("#ebebeb", 0.1)))
+        cr.rectangle(0, 0, bottom_rect[0], bottom_rect[1])
+        cr.fill()
+
 
     def __paint_screen(self, e):
         if self.screen:
@@ -305,7 +306,6 @@ class Paned(gtk.Bin):
 
     def do_size_allocate(self, allocation):
         self.allocation = allocation
-        save_x = self.allocation.x
         self.allocation.x = 0
         self.allocation.y = 0
         # 
@@ -423,6 +423,9 @@ class Paned(gtk.Bin):
         self.save_move_width = self.__child2_move_width
         self.__child2_move_width = 0
 
+    def set_jmp_start(self):
+        self.set_move_width(self.get_move_width())
+
     def set_move_check(self, move_check): # 是否支持移动.
         self.move_check = move_check
 
@@ -431,6 +434,12 @@ class Paned(gtk.Bin):
 
     def hide_bottom_toolbar(self):
         self.bottom_win_show_check = False
+
+    def set_visible_handle(self, check):
+        if check:
+            self.__handle.show()
+        else:
+            self.__handle.hide()
 
 gobject.type_register(Paned) 
 

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012 Deepin, Inc.
-#               2012 Hailong Qiu
+# Copyright (C) 2013 Deepin, Inc.
+#               2013 Hailong Qiu
 #
 # Author:     Hailong Qiu <356752238@qq.com>
 # Maintainer: Hailong Qiu <356752238@qq.com>
@@ -28,8 +28,8 @@ from dtk.ui.utils import color_hex_to_cairo
 from locales import _ # 国际化翻译.
 from widget.utils import get_home_path
 from plugin_manage import PluginManage
-from load_gui_plugins import LoadSysPlugins
 from gui import GUI # 播放器界面布局.
+from media_player_function import MediaPlayFun
 from mplayer.timer import Timer
 # mplayer后端.
 from mplayer.player import LDMP, set_ascept_function, unset_flags, set_flags
@@ -60,10 +60,11 @@ class MediaPlayer(object):
         self.__init_move_window()
         self.__init_gui_app_events()
         self.__init_gui_screen()
-        self.__init_gui_plugins() # 初始化界面层组件.
         # show gui window.
         self.gui.app.window.show_all()
         self.gui.screen.window.set_composited(True)
+        # 全部的执行函数方法.
+        self.media_play_fun = MediaPlayFun(self)
 
     def __init_dbus_id(self): # 初始化DBUS ID 唯一值.
         dbus_id_list = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time())).split("-")
@@ -84,13 +85,15 @@ class MediaPlayer(object):
     def __init_values(self):
         self.ldmp = LDMP()
         self.gui = GUI()        
-        self.play_list = PlayList() 
-        self.gui_plugins = LoadSysPlugins() # 初始化界面层组件.
+        self.play_list = PlayList(self.gui.play_list_view.list_view) 
+        # 初始化播放列表.
+        self.play_list.set_file_list(self.gui.play_list_view.list_view.items)
         #self.plugin_manage = PluginManage()
-        self.fullscreen_check = False
+        self.fullscreen_check = False # 全屏
+        self.concise_check    = True#False # 简洁模式 # True 简洁模式 False 普通模式
         #
-        # self.play_list.set_state(SINGLA_PLAY)
-        self.play_list.append("/home/long/视频/test.mp4")
+        #SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SINGLE_LOOP, LIST_LOOP 
+        self.play_list.set_state(RANDOM_PLAY)
         self.argv_path_list = sys.argv # save command argv.        
 
     def __init_double_timer(self):
@@ -140,15 +143,6 @@ class MediaPlayer(object):
         self.gui.screen_frame_event.connect("button-release-event", self.screen_frame_event_button_release_event)
         self.gui.screen_frame_event.connect("motion-notify-event", self.screen_frame_event_button_motoin_notify_event)
         self.gui.screen_frame_event.connect("leave-notify-event", self.screen_frame_event_leave_notify_event)
-
-
-    def __init_gui_plugins(self):
-        # 初始化界面组件.
-        for key in self.gui_plugins.plugins_dict.keys():
-            plug = self.gui_plugins.plugins_dict[key]
-            plug.init_values(self)
-            if plug.auto(): # 是否自动运行.
-                plug.start() # 加载界面组件.
 
     def init_plugin_manage(self): # 初始化插件系统.
         # 加载自带插件.
@@ -237,7 +231,7 @@ class MediaPlayer(object):
         # self.ldmp.player.flip_screen = "rotate=2"
         # self.ldmp.player.uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
         #self.ldmp.player.uri = "mms://112.230.192.196/zb10"
-        self.ldmp.player.uri = "/home/long/视频/test4.mkv"
+        self.ldmp.player.uri = "/home/long/视频/test3.mkv"
         #self.ldmp.player.cache_size = 1000
         self.ldmp.play()                
         # 初始化插件系统.
@@ -245,11 +239,12 @@ class MediaPlayer(object):
         
     def ldmp_get_time_pos(self, ldmp, pos, time):
         # print "pos:", pos
-        pass
+        self.media_play_fun.ldmp_get_time_pos(ldmp, pos, time)
+        
         
     def ldmp_get_time_length(self, ldmp, length, time):    
         # print "length:", length, time
-        pass
+        self.media_play_fun.ldmp_get_time_length(ldmp, length, time)
         
     def ldmp_start_media_player(self, ldmp):    
         print "开始播放了..."
@@ -355,44 +350,33 @@ class MediaPlayer(object):
         self.fullscreen_function() # 全屏和退出全屏处理函数.
 
     def fullscreen_function(self):
-        '''
-        gui_plugin_name_list = ["ldmp-gui-sys-playlist", 
-                                "ldmp-gui-sys-control-panel"
-                               ] 
-        '''
         if not self.fullscreen_check: # 判断是否全屏.
-            self.gui.app.hide_titlebar() # 隐藏标题栏.
-            '''
-            for plugin_name in gui_plugin_name_list:
-                self.gui_plugins.plugins_dict[plugin_name].stop() # 隐藏界面层组件.
-            '''
-            self.gui.main_ali.set_padding(0, 0, 0, 0) # 设置下,左右的距离.
+            self.concise_mode() # 简洁模式.
             self.gui.app.window.fullscreen() # 全屏.
             self.fullscreen_check = True
         else:
-            self.gui.app.show_titlebar()
-            '''
-            for plugin_name in gui_plugin_name_list:
-                self.gui_plugins.plugins_dict[plugin_name].start()
-            '''
-            self.gui.main_ali.set_padding(0, 2, 2, 2)
+            self.normal_mode() # 普通模式.
             self.gui.app.window.unfullscreen()
             self.fullscreen_check = False
 
+    def concise_mode(self): # 简洁模式调用.
+        self.gui.app.hide_titlebar() # 隐藏标题栏.
+        self.gui.main_ali.set_padding(0, 0, 0, 0) # 设置下,左右的距离.
+        # 左边部件child2操作.
+        self.gui.close_right_child2()
+        self.gui.hide_handle()
+
+    def normal_mode(self): # 普通模式调用.
+        self.gui.main_ali.set_padding(0, 2, 2, 2)
+        self.gui.app.show_titlebar()
+        # 左边部件child2操作.
+        self.gui.show_handle()
+        if self.gui.child2_show_check:
+            self.gui.open_right_child2() 
+
     def click_connect_function(self):
-        # 播放控制面板.
-        #control_panel = self.gui_plugins.plugins_dict["ldmp-gui-sys-control-panel"].control_panel
-        #start_button  = control_panel.start_button
-        # 设置播放控制面板的 暂停/播放 按钮的状态.
-        '''
-        if self.ldmp.player.state == STARTING_STATE:
-            start_button.set_start_bool(True)
-            Tooltip.text(start_button, _("Start"))
-        elif self.ldmp.player.state == PAUSE_STATE:
-            start_button.set_start_bool(False)
-            Tooltip.text(start_button, _("Pause"))
-        '''
-        # 暂停/继续.
+        # 暂停/继续. 
+        # 应该去连接后端事件,暂停/播放的时候去改变按钮状态.
         self.ldmp.pause()
 
     def set_double_bit_false(self):
@@ -402,8 +386,9 @@ class MediaPlayer(object):
     def screen_frame_event_button_motoin_notify_event(self, widget, event):
         if self.move_win_check:
             self.move_window_function(event)
-        #
-        if self.__in_bottom_window_check(widget, event) and self.fullscreen_check:
+        # 显示下部工具条.
+        if (self.__in_bottom_window_check(widget, event) and 
+            (self.fullscreen_check or self.concise_check)):
             self.gui.screen_paned.bottom_window.show()
             self.gui.screen_paned.bottom_win_show_check = True
 
@@ -420,12 +405,14 @@ class MediaPlayer(object):
                                                     self.save_move_time) 
 
     def screen_frame_event_leave_notify_event(self, widget, event):
-        if self.__in_bottom_window_check(widget, event) and self.fullscreen_check:
-            self.gui.screen_paned.bottom_window.show()
-            self.gui.screen_paned.bottom_win_show_check = True
-        else:
+        # 隐藏下部工具条.
+        if event.window == self.gui.screen_frame.window:
             self.gui.screen_paned.bottom_window.hide()
             self.gui.screen_paned.bottom_win_show_check = False
+            if (self.__in_bottom_window_check(widget, event) and 
+                (self.fullscreen_check or self.concise_check)):
+                self.gui.screen_paned.bottom_window.show()
+                self.gui.screen_paned.bottom_win_show_check = True
 
     def __in_bottom_window_check(self, widget, event):
         if event.window == self.gui.screen_paned.window:
@@ -457,3 +444,32 @@ class MediaPlayer(object):
         self.ldmp.player.uri = play_file
         self.ldmp.play()                
         
+    def open_file_dialog(self):
+        # 多选文件对话框.
+        open_dialog = gtk.FileChooserDialog(_("Select Files"),
+                                            None,
+                                            gtk.FILE_CHOOSER_ACTION_OPEN,
+                                            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                                             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+
+        open_dialog.set_current_folder(get_home_path())
+        open_dialog.set_select_multiple(True) # 多选文件.
+        res = open_dialog.run()
+        if res == gtk.RESPONSE_OK:
+            print open_dialog.get_filenames()
+        open_dialog.destroy()
+
+    def open_dir_dialog(self):
+        # 多选目录对话框.
+        open_dialog = gtk.FileChooserDialog(_("Select Directory"),
+                                            None,
+                                            gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
+                                            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                                             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+
+        open_dialog.set_current_folder(get_home_path())
+        open_dialog.set_select_multiple(True) # 多选文件.
+        res = open_dialog.run()
+        if res == gtk.RESPONSE_OK:
+            print open_dialog.get_filenames()
+        open_dialog.destroy()

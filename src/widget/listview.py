@@ -858,6 +858,26 @@ class ListView(ListViewBase):
     def columns_height(self):
         del self.__columns_padding_height
 
+    def set_double_items(self, item):
+        self.__double_items = item
+        #
+        vadjustment = get_match_parent(self, ["ScrolledWindow"]).get_vadjustment()
+        if vadjustment:
+            value = vadjustment.get_value()
+            start_index, end_index = self.__get_start_end_index()
+            # 滚动窗口.
+            max_value  = vadjustment.get_upper() - vadjustment.get_page_size()
+            move_value = self.__items_padding_height * self.items.index(item) #abs(end_index - start_index - 1)
+            #value = value + move_value
+            value = move_value
+            # 如果滚动的页超出了,直接到末尾.
+            if value > max_value:
+                vadjustment.set_value(max_value)
+            else:
+                vadjustment.set_value(value)
+        #
+        self.on_queue_draw_area()
+
 class ItemEventArgs(object):
     def __init__(self):
         self.cr = None
