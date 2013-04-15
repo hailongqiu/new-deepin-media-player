@@ -43,8 +43,8 @@ class Paned(gtk.Bin):
         self.screen = None
         self.alpha = 1.0
         self.handle_alpha = 1.0
-        self.top_win_h = 28
-        self.bottom_win_h = 40
+        self.top_win_h = 25
+        self.bottom_win_h = 50
         self.top_win_show_check = False
         self.bottom_win_show_check = False
         #
@@ -425,6 +425,12 @@ class Paned(gtk.Bin):
 
     def set_move_check(self, move_check): # 是否支持移动.
         self.move_check = move_check
+
+    def show_bottom_toolbar(self):
+        self.bottom_win_show_check = True
+
+    def hide_bottom_toolbar(self):
+        self.bottom_win_show_check = False
 
 gobject.type_register(Paned) 
 

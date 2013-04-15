@@ -237,9 +237,9 @@ class MediaPlayer(object):
         # self.ldmp.player.flip_screen = "rotate=2"
         # self.ldmp.player.uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
         #self.ldmp.player.uri = "mms://112.230.192.196/zb10"
-        self.ldmp.player.uri = "/home/long/视频/test.mp4"
+        #self.ldmp.player.uri = "/home/long/视频/test.mp4"
         #self.ldmp.player.cache_size = 1000
-        self.ldmp.play()                
+        #self.ldmp.play()                
         # 初始化插件系统.
         #self.init_plugin_manage()
         
@@ -403,7 +403,7 @@ class MediaPlayer(object):
         if self.move_win_check:
             self.move_window_function(event)
         #
-        if self.__in_bottom_window_check(widget, event):
+        if self.__in_bottom_window_check(widget, event) and self.fullscreen_check:
             self.gui.screen_paned.bottom_window.show()
             self.gui.screen_paned.bottom_win_show_check = True
 
@@ -420,7 +420,7 @@ class MediaPlayer(object):
                                                     self.save_move_time) 
 
     def screen_frame_event_leave_notify_event(self, widget, event):
-        if self.__in_bottom_window_check(widget, event):
+        if self.__in_bottom_window_check(widget, event) and self.fullscreen_check:
             self.gui.screen_paned.bottom_window.show()
             self.gui.screen_paned.bottom_win_show_check = True
         else:

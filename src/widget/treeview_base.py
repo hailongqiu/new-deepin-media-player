@@ -642,13 +642,13 @@ if __name__ == "__main__":
             e.cr.set_source_rgba(1, 1, 1, 1.0)
             e.cr.rectangle(e.x, e.y, e.w, e.h)
             e.cr.stroke()
-        elif e.node.leave == 1:
+        else:
             pixbuf = gtk.gdk.pixbuf_new_from_file("logo.png")
             pixbuf = pixbuf.scale_simple(e.h, e.h, gtk.gdk.INTERP_BILINEAR)
-            draw_pixbuf(e.cr, pixbuf, e.x + e.w/2 - pixbuf.get_width()/2, e.y)
+            draw_pixbuf(e.cr, pixbuf, e.x + e.w/2 - pixbuf.get_width()/2 + e.node.leave * e.h, e.y)
             draw_text(e.cr, 
                       e.node.text, 
-                      e.x + e.w/2 - get_text_size(e.node.text)[1]/2 + pixbuf.get_width(),
+                      e.x + e.w/2 - get_text_size(e.node.text)[1]/2 + pixbuf.get_width() + e.node.leave * e.h,
                       e.y + e.h/2 - get_text_size(e.node.text)[1]/2)
         
 

@@ -21,10 +21,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from skin import app_theme
-from dtk.ui.application import Application
-from widget.movie_paned import Paned
+from dtk.ui.application  import Application
+from widget.movie_paned  import Paned
 from widget.movie_window import MovieWindow
 from widget.playlistview import PlayListView
+from toolbar      import ToolBar
 from locales import _
 import gtk
 
@@ -56,8 +57,9 @@ class GUI(object):
         self.screen_frame = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
         self.screen = gtk.DrawingArea()
         self.screen_frame.add(self.screen)
+        self.top_toolbar = ToolBar()
+        self.screen_paned.add_top_widget(self.top_toolbar.hbox_hframe)
         '''
-        self.screen_paned.add_top_widget()
         self.screen_paned.add_bottom_widget()
         '''
         #
