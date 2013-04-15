@@ -25,6 +25,7 @@ from dtk.ui.frame import HorizontalFrame
 from dtk.ui.volume_button import VolumeButton
 from show_time import ShowTime
 from play_control_panel import PlayControlPanel
+from progressbar import ProgressBar
 
 import gtk
 
@@ -33,6 +34,12 @@ class BottomToolBar(object):
         self.vbox = gtk.VBox()
         
         self.hbox = gtk.HBox()
+        #
+        self.progressbar_ali = gtk.Alignment(0, 0, 1, 1)
+        self.progressbar_ali.set_padding(0, 0, 1, 1)
+        self.progressbar = ProgressBar()
+        self.progressbar_ali.add(self.progressbar)
+        #self.progressbar.set_sensitive(False)
         # hbox add child widget.
         self.show_time_hframe = HorizontalFrame()
         self.show_time = ShowTime()
@@ -47,7 +54,7 @@ class BottomToolBar(object):
             show_time_padding_height
             )
         self.show_time_hframe.set(0, 0, 1, 1)
-        self.show_time_hframe.set_padding(2, 0, 10, 40)
+        self.show_time_hframe.set_padding(2, 0, 10, 20)
         
         self.play_control_panel = PlayControlPanel()      
         self.play_control_panel_hframe = self.play_control_panel.hbox_hframe
@@ -89,7 +96,7 @@ class BottomToolBar(object):
         label = gtk.Label()
         label.set_size_request(10, 1)
         self.hbox.pack_start(label, False, False)
-        
+        self.vbox.pack_start(self.progressbar_ali, False, False) 
         self.vbox.pack_start(self.hbox, True, True)
                 
                 

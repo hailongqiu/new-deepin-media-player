@@ -65,6 +65,7 @@ class GUI(object):
         self.screen_frame.add(self.screen)
         self.top_toolbar = ToolBar()
         self.bottom_toolbar = BottomToolBar()
+        # BUG: 当显示上部工具条的时候,画面抖动.
         self.screen_paned.add_top_widget(self.top_toolbar.hbox_hframe)
         self.screen_paned.add_bottom_widget(self.bottom_toolbar.vbox)
         #

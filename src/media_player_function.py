@@ -27,6 +27,7 @@ class MediaPlayFun(object):
 
     def __init_values(self):
         self.bottom_toolbar = self.this.gui.bottom_toolbar
+        self.bottom_toolbar.progressbar.connect("value-changed", self.__bottom_toolbar_pb_value_changed)
         #self.play_control_panel = 
         #self.volume_button = 
         #self.bottom_toolbar.stop_button
@@ -35,6 +36,10 @@ class MediaPlayFun(object):
         self.ldmp = self.this.ldmp
         self.play_list = self.this.play_list
         self.play_list.set_items_index(self.this.gui.play_list_view.list_view.items[3])
+
+    def __bottom_toolbar_pb_value_changed(self, pb, value):
+        print ".......", value
+        self.ldmp.seek(value)
 
     def __init_bottom_toolbar(self):
         self.bottom_toolbar.play_control_panel.stop_button.connect("clicked",  self.__bottom_toolbar_stop_button_clicked)
@@ -66,9 +71,11 @@ class MediaPlayFun(object):
     ## ldmp.
     def ldmp_get_time_pos(self, ldmp, pos, time):
         self.__set_pos_time(time)
+        self.bottom_toolbar.progressbar.set_pos(pos)
 
     def ldmp_get_time_length(self, ldmp, length, time):    
         self.__set_length_time(time)
+        self.bottom_toolbar.progressbar.set_max_value(length)
 
     def __set_pos_time(self, time):
         self.__pos = str(time) + " / "

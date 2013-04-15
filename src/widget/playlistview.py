@@ -59,25 +59,28 @@ class PlayListView(object):
         if e.double_items == e.item:
             e.text_color = "#000000"
             text_size=9
+            color_info = [(0, (color, 0.8)), (1, (color, 0.8))] 
             draw_vlinear(e.cr,
                          e.x, e.y, e.w, e.h,
-                         [(0, (color, 0.8)), (1, (color, 0.8))] 
+                         color_info
                          )
         elif e.item in e.single_items:
             e.text_color = "#FFFFFF"
             text_size=9
+            color_info = [(0, (color, 0.5)), (1, (color, 0.5))] 
             draw_vlinear(e.cr,
                          e.x, e.y,
                          e.w, e.h,
-                         [(0, (color, 0.5)), (1, (color, 0.5))] 
+                         color_info
                          )
         elif e.motion_items == e.item:
             e.text_color  = "#FFFFFF"
             text_size=9
+            color_info = [(0, (color, 0.2)), (1, (color, 0.2))] 
             draw_vlinear(e.cr,
                          e.x, e.y,
                          e.w, e.h,
-                         [(0, (color, 0.2)), (1, (color, 0.2))] 
+                         color_info
                          )
         else:
             e.text_color = "#FFFFFF"
