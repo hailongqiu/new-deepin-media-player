@@ -1,0 +1,357 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-04-17 01:22+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/media_player.py:486
+msgid "Select Files"
+msgstr ""
+
+#: ../src/media_player.py:501
+msgid "Select Directory"
+msgstr ""
+
+#: ../src/gui.py:51 ../src/widget/ini_gui.py:1626
+msgid "Deepin Media Player"
+msgstr ""
+
+#: ../src/widget/toolbar.py:64
+msgid "100%"
+msgstr ""
+
+#: ../src/widget/toolbar.py:74
+msgid "200%"
+msgstr ""
+
+#: ../src/widget/toolbar.py:79
+msgid "Always on Top"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:325
+msgid "Preferences"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:342 ../src/widget/ini_gui.py:387
+#: ../src/widget/ini_gui.py:393 ../src/widget/ini_gui.py:483
+#: ../src/widget/ini_gui.py:494 ../src/widget/ini_gui.py:529
+msgid "Playback"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:343 ../src/widget/ini_gui.py:395
+#: ../src/widget/ini_gui.py:489 ../src/widget/ini_gui.py:500
+#: ../src/widget/ini_gui.py:1467
+msgid "Screenshot"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:345
+msgid "Keyboard"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:346 ../src/widget/ini_gui.py:485
+#: ../src/widget/ini_gui.py:496 ../src/widget/ini_gui.py:774
+msgid "Video Control"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:347 ../src/widget/ini_gui.py:486
+#: ../src/widget/ini_gui.py:497 ../src/widget/ini_gui.py:1072
+msgid "Subtitle"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:348 ../src/widget/ini_gui.py:487
+#: ../src/widget/ini_gui.py:498 ../src/widget/ini_gui.py:1213
+#: ../src/widget/ini_gui.py:1606
+msgid "Other"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:353 ../src/widget/ini_gui.py:484
+#: ../src/widget/ini_gui.py:495 ../src/widget/ini_gui.py:656
+msgid "General"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:355 ../src/widget/ini_gui.py:488
+#: ../src/widget/ini_gui.py:499 ../src/widget/ini_gui.py:1387
+msgid "Subtitles"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:357 ../src/widget/ini_gui.py:490
+#: ../src/widget/ini_gui.py:501
+msgid "About us"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:380
+msgid "Close"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:533
+msgid "On opening video:"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:535
+msgid "Fit video to player"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:537
+msgid "Fit player to video"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:539
+msgid "Resize interface to last closed size"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:541
+msgid "Enter full screen mode"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:557
+msgid "Clear playlist when opening new file"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:565
+msgid "Resume playback after restarting player"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:572
+msgid "Continue to next video automatically"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:579
+msgid "Show thumbnail when hovering over progress bar"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:586
+msgid "allow multiple instance deepin media player"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:592
+msgid "Pause When Minimized"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:676
+msgid "启用系统气泡提示"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:682
+msgid "启用播放窗口提示"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:689
+msgid "Font"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:707
+msgid "Size"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:788
+msgid "Enable hotkeys"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:791
+msgid "Open file"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:801 ../src/widget/play_control_panel.py:56
+msgid "Previous"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:811
+msgid "Open directory"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:821 ../src/widget/play_control_panel.py:67
+msgid "Next"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:831 ../src/widget/ini_gui.py:1248
+#: ../src/widget/ini_gui.py:1314
+msgid "Pause/Play"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:841
+msgid "Increase Volume"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:851
+msgid "Forward"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:861
+msgid "Decrease Volume"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:871
+msgid "Rewind"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:881
+msgid "Mute"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:891 ../src/widget/ini_gui.py:1249
+#: ../src/widget/ini_gui.py:1314 ../src/widget/togglehoverbutton.py:126
+msgid "Full Screen"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:901
+msgid "Compact mode"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1076
+msgid "Enable Keyboard Shortcuts"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1082
+msgid "Delay-0.5s"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1083
+msgid "Delay+0.5s"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1084
+msgid "Loading subtiles"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1087
+msgid "Increase subtitle scale"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1088
+msgid "Decrease subtitle scale"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1223
+msgid " Enabled hotkeys"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1229
+msgid "Increse brightness"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1230
+msgid "Decrease brightness"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1231
+msgid "Rotate conterclockwise"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1232
+msgid "Rotate clockwise"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1233
+msgid "Take screenshot"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1234
+msgid "Switch audio tracks"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1236
+msgid "Left click"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1237
+msgid "Double click"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1238
+msgid "Scroll"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1248 ../src/widget/ini_gui.py:1249
+#: ../src/widget/ini_gui.py:1250 ../src/widget/ini_gui.py:1303
+msgid "Disabled"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1250 ../src/widget/ini_gui.py:1314
+msgid "Volume"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1397
+msgid "Load subtitles automatically"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1405
+msgid "Subtitle Directory:"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1414 ../src/widget/ini_gui.py:1490
+msgid "Browse"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1440 ../src/widget/ini_gui.py:1563
+msgid "Open Directory"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1474
+msgid "Copy to clipboard"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1480
+msgid "Folder"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1486
+msgid "Screenshot directory:"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1493
+msgid "File Type:"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1524
+msgid "Keep current aspect ratio"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1631
+msgid "Version:"
+msgstr ""
+
+#: ../src/widget/ini_gui.py:1644
+msgid ""
+"\tDeepin Media Player is a video player designed for Linux users. It support "
+"a variety of video formats, and features mode switching, video preview, "
+"online subtitles, screenshot taking and skin selection. \n"
+"\n"
+"\tDeepin Media Player is free software licensed under GNU GPLv3. "
+msgstr ""
+
+#: ../src/widget/play_control_panel.py:48
+msgid "Stop"
+msgstr ""
+
+#: ../src/widget/play_control_panel.py:59
+msgid "Play"
+msgstr ""
+
+#: ../src/widget/play_control_panel.py:75
+msgid "Open File"
+msgstr ""
+
+#: ../src/widget/play_list_button.py:35
+msgid "Playlist"
+msgstr ""
+
+#: ../src/widget/togglehoverbutton.py:135
+msgid "Normal Mode"
+msgstr ""
+
+#: ../src/widget/togglehoverbutton.py:144
+msgid "Compact Mode"
+msgstr ""
