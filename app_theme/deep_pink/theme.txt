@@ -19,6 +19,9 @@
   "listview" : "#0000FF",
  "progressBarLeft" : "#A21285",
  "progressBarRight" : "#F048BE",
+  "globalItemHover" : "#f1d5e8",
+ "globalItemSelect" : "#e1b4d3",
+ "globalItemHighlight" : "#d49ac2",
  },	
  "alpha_colors" : {
      "frame" : ("#000000", 0.5),
