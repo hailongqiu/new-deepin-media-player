@@ -102,6 +102,7 @@ class MediaPlayFun(object):
     def __app_play_control_panel_play_list_btn_clicked(self, widget):
         # 设置右部的child2的 播放列表.
         child2_width = self.this.gui.screen_paned.get_move_width()
+        self.this.gui.child2_show_check = not self.this.gui.child2_show_check
         if child2_width == 0:
             self.this.gui.open_right_child2()
             self.this.gui.screen_paned.set_all_size()

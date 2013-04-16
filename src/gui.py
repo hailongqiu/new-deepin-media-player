@@ -84,7 +84,7 @@ class GUI(object):
         self.app.main_box.pack_start(self.main_ali, True, True)
 
     def __init_values(self):
-        self.child2_show_check = True # True 显示 False 隐藏
+        self.child2_show_check = False # True 显示 False 隐藏
 
     ################################################################################
     ##
@@ -125,7 +125,6 @@ class GUI(object):
 
     def set_paned_handle(self, event):
         if self.screen_paned.show_check and (0 <= event.x <= 7):
-            self.child2_show_check = not self.child2_show_check
             if self.screen_paned.get_move_width() == 0: # child2 隐藏和显示.
                 self.play_control_panel.play_list_btn.button.set_active(True)
             else:

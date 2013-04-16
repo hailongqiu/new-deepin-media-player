@@ -370,18 +370,20 @@ class MediaPlayer(object):
             self.gui.app.window.fullscreen() # 全屏.
             self.fullscreen_check = True
         else:
-            if not self.concise_check:
-                self.normal_mode() # 普通模式.
             self.gui.app.window.unfullscreen()
+            if not self.concise_check: # 如果是简洁模式,不普通模式.
+                self.normal_mode() # 普通模式.
             self.fullscreen_check = False
 
     def concise_mode(self): # 简洁模式调用.
-        self.gui.app.hide_titlebar() # 隐藏标题栏.
-        self.gui.main_ali.set_padding(0, 0, 0, 0) # 设置下,左右的距离.
         # 左边部件child2操作.
         self.gui.close_right_child2()
+        self.gui.screen_paned.set_all_size()
         self.gui.hide_handle()
+        #
         self.gui.hide_play_control_paned()
+        self.gui.main_ali.set_padding(0, 0, 0, 0) # 设置下,左右的距离.
+        self.gui.app.hide_titlebar() # 隐藏标题栏.
 
     def normal_mode(self): # 普通模式调用.
         self.gui.main_ali.set_padding(0, 2, 2, 2)
@@ -391,6 +393,7 @@ class MediaPlayer(object):
         self.gui.show_play_control_paned()
         if self.gui.child2_show_check:
             self.gui.open_right_child2() 
+            self.gui.screen_paned.set_all_size()
 
     def click_connect_function(self):
         # 暂停/继续. 
@@ -495,7 +498,11 @@ class MediaPlayer(object):
     ######################################################
     ## keymap press event
     def key_concise_mode(self):
+        if self.fullscreen_check:
+            self.fullscreen_function()
         if not self.concise_check:
+            if self.fullscreen_check:
+                self.fullscreen_function()
             self.concise_mode()
             self.concise_check = True
         else:
