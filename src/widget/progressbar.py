@@ -120,40 +120,43 @@ class ProgressBar(gtk.Button):
         draw_pixbuf(cr, bg_pixbuf, bg_x, bg_y)
         ################################
         if self.get_sensitive(): # 
-            d_value = float(rect.width) / self.max_value # 差值.
-            # 画前景, 进度效果.
-            fg_w = min(int(self.pos * d_value), int(self.max_value * d_value))
-            fg_h = self.drag_pixbuf_height - 4 
-            fg_x = rect.x
-            fg_y = rect.y + rect.height/2 - fg_h/2
-            fg_color = self.color.get_color()
-            fg_color_info = [(0.1, (fg_color, 1.0)),
-                             (0.75, (fg_color, 1.0)),
-                             (1.0, (fg_color, 0.85))]
-            #
-            pat = cairo.LinearGradient(0, 0, fg_w, 0)
-            pat.add_color_stop_rgb(0.7, *color_hex_to_cairo(self.fg_left_color.get_color()))
-            pat.add_color_stop_rgb(1.0, *color_hex_to_cairo(self.fg_right_color.get_color()))
-            #draw_hlinear(cr, fg_x, fg_y, fg_w, fg_h, fg_color_info)
-            cr.set_operator(cairo.OPERATOR_OVER)
-            cr.set_source(pat)
-            cr.rectangle(fg_x, fg_y, fg_w, fg_h)
-            cr.fill()
-            # 画拖动的点.
-            if self.drag_show_check: # 是否显示拖动的点.
-                drag_value = int(self.pos * d_value) + self.drag_pixbuf_width/2 - 4
-                max_drag_value = int(self.max_value * d_value) - 2
-                min_drag_value = rect.x - 1
-                # 防止拖动的点跑出可视区域.
-                drag_x = max(min(drag_value, max_drag_value), min_drag_value)
-                drag_y = rect.y + rect.height/2 - self.drag_pixbuf_height/2
-                draw_pixbuf(cr, 
-                            self.drag_pixbuf, 
-                            drag_x, 
-                            drag_y)
+            if self.max_value:
+                d_value = float(rect.width) / self.max_value # 差值.
+                # 画前景, 进度效果.
+                fg_w = min(int(self.pos * d_value), int(self.max_value * d_value))
+                fg_h = self.drag_pixbuf_height - 4 
+                fg_x = rect.x
+                fg_y = rect.y + rect.height/2 - fg_h/2
+                fg_color = self.color.get_color()
+                fg_color_info = [(0.1, (fg_color, 1.0)),
+                                 (0.75, (fg_color, 1.0)),
+                                 (1.0, (fg_color, 0.85))]
+                #
+                pat = cairo.LinearGradient(0, 0, fg_w, 0)
+                pat.add_color_stop_rgb(0.7, *color_hex_to_cairo(self.fg_left_color.get_color()))
+                pat.add_color_stop_rgb(1.0, *color_hex_to_cairo(self.fg_right_color.get_color()))
+                #draw_hlinear(cr, fg_x, fg_y, fg_w, fg_h, fg_color_info)
+                cr.set_operator(cairo.OPERATOR_OVER)
+                cr.set_source(pat)
+                cr.rectangle(fg_x, fg_y, fg_w, fg_h)
+                cr.fill()
+                # 画拖动的点.
+                if self.drag_show_check: # 是否显示拖动的点.
+                    drag_value = int(self.pos * d_value) + self.drag_pixbuf_width/2 - 4
+                    max_drag_value = int(self.max_value * d_value) - 2
+                    min_drag_value = rect.x - 1
+                    # 防止拖动的点跑出可视区域.
+                    drag_x = max(min(drag_value, max_drag_value), min_drag_value)
+                    drag_y = rect.y + rect.height/2 - self.drag_pixbuf_height/2
+                    draw_pixbuf(cr, 
+                                self.drag_pixbuf, 
+                                drag_x, 
+                                drag_y)
 
     def set_max_value(self, value):
         self.max_value = value
+        if self.max_value == 0: # 网络电视.无法快进和前景.
+            self.set_sensitive(False)
         self.queue_draw()
 
     def set_pos(self, pos):

@@ -159,6 +159,9 @@ class ToolbarRadioButton(gtk.HBox):
     def set_full_state(self, state):
         self.full_state = state
 
+    def set_window_mode(self, state):
+        self.window_state = state
+
     def expose_draw_full_button(self, widget, event):
         cr = widget.window.cairo_create()
         x, y, w, h = widget.allocation

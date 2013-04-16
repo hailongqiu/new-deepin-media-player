@@ -39,12 +39,18 @@ class MediaPlayFun(object):
         self.__init_bottom_toolbar()
         #
         self.ldmp = self.this.ldmp
+        self.list_view = self.this.gui.play_list_view.list_view
+        self.list_view.connect_event("double-items",  self.list_view_double_items) 
         self.play_list = self.this.play_list
-        self.play_list.set_items_index(self.this.gui.play_list_view.list_view.items[3])
+
+    def list_view_double_items(self, listview, double_items, row, col, item_x, item_y):
+        self.play_list.set_items_index(double_items)
+        self.this.play(double_items.sub_items[2].text)
 
     def __init_top_toolbar(self):
         self.keep_above_check = False
         self.top_toolbar    = self.this.gui.top_toolbar
+        self.top_toolbar.toolbar_radio_button.set_full_state(False) # 初始化.
         self.top_toolbar.toolbar_above_button.connect("clicked", self.__top_toolbar_above_button_clicked)
         self.top_toolbar.toolbar_1X_button.connect("clicked",    self.__top_toolbar_1X_button_clicked)
         self.top_toolbar.toolbar_2X_button.connect("clicked",    self.__top_toolbar_2X_button_clicked)    
@@ -57,13 +63,21 @@ class MediaPlayFun(object):
         self.app_play_control_panel.progressbar.connect("value-changed", self.__bottom_toolbar_pb_value_changed)
         self.app_play_control_panel.pb_fseek_btn.connect("clicked", self.__bottom_toolbar_pb_fseek_btn_clicked)
         self.app_play_control_panel.pb_bseek_btn.connect("clicked", self.__bottom_toolbar_pb_bseek_btn_clicked)
-        self.app_play_control_panel.play_control_panel.start_button.connect("clicked", 
-                                           self.__bottom_toolbar_start_button_clicked)
         self.app_play_control_panel.play_list_btn.button.connect("clicked", 
                  self.__app_play_control_panel_play_list_btn_clicked)
-        child2_width = self.this.gui.screen_paned.get_move_width()
-        if child2_width == 0:
-            self.app_play_control_panel.play_list_btn.button.set_active(False)
+        start_button = self.app_play_control_panel.play_control_panel
+        stop_button = self.app_play_control_panel.play_control_panel.stop_button
+        pre_button  = self.app_play_control_panel.play_control_panel.pre_button
+        next_button = self.app_play_control_panel.play_control_panel.next_button
+        #
+        start_button.start_button.connect("clicked", self.__bottom_toolbar_start_button_clicked)
+        stop_button.connect("clicked",  self.__bottom_toolbar_stop_button_clicked)
+        pre_button.connect("clicked", self.__pre_button_clicked)
+        next_button.connect("clicked", self.__next_button_clicked)
+        '''
+            # 这里需要读 ini文件, 是否显示初始化的时候显示播放列表. 默认不显示播放列表.
+            self.app_play_control_panel.play_list_btn.button.set_active(True)
+        '''
 
     def __init_bottom_toolbar(self):
         self.bottom_play_control_panel = self.this.gui.bottom_toolbar.play_control_panel
@@ -71,10 +85,14 @@ class MediaPlayFun(object):
         self.bottom_toolbar.progressbar.connect("value-changed", self.__bottom_toolbar_pb_value_changed)
         self.bottom_toolbar.pb_fseek_btn.connect("clicked",      self.__bottom_toolbar_pb_fseek_btn_clicked)
         self.bottom_toolbar.pb_bseek_btn.connect("clicked",      self.__bottom_toolbar_pb_bseek_btn_clicked)
-        self.bottom_toolbar.play_control_panel.stop_button.connect("clicked",  
-                                   self.__bottom_toolbar_stop_button_clicked)
-        self.bottom_toolbar.play_control_panel.start_button.connect("clicked", 
-                                   self.__bottom_toolbar_start_button_clicked)
+        stop_button = self.bottom_toolbar.play_control_panel.stop_button
+        start_button = self.bottom_toolbar.play_control_panel.start_button
+        pre_button  = self.bottom_toolbar.play_control_panel.pre_button
+        next_button = self.bottom_toolbar.play_control_panel.next_button
+        stop_button.connect("clicked",  self.__bottom_toolbar_stop_button_clicked)
+        start_button.connect("clicked", self.__bottom_toolbar_start_button_clicked)
+        pre_button.connect("clicked", self.__pre_button_clicked)
+        next_button.connect("clicked", self.__next_button_clicked)
 
     def __top_toolbar_1X_button_clicked(self, widget):
         print "__top_toolbar_1X_button_clicked..."
@@ -83,13 +101,17 @@ class MediaPlayFun(object):
         print "__top_toolbar_2X_button_clicked..."
 
     def __top_toolbar_concise_button_clicked(self, widget):
-        print "__top_toolbar_concise_button_clicked..."
+        if self.this.concise_check == False or self.this.fullscreen_check:
+            self.this.concise_check = False
+            self.this.key_concise_mode()
 
     def __top_toolbar_common_button_clicked(self, widget):
-        print "__top_toolbar_common_button_clicked......"
+        if self.this.concise_check == True or self.this.fullscreen_check: 
+            self.this.concise_check = True
+            self.this.key_concise_mode()
 
     def __top_toolbar_full_button_clicked(self, widget):
-        print "__top_toolbar_full_button_clicked........"
+        self.this.fullscreen_function()
 
     def __top_toolbar_above_button_clicked(self, widget):
         if not self.keep_above_check:
@@ -109,6 +131,12 @@ class MediaPlayFun(object):
         else:
             self.this.gui.close_right_child2()
             self.this.gui.screen_paned.set_all_size()
+
+    def __pre_button_clicked(self, widget):
+        self.this.prev()
+
+    def __next_button_clicked(self, widget):
+        self.this.next()
 
     def __bottom_toolbar_pb_value_changed(self, pb, value):
         self.ldmp.seek(value)
@@ -141,7 +169,6 @@ class MediaPlayFun(object):
     #######################################################
     ## @ldmp.
     def ldmp_start_media_player(self, ldmp):    
-        print "开始播放了..."
         self.bottom_toolbar.progressbar.set_sensitive(True)
         self.bottom_toolbar.pb_fseek_btn.set_sensitive(True)
         self.bottom_toolbar.pb_bseek_btn.set_sensitive(True)

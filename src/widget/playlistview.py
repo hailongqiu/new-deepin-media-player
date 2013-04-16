@@ -37,7 +37,6 @@ class PlayListView(object):
         self.scroll_win.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
         self.list_view    = ListView()
         #
-        self.list_view.connect_event("double-items",  self.list_view_double_items) 
         self.list_view.on_draw_sub_item =  self.__listview_on_draw_sub_item
         self.list_view.columns.add_range(["filename", "time"])
         self.list_view.columns[0].width = 100
@@ -48,11 +47,21 @@ class PlayListView(object):
         self.play_list_vbox.pack_start(self.scroll_win, True, True)
         #
         #
-        for i in range(1, 2000):
-            self.list_view.items.add([str(i) + "楚汉传奇+", "12:12:12", "/home/long/视屏" + str(i)])
+        for path in [
+                    "/home/long/视频/test.mp4",
+                    "/home/long/视频/test3.mkv",
+                    "/home/long/视频/test2.rmvb",
+                    "/home/long/视频/test3.mkv",
+                    "/home/long/视频/test4.mkv",
+                    "/home/long/视频/test.mp4",
+                    ]:
+            self.list_view.items.add([path, "12:12:12", path])
+        # 网络电视测试.
+        net_uri = "mms://112.230.192.196/zb10"
+        self.list_view.items.add(["网络电视:体育频道", "12:12:12", net_uri])
+        net_uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
+        self.list_view.items.add(["XXX卫视", "12:12:12", net_uri])
 
-    def list_view_double_items(self, listview, double_items, row, col, item_x, item_y):
-        print "*********************", double_items.sub_items[0].text, double_items.sub_items[2].text
 
     def __listview_on_draw_sub_item(self, e):
         color = self.listview_color.get_color()

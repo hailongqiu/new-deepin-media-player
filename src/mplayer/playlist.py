@@ -116,7 +116,10 @@ class PlayList(object):
     def __list_loop_play(self, next_check=True): # 列表循环播放
         num = 1 # next.
         if not next_check: # pre.
-            num = -1
+            if self.__index == -1:
+                num = 0
+            else:
+                num = -1
         self.__index += num
         self.__index = self.__index % (len(self.__file_list)) 
         return self.__set_double_item(self.__file_list[self.__index])
@@ -129,8 +132,8 @@ class PlayList(object):
         self.__index = index
 
     def set_items_index(self, play_file): # 设置index.
-        index = self.__file_list.index(play_file) - 1
-        if index:
+        index = self.__file_list.index(play_file)
+        if index != None:
             self.set_index(index)
         
     

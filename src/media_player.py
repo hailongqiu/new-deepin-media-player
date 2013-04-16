@@ -33,7 +33,7 @@ from gui import GUI # 播放器界面布局.
 from media_player_function import MediaPlayFun
 from mplayer.timer import Timer
 # mplayer后端.
-from mplayer.player import LDMP, set_ascept_function, unset_flags, set_flags
+from mplayer.player import LDMP, set_ascept_function, unset_flags, set_flags, Player
 from mplayer.player import STARTING_STATE, PAUSE_STATE
 from mplayer.player import ASCEPT_4X3_STATE, ASCEPT_16X9_STATE, ASCEPT_5X4_STATE
 from mplayer.player import ASCEPT_16X10_STATE, ASCEPT_1_85X1_STATE, ASCEPT_2_35X1_STATE, ASCEPT_FULL_STATE, ASCEPT_DEFULAT
@@ -51,6 +51,8 @@ import time
 import gtk
 import sys
 import os
+
+JMP_TIME = 88
 
 class MediaPlayer(object):
     def __init__(self):
@@ -100,7 +102,7 @@ class MediaPlayer(object):
         self.concise_check    = False # 简洁模式 # True 简洁模式 False 普通模式
         #
         #SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SINGLE_LOOP, LIST_LOOP 
-        self.play_list.set_state(RANDOM_PLAY)
+        self.play_list.set_state(LIST_LOOP)
         self.argv_path_list = sys.argv # save command argv.        
 
     def __init_double_timer(self):
@@ -241,9 +243,8 @@ class MediaPlayer(object):
         # self.ldmp.player.flip_screen = "rotate=2"
         # self.ldmp.player.uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
         #self.ldmp.player.uri = "mms://112.230.192.196/zb10"
-        self.ldmp.player.uri = "/home/long/视频/test4.mkv"
         #self.ldmp.player.cache_size = 1000
-        self.ldmp.play()                
+        #self.ldmp.play()                
         # 初始化插件系统.
         #self.init_plugin_manage()
         
@@ -369,7 +370,9 @@ class MediaPlayer(object):
             self.concise_mode() # 简洁模式.
             self.gui.app.window.fullscreen() # 全屏.
             self.fullscreen_check = True
+            self.gui.top_toolbar.toolbar_radio_button.set_full_state(True)
         else:
+            self.gui.top_toolbar.toolbar_radio_button.set_full_state(False)
             self.gui.app.window.unfullscreen()
             if not self.concise_check: # 如果是简洁模式,不普通模式.
                 self.normal_mode() # 普通模式.
@@ -443,12 +446,25 @@ class MediaPlayer(object):
             max_y = widget.allocation.height
             return ((min_y <= int(event.y) < max_y) and 
                 (min_x <= int(event.x) < max_x))
+
+    def play(self, play_name):
+        play_file = play_name
+        if play_file:
+            self.init_ldmp_player()
+            gtk.timeout_add(88, self.timeout_prev, play_file)
+
+    def init_ldmp_player(self):
+        self.ldmp.quit()
+        ####################################
+        ## 初始化设置, 比如加载的字幕或者起始时间等等.
+        self.ldmp.player.start_time = 0
+
     # 上一曲.
     def prev(self):    
         play_file = self.play_list.get_prev_file()
         if play_file:
-            self.ldmp.quit()
-            gtk.timeout_add(88, self.timeout_prev, play_file)
+            self.init_ldmp_player()
+            gtk.timeout_add(JMP_TIME, self.timeout_prev, play_file)
             
     def timeout_prev(self, play_file):
         self.ldmp.player.uri = play_file
@@ -458,8 +474,8 @@ class MediaPlayer(object):
     def next(self):    
         play_file = self.play_list.get_next_file()
         if play_file:
-            self.ldmp.quit()
-            gtk.timeout_add(88, self.timeout_next, play_file)
+            self.init_ldmp_player()
+            gtk.timeout_add(JMP_TIME, self.timeout_next, play_file)
         
     def timeout_next(self, play_file):        
         self.ldmp.player.uri = play_file
@@ -505,9 +521,11 @@ class MediaPlayer(object):
                 self.fullscreen_function()
             self.concise_mode()
             self.concise_check = True
+            self.gui.top_toolbar.toolbar_radio_button.set_window_mode(True)
         else:
             self.normal_mode()
             self.concise_check = False
+            self.gui.top_toolbar.toolbar_radio_button.set_window_mode(False)
 
     def key_quit_fullscreen(self):
         if self.fullscreen_check:
