@@ -28,9 +28,11 @@ from dtk.ui.utils import color_hex_to_cairo
 from locales import _ # 国际化翻译.
 from widget.utils import get_home_path
 from widget.keymap import get_keyevent_name
+from widget.ini_gui import IniGui
 from plugin_manage import PluginManage
 from gui import GUI # 播放器界面布局.
 from media_player_function import MediaPlayFun
+from media_player_menus    import MediaPlayMenus
 from mplayer.timer import Timer
 # mplayer后端.
 from mplayer.player import LDMP, set_ascept_function, unset_flags, set_flags, Player
@@ -68,6 +70,7 @@ class MediaPlayer(object):
         self.gui.screen.window.set_composited(True)
         # 全部的执行函数方法.
         self.media_play_fun = MediaPlayFun(self)
+        self.media_play_menus = MediaPlayMenus(self)
 
     def __init_dbus_id(self): # 初始化DBUS ID 唯一值.
         dbus_id_list = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time())).split("-")
@@ -510,6 +513,13 @@ class MediaPlayer(object):
         if res == gtk.RESPONSE_OK:
             print open_dialog.get_filenames()
         open_dialog.destroy()
+
+    def config_gui(self):
+        ini_gui = IniGui()
+        ini_gui.ini.connect("config-changed", self.restart_load_config_file)
+
+    def restart_load_config_file(self, ini_gui, sec_root, sec_argv, sec_value):
+        print "ini_gui", ini_gui, "sec_root:", sec_root, "sec_argv:", sec_argv, "sec_value:", sec_value
 
     ######################################################
     ## keymap press event

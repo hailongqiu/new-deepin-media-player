@@ -31,6 +31,7 @@ from widget.draw         import draw_pixbuf
 from widget.color        import alpha_color_hex_to_cairo
 from widget.bottom_toolbar import BottomToolBar
 from widget.play_control_panel import PlayControlPanel
+from widget.play_menus   import PlayMenus
 from locales import _
 import gtk
 
@@ -50,6 +51,10 @@ class GUI(object):
                               app_theme.get_pixbuf("logo.png"),
                               _("Deepin Media Player"), " ", 
                               add_separator = False)
+        #
+        self.play_menus = PlayMenus()
+        # 设置主题菜单.
+        self.app.set_menu_callback(lambda button: self.play_menus.show_theme_menu(button))
         #
         self.main_ali = gtk.Alignment()
         self.main_vbox = gtk.VBox()
