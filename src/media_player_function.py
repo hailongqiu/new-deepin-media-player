@@ -20,7 +20,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+
 from widget.constant import SEEK_VALUE
+
+
 
 class MediaPlayFun(object):
     def __init__(self, this):
@@ -29,19 +32,82 @@ class MediaPlayFun(object):
         self.__init_ldmp_values()
 
     def __init_values(self):
-        self.bottom_play_control_panel = self.this.gui.bottom_toolbar.play_control_panel
-        self.bottom_toolbar = self.this.gui.bottom_toolbar
-        self.bottom_toolbar.progressbar.connect("value-changed", self.__bottom_toolbar_pb_value_changed)
-        self.bottom_toolbar.pb_fseek_btn.connect("clicked",      self.__bottom_toolbar_pb_fseek_btn_clicked)
-        self.bottom_toolbar.pb_bseek_btn.connect("clicked",      self.__bottom_toolbar_pb_bseek_btn_clicked)
-        #self.play_control_panel = 
-        #self.volume_button = 
-        #self.bottom_toolbar.stop_button
+        self.app = self.this.gui.app
+        #
+        self.__init_top_toolbar()
+        self.__init_app_play_control_panel()
         self.__init_bottom_toolbar()
         #
         self.ldmp = self.this.ldmp
         self.play_list = self.this.play_list
         self.play_list.set_items_index(self.this.gui.play_list_view.list_view.items[3])
+
+    def __init_top_toolbar(self):
+        self.keep_above_check = False
+        self.top_toolbar    = self.this.gui.top_toolbar
+        self.top_toolbar.toolbar_above_button.connect("clicked", self.__top_toolbar_above_button_clicked)
+        self.top_toolbar.toolbar_1X_button.connect("clicked",    self.__top_toolbar_1X_button_clicked)
+        self.top_toolbar.toolbar_2X_button.connect("clicked",    self.__top_toolbar_2X_button_clicked)    
+        self.top_toolbar.toolbar_concise_button.connect("clicked", self.__top_toolbar_concise_button_clicked)
+        self.top_toolbar.toolbar_common_button.connect("clicked",  self.__top_toolbar_common_button_clicked) 
+        self.top_toolbar.toolbar_full_button.connect("clicked", self.__top_toolbar_full_button_clicked) 
+
+    def __init_app_play_control_panel(self):
+        self.app_play_control_panel    = self.this.gui.play_control_panel
+        self.app_play_control_panel.progressbar.connect("value-changed", self.__bottom_toolbar_pb_value_changed)
+        self.app_play_control_panel.pb_fseek_btn.connect("clicked", self.__bottom_toolbar_pb_fseek_btn_clicked)
+        self.app_play_control_panel.pb_bseek_btn.connect("clicked", self.__bottom_toolbar_pb_bseek_btn_clicked)
+        self.app_play_control_panel.play_control_panel.start_button.connect("clicked", 
+                                           self.__bottom_toolbar_start_button_clicked)
+        self.app_play_control_panel.play_list_btn.button.connect("clicked", 
+                 self.__app_play_control_panel_play_list_btn_clicked)
+        child2_width = self.this.gui.screen_paned.get_move_width()
+        if child2_width == 0:
+            self.app_play_control_panel.play_list_btn.button.set_active(False)
+
+    def __init_bottom_toolbar(self):
+        self.bottom_play_control_panel = self.this.gui.bottom_toolbar.play_control_panel
+        self.bottom_toolbar = self.this.gui.bottom_toolbar
+        self.bottom_toolbar.progressbar.connect("value-changed", self.__bottom_toolbar_pb_value_changed)
+        self.bottom_toolbar.pb_fseek_btn.connect("clicked",      self.__bottom_toolbar_pb_fseek_btn_clicked)
+        self.bottom_toolbar.pb_bseek_btn.connect("clicked",      self.__bottom_toolbar_pb_bseek_btn_clicked)
+        self.bottom_toolbar.play_control_panel.stop_button.connect("clicked",  
+                                   self.__bottom_toolbar_stop_button_clicked)
+        self.bottom_toolbar.play_control_panel.start_button.connect("clicked", 
+                                   self.__bottom_toolbar_start_button_clicked)
+
+    def __top_toolbar_1X_button_clicked(self, widget):
+        print "__top_toolbar_1X_button_clicked..."
+
+    def __top_toolbar_2X_button_clicked(self, widget):   
+        print "__top_toolbar_2X_button_clicked..."
+
+    def __top_toolbar_concise_button_clicked(self, widget):
+        print "__top_toolbar_concise_button_clicked..."
+
+    def __top_toolbar_common_button_clicked(self, widget):
+        print "__top_toolbar_common_button_clicked......"
+
+    def __top_toolbar_full_button_clicked(self, widget):
+        print "__top_toolbar_full_button_clicked........"
+
+    def __top_toolbar_above_button_clicked(self, widget):
+        if not self.keep_above_check:
+            self.app.window.set_keep_above(True)
+            self.keep_above_check = True
+        else:
+            self.app.window.set_keep_above(False)
+            self.keep_above_check = False
+
+    def __app_play_control_panel_play_list_btn_clicked(self, widget):
+        # 设置右部的child2的 播放列表.
+        child2_width = self.this.gui.screen_paned.get_move_width()
+        if child2_width == 0:
+            self.this.gui.open_right_child2()
+            self.this.gui.screen_paned.set_all_size()
+        else:
+            self.this.gui.close_right_child2()
+            self.this.gui.screen_paned.set_all_size()
 
     def __bottom_toolbar_pb_value_changed(self, pb, value):
         self.ldmp.seek(value)
@@ -51,10 +117,6 @@ class MediaPlayFun(object):
 
     def __bottom_toolbar_pb_bseek_btn_clicked(self, widget):
         self.ldmp.bseek(SEEK_VALUE)
-
-    def __init_bottom_toolbar(self):
-        self.bottom_toolbar.play_control_panel.stop_button.connect("clicked",  self.__bottom_toolbar_stop_button_clicked)
-        self.bottom_toolbar.play_control_panel.start_button.connect("clicked", self.__bottom_toolbar_start_button_clicked)
 
     def __bottom_toolbar_stop_button_clicked(self, widget):
         print "__bottom_toolbar_stop_button_clicked...", widget
@@ -71,53 +133,73 @@ class MediaPlayFun(object):
     def __start_button_clicked(self):
         self.ldmp.pause()
 
-
     def __init_ldmp_values(self):
         self.__pos = "00:00:00 / "
         self.__length = "00:00:00"
 
     #######################################################
-    ## ldmp.
+    ## @ldmp.
     def ldmp_start_media_player(self, ldmp):    
         print "开始播放了..."
         self.bottom_toolbar.progressbar.set_sensitive(True)
         self.bottom_toolbar.pb_fseek_btn.set_sensitive(True)
         self.bottom_toolbar.pb_bseek_btn.set_sensitive(True)
         self.bottom_play_control_panel.start_button.set_start_bool(False)
+        # 
+        self.app_play_control_panel.progressbar.set_sensitive(True)
+        self.app_play_control_panel.pb_fseek_btn.set_sensitive(True)
+        self.app_play_control_panel.pb_bseek_btn.set_sensitive(True)
+        self.app_play_control_panel.play_control_panel.start_button.set_start_bool(False)
 
     def ldmp_end_media_player(self, ldmp):
         # 改变所有的状态.
-        #
         self.__pos = "00:00:00 / "
         self.__length = "00:00:00"
+        ''' 下部工具条 '''
         self.bottom_toolbar.show_time.set_time_font(self.__pos, self.__length)
-        self.bottom_toolbar.show_time.set_time_font(self.__pos, self.__length)
-        #
         self.bottom_toolbar.progressbar.set_pos(0)
         self.bottom_toolbar.progressbar.set_sensitive(False)
-        #
         self.bottom_toolbar.pb_fseek_btn.set_sensitive(False)
         self.bottom_toolbar.pb_bseek_btn.set_sensitive(False)
         self.bottom_play_control_panel.start_button.set_start_bool(True)
+        ''' 播放控制面板 '''
+        self.app_play_control_panel.show_time.set_time_font(self.__pos, self.__length)
+        self.app_play_control_panel.progressbar.set_pos(0)
+        self.app_play_control_panel.progressbar.set_sensitive(False)
+        self.app_play_control_panel.progressbar.set_sensitive(False)
+        self.app_play_control_panel.pb_fseek_btn.set_sensitive(False)
+        self.app_play_control_panel.pb_bseek_btn.set_sensitive(False)
+        self.app_play_control_panel.play_control_panel.start_button.set_start_bool(True)
+
+    def ldmp_pause_play(self, pause_check):
+        if pause_check: # 正在播放.
+            self.app_play_control_panel.play_control_panel.start_button.set_start_bool(False)
+            self.bottom_play_control_panel.start_button.set_start_bool(False)
+        else: # 暂停.
+            self.app_play_control_panel.play_control_panel.start_button.set_start_bool(True)
+            self.bottom_play_control_panel.start_button.set_start_bool(True)
 
     def ldmp_get_time_pos(self, ldmp, pos, time):
+        # 设置显示的时间值.
         self.__set_pos_time(time)
+        # 获取播放进度设置进度条.
         self.bottom_toolbar.progressbar.set_pos(pos)
+        self.app_play_control_panel.progressbar.set_pos(pos)
 
     def ldmp_get_time_length(self, ldmp, length, time):    
+        # 设置显示的总长度值.
         self.__set_length_time(time)
+        # 获取播放总进度设置进度条的最大值.
         self.bottom_toolbar.progressbar.set_max_value(length)
+        self.app_play_control_panel.progressbar.set_max_value(length)
 
     def __set_pos_time(self, time):
         self.__pos = str(time) + " / "
         self.bottom_toolbar.show_time.set_time_font(self.__pos, self.__length)
+        self.app_play_control_panel.show_time.set_time_font(self.__pos, self.__length)
 
     def __set_length_time(self, time):
         self.__length = str(time)
         self.bottom_toolbar.show_time.set_time_font(self.__pos, self.__length)
-
-
-
-
-
+        self.app_play_control_panel.show_time.set_time_font(self.__pos, self.__length)
 

@@ -49,7 +49,7 @@ class Paned(gtk.Bin):
         self.bottom_child = None
         self.__child1 = None
         self.__child2 = None
-        self.__child2_move_width = 175
+        self.__child2_move_width = 0 #175
         self.__child2_min_width  = 175
         self.save_move_width   = 0
         self.move_check = False # 是否移动paned.
@@ -350,7 +350,7 @@ class Paned(gtk.Bin):
             child2_allocation = gdk.Rectangle()
             child2_allocation.width = self.__child2_move_width
             child2_allocation.height = self.allocation.height
-            child2_allocation.x = child1_allocation.width 
+            child2_allocation.x = self.allocation.width - self.__child2_move_width 
             child2_allocation.y = 0
             self.__child2.size_allocate(child2_allocation)
         self.__handle_pos_x = child2_allocation.x

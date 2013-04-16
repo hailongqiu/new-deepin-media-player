@@ -27,6 +27,7 @@ from dtk.ui.draw import draw_pixbuf
 from dtk.ui.utils import color_hex_to_cairo
 from locales import _ # 国际化翻译.
 from widget.utils import get_home_path
+from widget.keymap import get_keyevent_name
 from plugin_manage import PluginManage
 from gui import GUI # 播放器界面布局.
 from media_player_function import MediaPlayFun
@@ -83,6 +84,12 @@ class MediaPlayer(object):
         self.dbus_id = dbus_id
 
     def __init_values(self):
+        self.keymap = {} # 快捷键.
+        self.keymap["Escape"]  = self.key_quit_fullscreen
+        self.keymap["Return"]  = self.fullscreen_function
+        self.keymap["Space"]   = self.key_pause
+        self.keymap["Shift + Return"] = self.key_concise_mode
+        #
         self.ldmp = LDMP()
         self.gui = GUI()        
         self.play_list = PlayList(self.gui.play_list_view.list_view) 
@@ -127,8 +134,10 @@ class MediaPlayer(object):
         # self.app.window.connect("check-resize",)         
 
     def app_window_key_press_event(self, widget, event):
-        if event.keyval == 32:
-            self.ldmp.pause()
+        keyval_name = get_keyevent_name(event)
+        print "name:", keyval_name
+        if self.keymap.has_key(keyval_name):
+            self.keymap[keyval_name]()
 
     def __init_gui_screen(self):
         '''screen events init.'''
@@ -216,12 +225,13 @@ class MediaPlayer(object):
     def init_media_player(self, widget): # screen realize.        
         '''初始化mplayer后端'''
         self.ldmp.xid = widget.window.xid
-        self.ldmp.connect("get-time-pos", self.ldmp_get_time_pos)
-        self.ldmp.connect("get-time-length", self.ldmp_get_time_length)
-        self.ldmp.connect("end-media-player", self.ldmp_end_media_player)
+        self.ldmp.connect("get-time-pos",       self.ldmp_get_time_pos)
+        self.ldmp.connect("get-time-length",    self.ldmp_get_time_length)
+        self.ldmp.connect("end-media-player",   self.ldmp_end_media_player)
         self.ldmp.connect("start-media-player", self.ldmp_start_media_player)
-        self.ldmp.connect("screen-changed", self.ldmp_screen_changed)
-        self.ldmp.connect("error-msg", self.ldmp_error_msg)
+        self.ldmp.connect("screen-changed",     self.ldmp_screen_changed)
+        self.ldmp.connect("pause-play",         self.ldmp_pause_play)
+        self.ldmp.connect("error-msg",          self.ldmp_error_msg)
         
         # self.ldmp.player.ascept_state = ASCEPT_16X10_STATE
         # self.ldmp.player.vo = "vdpau"
@@ -231,7 +241,7 @@ class MediaPlayer(object):
         # self.ldmp.player.flip_screen = "rotate=2"
         # self.ldmp.player.uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
         #self.ldmp.player.uri = "mms://112.230.192.196/zb10"
-        self.ldmp.player.uri = "/home/long/视频/test.mp4"
+        self.ldmp.player.uri = "/home/long/视频/test4.mkv"
         #self.ldmp.player.cache_size = 1000
         self.ldmp.play()                
         # 初始化插件系统.
@@ -276,6 +286,9 @@ class MediaPlayer(object):
             self.draw_check = False
         self.set_ascept_restart() # 改变屏幕比例.    
         
+    def ldmp_pause_play(self, ldmp, pause_check): # 暂停状态.
+        self.media_play_fun.ldmp_pause_play(pause_check)
+
     def ldmp_error_msg(self, ldmp, error_code): # 接收后端错误信息.
         print "ldmp_error_msg->error_code:", error_code
         
@@ -357,7 +370,8 @@ class MediaPlayer(object):
             self.gui.app.window.fullscreen() # 全屏.
             self.fullscreen_check = True
         else:
-            self.normal_mode() # 普通模式.
+            if not self.concise_check:
+                self.normal_mode() # 普通模式.
             self.gui.app.window.unfullscreen()
             self.fullscreen_check = False
 
@@ -367,12 +381,14 @@ class MediaPlayer(object):
         # 左边部件child2操作.
         self.gui.close_right_child2()
         self.gui.hide_handle()
+        self.gui.hide_play_control_paned()
 
     def normal_mode(self): # 普通模式调用.
         self.gui.main_ali.set_padding(0, 2, 2, 2)
         self.gui.app.show_titlebar()
         # 左边部件child2操作.
         self.gui.show_handle()
+        self.gui.show_play_control_paned()
         if self.gui.child2_show_check:
             self.gui.open_right_child2() 
 
@@ -475,3 +491,20 @@ class MediaPlayer(object):
         if res == gtk.RESPONSE_OK:
             print open_dialog.get_filenames()
         open_dialog.destroy()
+
+    ######################################################
+    ## keymap press event
+    def key_concise_mode(self):
+        if not self.concise_check:
+            self.concise_mode()
+            self.concise_check = True
+        else:
+            self.normal_mode()
+            self.concise_check = False
+
+    def key_quit_fullscreen(self):
+        if self.fullscreen_check:
+            self.fullscreen_function()
+
+    def key_pause(self):
+        self.ldmp.pause()

@@ -109,7 +109,8 @@ class StartButton(gtk.Button):
         self.cache_pixbuf = CachePixbuf()
         
     def clicked_button(self, widget):
-        self.set_start_bool(not self.start_bool)
+        #self.set_start_bool(not self.start_bool)
+        pass
                 
     def set_start_bool(self, start_bool):    
         if not self.stop_bool:

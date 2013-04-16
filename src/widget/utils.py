@@ -25,6 +25,7 @@ from constant import DEFAULT_FONT, DEFAULT_FONT_SIZE
 from constant import DEBUG
 import threading
 import gobject        
+import glib
 import gtk
 import sys
 import gio
@@ -173,6 +174,15 @@ def time_add_zero(time_to):
 # 获取当前用户的目录
 def get_home_path():
     return os.path.expanduser("~")
+
+def get_home_music():
+    return glib.get_user_special_dir(glib.USER_DIRECTORY_MUSIC)
+
+def get_home_video():
+    return glib.get_user_special_dir(glib.USER_DIRECTORY_VIDEOS)
+
+def get_home_image():
+    return glib.get_user_special_dir(glib.USER_DIRECTORY_PICTURES)
 
 def allocation(widget): # 返回 cr, rect.
     cr = widget.window.cairo_create()

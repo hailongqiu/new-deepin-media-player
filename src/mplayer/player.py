@@ -154,6 +154,8 @@ class LDMP(gobject.GObject):
                             gobject.TYPE_NONE,()),    
         "screen-changed":(gobject.SIGNAL_RUN_LAST,
                             gobject.TYPE_NONE,(gobject.TYPE_INT, gobject.TYPE_INT)),        
+        "pause-play":(gobject.SIGNAL_RUN_LAST,
+                     gobject.TYPE_NONE,(gobject.TYPE_INT,)),
         "error-msg":(gobject.SIGNAL_RUN_LAST,
                      gobject.TYPE_NONE,(gobject.TYPE_INT,)),
         }
@@ -786,8 +788,10 @@ class LDMP(gobject.GObject):
         if (self.player.state == STARTING_STATE or self.player.state == PAUSE_STATE):
             if self.player.state == PAUSE_STATE:
                 self.player.state = STARTING_STATE
+                self.emit("pause-play", True)
             else:    
                 self.player.state = PAUSE_STATE
+                self.emit("pause-play", False)
             self.cmd('pause \n')
             
     def stop(self):    

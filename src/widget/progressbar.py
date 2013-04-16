@@ -80,7 +80,6 @@ class ProgressBar(gtk.Button):
         self.drag_show_check = False
 
     def __button_press_event(self, widget, event):
-        print "__button_press_event....."
         self.__event_pos(event)
         self.__move_check = True
 
@@ -90,6 +89,7 @@ class ProgressBar(gtk.Button):
         value = press_x / width * self.max_value
         self.pos = min(max(value, 0), self.max_value)
         self.emit("value-changed", self.pos)
+        self.queue_draw()
 
     def __button_release_event(self, widget, event):
         self.__move_check = False

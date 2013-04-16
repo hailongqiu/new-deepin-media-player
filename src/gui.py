@@ -77,7 +77,6 @@ class GUI(object):
         self.screen_paned.add2(self.play_list_view.play_list_vbox)
         #
         self.play_control_panel = BottomToolBar(False)
-        print self.play_control_panel
         #
         self.main_vbox.pack_start(self.screen_paned, True, True)
         self.main_vbox.pack_start(self.play_control_panel.vbox, False, False)
@@ -127,12 +126,10 @@ class GUI(object):
     def set_paned_handle(self, event):
         if self.screen_paned.show_check and (0 <= event.x <= 7):
             self.child2_show_check = not self.child2_show_check
-            if self.screen_paned.get_move_width() == 0:
-                self.screen_paned.set_move_width(self.screen_paned.save_move_width)
-                self.screen_paned.set_all_size()
+            if self.screen_paned.get_move_width() == 0: # child2 隐藏和显示.
+                self.play_control_panel.play_list_btn.button.set_active(True)
             else:
-                self.screen_paned.set_jmp_end()
-                self.screen_paned.set_all_size()
+                self.play_control_panel.play_list_btn.button.set_active(False)
 
     def close_right_child2(self):
         self.screen_paned.set_jmp_end() # 关闭右侧控件(播放列表..).
@@ -145,5 +142,12 @@ class GUI(object):
 
     def show_handle(self):
         self.screen_paned.set_visible_handle(True)
+
+    def show_play_control_paned(self):
+        self.main_vbox.pack_start(self.play_control_panel.vbox, False, False)
+
+    def hide_play_control_paned(self):
+        self.main_vbox.remove(self.play_control_panel.vbox)
+
 
 
