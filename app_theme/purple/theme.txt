@@ -17,6 +17,8 @@
  "buttonFont" : "#000000",
   "simpleSelectItem" : "#FFFFFF",
   "listview" : "#0000FF",
+ "progressBarLeft" : "#800EA7",
+ "progressBarRight" : "#CD59F8",
  },	
  "alpha_colors" : {
      "frame" : ("#000000", 0.5),

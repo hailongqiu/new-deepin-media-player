@@ -19,6 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+from widget.constant import SEEK_VALUE
+
 class MediaPlayFun(object):
     def __init__(self, this):
         self.this = this
@@ -26,8 +29,11 @@ class MediaPlayFun(object):
         self.__init_ldmp_values()
 
     def __init_values(self):
+        self.bottom_play_control_panel = self.this.gui.bottom_toolbar.play_control_panel
         self.bottom_toolbar = self.this.gui.bottom_toolbar
         self.bottom_toolbar.progressbar.connect("value-changed", self.__bottom_toolbar_pb_value_changed)
+        self.bottom_toolbar.pb_fseek_btn.connect("clicked",      self.__bottom_toolbar_pb_fseek_btn_clicked)
+        self.bottom_toolbar.pb_bseek_btn.connect("clicked",      self.__bottom_toolbar_pb_bseek_btn_clicked)
         #self.play_control_panel = 
         #self.volume_button = 
         #self.bottom_toolbar.stop_button
@@ -38,8 +44,13 @@ class MediaPlayFun(object):
         self.play_list.set_items_index(self.this.gui.play_list_view.list_view.items[3])
 
     def __bottom_toolbar_pb_value_changed(self, pb, value):
-        print ".......", value
         self.ldmp.seek(value)
+
+    def __bottom_toolbar_pb_fseek_btn_clicked(self, widget):
+        self.ldmp.fseek(SEEK_VALUE)
+
+    def __bottom_toolbar_pb_bseek_btn_clicked(self, widget):
+        self.ldmp.bseek(SEEK_VALUE)
 
     def __init_bottom_toolbar(self):
         self.bottom_toolbar.play_control_panel.stop_button.connect("clicked",  self.__bottom_toolbar_stop_button_clicked)
@@ -54,8 +65,6 @@ class MediaPlayFun(object):
         print "__bottom_toolbar_start_button_clicked...", widget
         self.__start_button_clicked()
         
-
-
     def __stop_button_clicked(self):
         self.ldmp.stop()
 
@@ -69,6 +78,28 @@ class MediaPlayFun(object):
 
     #######################################################
     ## ldmp.
+    def ldmp_start_media_player(self, ldmp):    
+        print "开始播放了..."
+        self.bottom_toolbar.progressbar.set_sensitive(True)
+        self.bottom_toolbar.pb_fseek_btn.set_sensitive(True)
+        self.bottom_toolbar.pb_bseek_btn.set_sensitive(True)
+        self.bottom_play_control_panel.start_button.set_start_bool(False)
+
+    def ldmp_end_media_player(self, ldmp):
+        # 改变所有的状态.
+        #
+        self.__pos = "00:00:00 / "
+        self.__length = "00:00:00"
+        self.bottom_toolbar.show_time.set_time_font(self.__pos, self.__length)
+        self.bottom_toolbar.show_time.set_time_font(self.__pos, self.__length)
+        #
+        self.bottom_toolbar.progressbar.set_pos(0)
+        self.bottom_toolbar.progressbar.set_sensitive(False)
+        #
+        self.bottom_toolbar.pb_fseek_btn.set_sensitive(False)
+        self.bottom_toolbar.pb_bseek_btn.set_sensitive(False)
+        self.bottom_play_control_panel.start_button.set_start_bool(True)
+
     def ldmp_get_time_pos(self, ldmp, pos, time):
         self.__set_pos_time(time)
         self.bottom_toolbar.progressbar.set_pos(pos)
@@ -84,6 +115,7 @@ class MediaPlayFun(object):
     def __set_length_time(self, time):
         self.__length = str(time)
         self.bottom_toolbar.show_time.set_time_font(self.__pos, self.__length)
+
 
 
 

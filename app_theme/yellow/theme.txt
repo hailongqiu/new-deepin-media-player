@@ -15,8 +15,10 @@
  "buttonBorderPrelight" : "#FFFFFF",
  "buttonBorderActive" : "#FFFFFF",
  "buttonFont" : "#000000",
-  "simpleSelectItem" : "#FFFFFF",
-  "listview" : "#0000FF",
+ "simpleSelectItem" : "#FFFFFF",
+ "listview" : "#0000FF",
+ "progressBarLeft" : "#C1BC19",
+ "progressBarRight" : "#F3FF69",
  },	
  "alpha_colors" : {
      "frame" : ("#000000", 0.5),

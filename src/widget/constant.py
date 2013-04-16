@@ -36,3 +36,5 @@ def get_system_font():
     return font_name
 DEFAULT_FONT = get_system_font()
 DEFAULT_FONT_SIZE = 10
+
+SEEK_VALUE = 10

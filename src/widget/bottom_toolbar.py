@@ -26,19 +26,31 @@ from dtk.ui.volume_button import VolumeButton
 from show_time import ShowTime
 from play_control_panel import PlayControlPanel
 from progressbar import ProgressBar
+from progressbar import SeekButton
+from play_list_button import PlayListButton
 
 import gtk
 
 class BottomToolBar(object):            
-    def __init__(self):
+    def __init__(self, type_bottom_check=True):
+        type_bottom_check = type_bottom_check
         self.vbox = gtk.VBox()
         
         self.hbox = gtk.HBox()
         #
+        self.pb_hbox = gtk.HBox()
+        self.pb_hbox_ali = gtk.Alignment(0, 0, 1, 1)
+        self.pb_hbox_ali.set_padding(0, 0, 2, 2)
+        self.pb_fseek_btn = SeekButton(type="fseek")
+        self.pb_bseek_btn = SeekButton(type="bseek")
         self.progressbar_ali = gtk.Alignment(0, 0, 1, 1)
-        self.progressbar_ali.set_padding(0, 0, 1, 1)
+        self.progressbar_ali.set_padding(0, 0, 3, 3)
         self.progressbar = ProgressBar()
         self.progressbar_ali.add(self.progressbar)
+        self.pb_hbox.pack_start(self.pb_bseek_btn, False, False)
+        self.pb_hbox.pack_start(self.progressbar_ali, True, True)
+        self.pb_hbox.pack_start(self.pb_fseek_btn, False, False)
+        self.pb_hbox_ali.add(self.pb_hbox)
         #self.progressbar.set_sensitive(False)
         # hbox add child widget.
         self.show_time_hframe = HorizontalFrame()
@@ -60,6 +72,9 @@ class BottomToolBar(object):
         self.play_control_panel_hframe = self.play_control_panel.hbox_hframe
         self.play_control_panel_hframe.set(0, 0, 0, 0)
         self.play_control_panel_hframe.set_padding(0, 0, 0, 0)
+        if not type_bottom_check: 
+            self.play_control_panel_hframe.set(0.5, 0, 1.0, 0)
+            self.play_control_panel_hframe.set_padding(3, 0, 0, 0)
         
         self.volume_hframe = HorizontalFrame()
         self.volume_button = VolumeButton(press_emit_bool = True,
@@ -79,24 +94,32 @@ class BottomToolBar(object):
                  mute_volume_hover_pixbuf = app_theme.get_pixbuf("volume_button/mute_hover.png"),
                  mute_volume_press_pixbuf = app_theme.get_pixbuf("volume_button/mute_press.png")
                )
-        volume_button_padding_width = 120
-        volume_button_padding_height = 50
+        volume_button_padding_width = 80#120
+        volume_button_padding_height = 30
         self.volume_button.set_size_request(
             volume_button_padding_width, 
             volume_button_padding_height
             )
         self.volume_hframe.add(self.volume_button)
-        self.volume_hframe.set(1, 0, 0, 0)
+        self.volume_hframe.set(0.5, 0.2, 0, 0)
         self.volume_hframe.set_padding(0, 0, 0, 0)
         
         
         self.hbox.pack_start(self.show_time_hframe, True, True)
         self.hbox.pack_start(self.play_control_panel.hbox_hframe, True, True)
+        if not type_bottom_check: # 骰子.
+            pass
         self.hbox.pack_start(self.volume_hframe, False, False)
+        if not type_bottom_check: # 播放列表控制.
+            self.play_list_btn_ali = gtk.Alignment(0.7, 0.45, 0, 0)
+            self.play_list_btn_ali.set_padding(0, 0, 0, 20)
+            self.play_list_btn = PlayListButton()
+            self.play_list_btn_ali.add(self.play_list_btn.button)
+            self.hbox.pack_start(self.play_list_btn_ali, False, False)
         label = gtk.Label()
         label.set_size_request(10, 1)
         self.hbox.pack_start(label, False, False)
-        self.vbox.pack_start(self.progressbar_ali, False, False) 
+        self.vbox.pack_start(self.pb_hbox_ali, False, False) 
         self.vbox.pack_start(self.hbox, True, True)
                 
                 

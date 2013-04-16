@@ -30,6 +30,7 @@ from widget.toolbar      import ToolBar
 from widget.draw         import draw_pixbuf
 from widget.color        import alpha_color_hex_to_cairo
 from widget.bottom_toolbar import BottomToolBar
+from widget.play_control_panel import PlayControlPanel
 from locales import _
 import gtk
 
@@ -75,7 +76,11 @@ class GUI(object):
         self.screen_paned.add1(self.screen_frame)
         self.screen_paned.add2(self.play_list_view.play_list_vbox)
         #
+        self.play_control_panel = BottomToolBar(False)
+        print self.play_control_panel
+        #
         self.main_vbox.pack_start(self.screen_paned, True, True)
+        self.main_vbox.pack_start(self.play_control_panel.vbox, False, False)
         #
         self.app.main_box.pack_start(self.main_ali, True, True)
 

@@ -90,7 +90,7 @@ class MediaPlayer(object):
         self.play_list.set_file_list(self.gui.play_list_view.list_view.items)
         #self.plugin_manage = PluginManage()
         self.fullscreen_check = False # 全屏
-        self.concise_check    = True#False # 简洁模式 # True 简洁模式 False 普通模式
+        self.concise_check    = False # 简洁模式 # True 简洁模式 False 普通模式
         #
         #SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SINGLE_LOOP, LIST_LOOP 
         self.play_list.set_state(RANDOM_PLAY)
@@ -135,13 +135,13 @@ class MediaPlayer(object):
         self.draw_check = True
         self.background = app_theme.get_pixbuf("player.png").get_pixbuf()        
         self.gui.screen_frame_event.add_events(gtk.gdk.ALL_EVENTS_MASK)
-        self.gui.screen.connect("realize", self.init_media_player)
-        self.gui.screen.connect("expose-event", self.screen_expose_event)
-        self.gui.screen.connect("configure-event", self.screen_configure_event)
+        self.gui.screen.connect("realize",            self.init_media_player)
+        self.gui.screen.connect("expose-event",       self.screen_expose_event)
+        self.gui.screen.connect("configure-event",    self.screen_configure_event)
         self.gui.screen_frame.connect("expose-event", self.screen_frame_expose_event)
-        self.gui.screen_frame_event.connect("button-press-event", self.screen_frame_event_button_press_event)
+        self.gui.screen_frame_event.connect("button-press-event",   self.screen_frame_event_button_press_event)
         self.gui.screen_frame_event.connect("button-release-event", self.screen_frame_event_button_release_event)
-        self.gui.screen_frame_event.connect("motion-notify-event", self.screen_frame_event_button_motoin_notify_event)
+        self.gui.screen_frame_event.connect("motion-notify-event",  self.screen_frame_event_button_motoin_notify_event)
         self.gui.screen_frame_event.connect("leave-notify-event", self.screen_frame_event_leave_notify_event)
 
     def init_plugin_manage(self): # 初始化插件系统.
@@ -231,7 +231,7 @@ class MediaPlayer(object):
         # self.ldmp.player.flip_screen = "rotate=2"
         # self.ldmp.player.uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
         #self.ldmp.player.uri = "mms://112.230.192.196/zb10"
-        self.ldmp.player.uri = "/home/long/视频/test3.mkv"
+        self.ldmp.player.uri = "/home/long/视频/test.mp4"
         #self.ldmp.player.cache_size = 1000
         self.ldmp.play()                
         # 初始化插件系统.
@@ -249,6 +249,7 @@ class MediaPlayer(object):
     def ldmp_start_media_player(self, ldmp):    
         print "开始播放了..."
         self.player_start_init()
+        self.media_play_fun.ldmp_start_media_player(ldmp)
         
     def player_start_init(self):    
         pass
@@ -256,6 +257,7 @@ class MediaPlayer(object):
     def ldmp_end_media_player(self, ldmp):
         print "播放结束!!", ldmp.player.type
         self.player_end_init()
+        self.media_play_fun.ldmp_end_media_player(ldmp)
         
     def player_end_init(self):        
         # 播放完毕，重置播放设置.
