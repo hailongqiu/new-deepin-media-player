@@ -95,6 +95,7 @@ class MediaPlayer(object):
         self.keymap["Space"]   = self.key_pause
         self.keymap["Shift + Return"] = self.key_concise_mode
         #
+        self.play_list_check = False
         self.ldmp = LDMP()
         self.gui = GUI()        
         self.play_list = PlayList(self.gui.play_list_view.list_view) 
@@ -465,6 +466,7 @@ class MediaPlayer(object):
             gtk.timeout_add(88, self.timeout_prev, play_file)
 
     def init_ldmp_player(self):
+        self.play_list_check = True
         self.ldmp.quit()
         ####################################
         ## 初始化设置, 比如加载的字幕或者起始时间等等.

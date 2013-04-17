@@ -173,12 +173,11 @@ class MediaPlayFun(object):
         self.ldmp.bseek(SEEK_VALUE)
 
     def __bottom_toolbar_stop_button_clicked(self, widget):
-        print "__bottom_toolbar_stop_button_clicked...", widget
-        print self.play_list.get_next_file()
+        self.ldmp.stop()
+        #print self.play_list.get_next_file()
         #print self.play_list.get_prev_file()
 
     def __bottom_toolbar_start_button_clicked(self, widget):
-        print "__bottom_toolbar_start_button_clicked...", widget
         self.__start_button_clicked()
         
     def __stop_button_clicked(self):
@@ -203,6 +202,8 @@ class MediaPlayFun(object):
         self.app_play_control_panel.pb_fseek_btn.set_sensitive(True)
         self.app_play_control_panel.pb_bseek_btn.set_sensitive(True)
         self.app_play_control_panel.play_control_panel.start_button.set_start_bool(False)
+        #
+        self.this.play_list_check = False
 
     def ldmp_end_media_player(self, ldmp):
         # 改变所有的状态.
@@ -223,6 +224,11 @@ class MediaPlayFun(object):
         self.app_play_control_panel.pb_fseek_btn.set_sensitive(False)
         self.app_play_control_panel.pb_bseek_btn.set_sensitive(False)
         self.app_play_control_panel.play_control_panel.start_button.set_start_bool(True)
+        #
+        print self.this.play_list_check
+        if not self.this.play_list_check:
+            self.this.next()
+
 
     def ldmp_pause_play(self, pause_check):
         if pause_check: # 正在播放.
