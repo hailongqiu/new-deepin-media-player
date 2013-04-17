@@ -39,9 +39,10 @@ class MediaPlayFun(object):
         self.__init_bottom_toolbar()
         #
         self.ldmp = self.this.ldmp
+        self.play_list = self.this.play_list
         self.list_view = self.this.gui.play_list_view.list_view
         self.list_view.connect_event("double-items",  self.list_view_double_items) 
-        self.play_list = self.this.play_list
+        #
 
     def list_view_double_items(self, listview, double_items, row, col, item_x, item_y):
         self.play_list.set_items_index(double_items)
@@ -69,11 +70,15 @@ class MediaPlayFun(object):
         stop_button = self.app_play_control_panel.play_control_panel.stop_button
         pre_button  = self.app_play_control_panel.play_control_panel.pre_button
         next_button = self.app_play_control_panel.play_control_panel.next_button
+        volume_button = self.app_play_control_panel.volume_button
         #
         start_button.start_button.connect("clicked", self.__bottom_toolbar_start_button_clicked)
         stop_button.connect("clicked",  self.__bottom_toolbar_stop_button_clicked)
         pre_button.connect("clicked", self.__pre_button_clicked)
         next_button.connect("clicked", self.__next_button_clicked)
+        volume_button.mute_btn.connect("clicked", self.__mute_btn_state_changed)
+        volume_button.volume_btn.connect("button-press-event", self.__volume_btn_button_press_event)
+        volume_button.volume_btn.connect('motion-notify-event', self.__volume_btn_motion_notify_event)
         '''
             # 这里需要读 ini文件, 是否显示初始化的时候显示播放列表. 默认不显示播放列表.
             self.app_play_control_panel.play_list_btn.button.set_active(True)
@@ -89,10 +94,34 @@ class MediaPlayFun(object):
         start_button = self.bottom_toolbar.play_control_panel.start_button
         pre_button  = self.bottom_toolbar.play_control_panel.pre_button
         next_button = self.bottom_toolbar.play_control_panel.next_button
+        volume_button = self.bottom_toolbar.volume_button
         stop_button.connect("clicked",  self.__bottom_toolbar_stop_button_clicked)
         start_button.connect("clicked", self.__bottom_toolbar_start_button_clicked)
         pre_button.connect("clicked", self.__pre_button_clicked)
         next_button.connect("clicked", self.__next_button_clicked)
+        volume_button.mute_btn.connect("clicked", self.__mute_btn_state_changed)
+        volume_button.volume_btn.connect("button-press-event", self.__volume_btn_button_press_event)
+        volume_button.volume_btn.connect('motion-notify-event', self.__volume_btn_motion_notify_event)
+
+    def __mute_btn_state_changed(self, widget):
+        if self.ldmp.player.volumebool:
+            self.ldmp.offmute()
+        else:
+            self.ldmp.nomute()
+
+    def __volume_btn_button_press_event(self, widget, event):
+        value = self.app_play_control_panel.volume_button.value
+        self.ldmp.setvolume(value)
+
+    def __volume_btn_motion_notify_event(self, widget, event):
+        value = None
+        if self.app_play_control_panel.volume_button.move_check:
+            value = self.app_play_control_panel.volume_button.value
+        elif self.bottom_toolbar.volume_button.move_check:
+            value = self.bottom_toolbar.volume_button.value
+        #
+        if value != None:
+            self.ldmp.setvolume(value)
 
     def __top_toolbar_1X_button_clicked(self, widget):
         print "__top_toolbar_1X_button_clicked..."
@@ -216,6 +245,18 @@ class MediaPlayFun(object):
         # 获取播放总进度设置进度条的最大值.
         self.bottom_toolbar.progressbar.set_max_value(length)
         self.app_play_control_panel.progressbar.set_max_value(length)
+
+    def ldmp_mute_play(self, mute_check): # 静音状态.
+        if mute_check:
+            self.app_play_control_panel.volume_button.set_mute_state(True)
+            self.bottom_toolbar.volume_button.set_mute_state(True)
+        else:
+            self.app_play_control_panel.volume_button.set_mute_state(False)
+            self.bottom_toolbar.volume_button.set_mute_state(False)
+
+    def ldmp_volume_play(self, value):
+        self.app_play_control_panel.volume_button.set_value(value)
+        self.bottom_toolbar.volume_button.set_value(value)
 
     def __set_pos_time(self, time):
         self.__pos = str(time) + " / "

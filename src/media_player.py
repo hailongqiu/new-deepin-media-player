@@ -236,6 +236,8 @@ class MediaPlayer(object):
         self.ldmp.connect("start-media-player", self.ldmp_start_media_player)
         self.ldmp.connect("screen-changed",     self.ldmp_screen_changed)
         self.ldmp.connect("pause-play",         self.ldmp_pause_play)
+        self.ldmp.connect("mute-play",          self.ldmp_mute_play)
+        self.ldmp.connect("volume-play",        self.ldmp_volume_play)
         self.ldmp.connect("error-msg",          self.ldmp_error_msg)
         
         # self.ldmp.player.ascept_state = ASCEPT_16X10_STATE
@@ -292,6 +294,12 @@ class MediaPlayer(object):
         
     def ldmp_pause_play(self, ldmp, pause_check): # 暂停状态.
         self.media_play_fun.ldmp_pause_play(pause_check)
+
+    def ldmp_mute_play(self, ldmp, mute_check): # 静音状态.
+        self.media_play_fun.ldmp_mute_play(mute_check)
+
+    def ldmp_volume_play(self, ldmp, value): # 音量进度.
+        self.media_play_fun.ldmp_volume_play(value)
 
     def ldmp_error_msg(self, ldmp, error_code): # 接收后端错误信息.
         print "ldmp_error_msg->error_code:", error_code
@@ -485,7 +493,7 @@ class MediaPlayer(object):
         self.ldmp.play()                
 
     def mute_umute(self):
-        if self.ldmp.volumebool:
+        if self.ldmp.player.volumebool:
             self.ldmp.offmute()
         else:
             self.ldmp.nomute()

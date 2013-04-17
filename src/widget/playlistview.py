@@ -61,6 +61,12 @@ class PlayListView(object):
         self.list_view.items.add(["网络电视:体育频道", "12:12:12", net_uri])
         net_uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
         self.list_view.items.add(["XXX卫视", "12:12:12", net_uri])
+        net_uri = "http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201004F146D1FB1970001F869843C93CE-5F43-F826-92C4-B586DDD30EE1?K=19fe5a7e7d8cf681282888df"
+        self.list_view.items.add(["王心凌", "12:12:12", net_uri])
+        net_uri = "http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/0300020500516670A5831606257BB606FC8A83-4EED-04FD-5E13-0D1DBCA204F1?K=9d51747487369aa9261cf402"
+        self.list_view.items.add(["嘻哈高手", "12:12:12", net_uri])
+        net_uri = "http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/0300020700515165A330C803BAF2B136BE57BF-061D-C2AC-F017-EC6944CFBD7E?K=70f0f7ce662b0d9d24115f3b"
+        self.list_view.items.add(["弓箭手", "12:12:12", net_uri])
 
 
     def __listview_on_draw_sub_item(self, e):

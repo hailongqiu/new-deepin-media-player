@@ -33,7 +33,6 @@ class MediaPlayMenus(object):
         self.this = this
         self.gui  = self.this.gui
         self.ldmp = self.this.ldmp
-        self.ldmp.connect("volume-play", self.test_ldmp_mute_play)
         self.play_list = self.this.play_list
         self.list_view = self.this.gui.play_list_view.list_view
         # test 播放列表弹出.
@@ -127,15 +126,11 @@ class MediaPlayMenus(object):
     def menu_mute_unmute(self):
         self.this.mute_umute()
 
-    def menu_inc_volume(self):
-        #self.ldmp.addvolume(VOLUME_VALUE)
-        #self.ldmp.setvolume(90)
-        pass
-        print "menu_inc_volume.."
+    def menu_inc_volume(self): # 添加音量.
+        self.ldmp.addvolume(VOLUME_VALUE)
 
-    def menu_dec_volume(self):
-        #self.ldmp.decvolume(VOLUME_VALUE)
-        print "menu_dec_volume..."
+    def menu_dec_volume(self): # 减少音量.
+        self.ldmp.decvolume(VOLUME_VALUE)
 
     def menu_normal_ascept(self):
         # 默认.

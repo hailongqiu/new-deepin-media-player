@@ -109,7 +109,8 @@ class Player(object):
         
         self.softvol = None
         #
-        self.volume = 0
+        self.volumebool = False
+        self.volume = 100
         self.volume_gain = 0
         #                
         self.frame_drop = None        
@@ -167,7 +168,6 @@ class LDMP(gobject.GObject):
         gobject.GObject.__init__(self)        
         # init values.
         self.xid = xid
-        self.volumebool = False
         self.player = Player()
         # 加入读取配置文件, 设置-vo等选项.
         
@@ -177,6 +177,12 @@ class LDMP(gobject.GObject):
         codecs_crystalhd = None
         
         self.command = ["mplayer"]
+        self.command.append("-noidle")
+        self.command.append("-softvol")
+        self.command.append("-volume")
+        self.command.append(str(self.player.volume))
+        self.emit("volume-play", self.player.volume)
+        self.command.append("-nostop-xscreensaver")
         if self.player.profile:
             self.command.append("-profile")
             self.command.append(self.player.profile)
@@ -278,9 +284,9 @@ class LDMP(gobject.GObject):
         # 添加初始化设置.        
         self.command.append("-quiet")    
         self.command.append("-slave")    
-        self.command.append("-noidle")    
+        #self.command.append("-noidle")    
         self.command.append("-noconsolecontrols")    
-        self.command.append("-nostop-xscreensaver")    
+        #self.command.append("-nostop-xscreensaver")    
         self.command.append("-identify")    
         
         if self.player.softvol:
@@ -521,6 +527,8 @@ class LDMP(gobject.GObject):
         self.timer.connect("Tick", self.thread_query)
         self.timer.Enabled = True 
         self.player.state = STARTING_STATE
+        if self.player.volumebool: #判断是否静音.
+            self.nomute()
         #
         # gobject.timeout_add_seconds(1, self.thread_query, 1)        
         #
@@ -624,62 +632,50 @@ class LDMP(gobject.GObject):
         if self.player.state == STARTING_STATE:
             self.cmd("sub_scale %s 1\n" % (value));
             
-    '''声音控制''' # v123456
+    '''声音控制''' 
     def addvolume(self, volume_num):
         '''Add volume'''
-        self.volume = volume_num
-        self.volume = min(self.volume, 100)
-        
-        if self.player.state == STARTING_STATE:
-            self.cmd('volume +%s 1\n' % str(self.volume))
-        self.emit("volume-play", self.volume)
+        self.player.volume += volume_num
+        self.cmd('volume %d 1\n' % (self.player.volume))
+        self.emit("volume-play", self.player.volume)
         
     def decvolume(self, volume_num):
         '''Decrease volume'''
-        self.volume = volume_num
-        self.volume = max(self.volume, 0)
-        
-        if self.player.state == STARTING_STATE:
-            self.cmd('volume -%s 1\n' % str(self.volume))
-        self.emit("volume-play", self.volume)
+        self.player.volume -= volume_num
+        self.cmd('volume %d 1\n' % (self.player.volume))
+        self.emit("volume-play", self.player.volume)
             
     def setvolume(self, volume_num):
         '''Add volume'''
-        self.volume = volume_num
-        self.volume = max(min(self.volume, 100), 0)
-        
-        if self.player.state == STARTING_STATE:
-            self.cmd('volume %s 1\n' % str(self.volume))
-        self.emit("volume-play", self.volume)
+        self.player.volume = volume_num
+        self.cmd('volume %d 1\n' % (self.player.volume))
+        self.emit("volume-play", self.player.volume)
             
     def leftchannel(self):
         '''The left channel'''
-        if self.player.state == STARTING_STATE:
-            self.cmd('af channels=2:2:0:0:0:0\n')
-            self.player.channel_state = CHANNEL_LEFT_STATE #1
+        self.cmd('af channels=2:2:0:0:0:0\n')
+        self.player.channel_state = CHANNEL_LEFT_STATE #1
     
     def rightchannel(self):
         '''The right channel'''
-        if self.player.state == STARTING_STATE:
-            self.cmd('af channels=2:2:0:1:1:1\n')             
-            self.player.channel_state = CHANNEL_RIGHT_STATE #2
+        self.cmd('af channels=2:2:0:1:1:1\n')             
+        self.player.channel_state = CHANNEL_RIGHT_STATE #2
             
     def normalchannel(self):
         '''Normal channel'''
-        if self.player.state == STARTING_STATE:
-            self.cmd('af channels=2:2:0:0:1:1\n')
-            self.player.channel_state = CHANNEL_NORMAL_STATE #0
+        self.cmd('af channels=2:2:0:0:1:1\n')
+        self.player.channel_state = CHANNEL_NORMAL_STATE #0
             
     def offmute(self): 
-        self.volumebool = False
+        self.player.volumebool = False
         self.cmd('mute 0\n')
-        self.emit("mute-play", self.volumebool)
+        self.emit("mute-play", self.player.volumebool)
                 
     def nomute(self):
         '''Active mute'''
-        self.volumebool = True
+        self.player.volumebool = True
         self.cmd('mute 1\n')
-        self.emit("mute-play", self.volumebool)
+        self.emit("mute-play", self.player.volumebool)
                 
     def off_switch_audio(self):
         self.switch_audio(-1)

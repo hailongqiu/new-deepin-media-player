@@ -22,7 +22,7 @@
 
 from skin import app_theme
 from dtk.ui.frame import HorizontalFrame
-from dtk.ui.volume_button import VolumeButton
+from volume_button import VolumeButton
 from show_time import ShowTime
 from play_control_panel import PlayControlPanel
 from progressbar import ProgressBar
@@ -77,32 +77,10 @@ class BottomToolBar(object):
             self.play_control_panel_hframe.set_padding(3, 0, 0, 0)
         
         self.volume_hframe = HorizontalFrame()
-        self.volume_button = VolumeButton(press_emit_bool = True,
-                 zero_volume_normal_pixbuf = app_theme.get_pixbuf("volume_button/zero_normal.png"),
-                 zero_volume_hover_pixbuf = app_theme.get_pixbuf("volume_button/zero_hover.png"),
-                 zero_volume_press_pixbuf = app_theme.get_pixbuf("volume_button/zero_press.png"),
-                 min_volume_normal_pixbuf = app_theme.get_pixbuf("volume_button/lower_normal.png"),
-                 min_volume_hover_pixbuf = app_theme.get_pixbuf("volume_button/lower_hover.png"),
-                 min_volume_press_pixbuf = app_theme.get_pixbuf("volume_button/lower_press.png"),
-                 mid_volume_normal_pixbuf = app_theme.get_pixbuf("volume_button/middle_normal.png"),
-                 mid_volume_hover_pixbuf = app_theme.get_pixbuf("volume_button/middle_hover.png"),
-                 mid_volume_press_pixbuf = app_theme.get_pixbuf("volume_button/middle_press.png"),
-                 max_volume_normal_pixbuf = app_theme.get_pixbuf("volume_button/high_normal.png"),
-                 max_volume_hover_pixbuf = app_theme.get_pixbuf("volume_button/high_hover.png"),
-                 max_volume_press_pixbuf = app_theme.get_pixbuf("volume_button/high_press.png"),
-                 mute_volume_normal_pixbuf = app_theme.get_pixbuf("volume_button/mute_normal.png"),
-                 mute_volume_hover_pixbuf = app_theme.get_pixbuf("volume_button/mute_hover.png"),
-                 mute_volume_press_pixbuf = app_theme.get_pixbuf("volume_button/mute_press.png")
-               )
-        volume_button_padding_width = 80#120
-        volume_button_padding_height = 30
-        self.volume_button.set_size_request(
-            volume_button_padding_width, 
-            volume_button_padding_height
-            )
+        self.volume_button = VolumeButton()
         self.volume_hframe.add(self.volume_button)
-        self.volume_hframe.set(0.5, 0.2, 0, 0)
-        self.volume_hframe.set_padding(0, 0, 0, 0)
+        self.volume_hframe.set(0.5, 0.5, 0, 0)
+        self.volume_hframe.set_padding(0, 0, 0, 10)
         
         
         self.hbox.pack_start(self.show_time_hframe, True, True)
