@@ -23,6 +23,7 @@
 
 from widget.constant import SEEK_VALUE
 from widget.tooltip  import tooltip_text
+from widget.preview  import PreView
 
 
 
@@ -33,7 +34,9 @@ class MediaPlayFun(object):
         self.__init_ldmp_values()
 
     def __init_values(self):
+        self.pre_view = PreView()
         self.app = self.this.gui.app
+        self.gui = self.this.gui
         #
         self.__init_top_toolbar()
         self.__init_app_play_control_panel()
@@ -56,6 +59,7 @@ class MediaPlayFun(object):
 
     def __init_top_toolbar(self):
         self.keep_above_check = False
+
         self.top_toolbar    = self.this.gui.top_toolbar
         self.top_toolbar.toolbar_radio_button.set_full_state(False) # 初始化.
         self.top_toolbar.toolbar_above_button.connect("clicked", self.__top_toolbar_above_button_clicked)
@@ -65,13 +69,53 @@ class MediaPlayFun(object):
         self.top_toolbar.toolbar_common_button.connect("clicked",  self.__top_toolbar_common_button_clicked) 
         self.top_toolbar.toolbar_full_button.connect("clicked", self.__top_toolbar_full_button_clicked) 
 
+    def __progressbar_motion_notify_event(self, widget, event):
+        # self.pre_view.set_preview_path(... ...
+        value = 0
+        self.x_root = event.x_root
+        self.y_root = event.y_root
+        # 
+        if widget == self.bottom_toolbar.progressbar:
+            size = self.gui.screen_paned.bottom_window.get_size()
+            preview_y = (self.app.window.get_position()[1] + self.gui.screen_frame.allocation.height - 
+                         self.pre_view.bg.get_allocation()[3] - size[1])
+        else:
+            preview_y = (self.app.window.get_position()[1] + self.gui.screen_frame.allocation.height +
+                         self.app.titlebar.allocation.height - self.pre_view.bg.get_allocation()[3])
+        ###############################################33
+        move_x = self.x_root - self.pre_view.bg.get_allocation()[2]/2
+        move_y = preview_y
+        min_move_x = self.app.window.get_position()[0] + 8
+        max_move_x = min_move_x + self.app.window.allocation.width  - 16
+        mid_bg_w = self.pre_view.bg.allocation.width
+        #
+        if move_x < min_move_x:
+            offset = self.pre_view.bg.get_offset_mid_value() - (min_move_x - move_x)
+        elif move_x > (max_move_x - self.pre_view.bg.allocation.width):
+            offset = self.pre_view.bg.get_offset_mid_value() - ((max_move_x - move_x) - 
+                     self.pre_view.bg.allocation.width)
+        else:
+            offset = self.pre_view.bg.get_offset_mid_value()
+        #
+        offset_x = offset
+        move_x = max(min(move_x, max_move_x - mid_bg_w), min_move_x)
+        self.pre_view.bg.set_offset(offset)
+        self.pre_view.show_preview(value)
+        self.pre_view.move_preview(move_x, preview_y)
+
+    def __progressbar_leave_notify_event(self, widget, event):
+        self.pre_view.hide_preview()
+
     def __init_app_play_control_panel(self):
         self.app_play_control_panel    = self.this.gui.play_control_panel
         self.app_play_control_panel.progressbar.connect("value-changed", self.__bottom_toolbar_pb_value_changed)
+        self.app_play_control_panel.progressbar.connect("motion-notify-event", self.__progressbar_motion_notify_event)
+        self.app_play_control_panel.progressbar.connect("leave-notify-event", self.__progressbar_leave_notify_event)
         self.app_play_control_panel.pb_fseek_btn.connect("clicked", self.__bottom_toolbar_pb_fseek_btn_clicked)
         self.app_play_control_panel.pb_bseek_btn.connect("clicked", self.__bottom_toolbar_pb_bseek_btn_clicked)
         self.app_play_control_panel.play_list_btn.button.connect("clicked", 
                  self.__app_play_control_panel_play_list_btn_clicked)
+
         start_button = self.app_play_control_panel.play_control_panel
         stop_button = self.app_play_control_panel.play_control_panel.stop_button
         pre_button  = self.app_play_control_panel.play_control_panel.pre_button
@@ -94,13 +138,17 @@ class MediaPlayFun(object):
         self.bottom_play_control_panel = self.this.gui.bottom_toolbar.play_control_panel
         self.bottom_toolbar = self.this.gui.bottom_toolbar
         self.bottom_toolbar.progressbar.connect("value-changed", self.__bottom_toolbar_pb_value_changed)
+        self.bottom_toolbar.progressbar.connect("motion-notify-event", self.__progressbar_motion_notify_event)
+        self.bottom_toolbar.progressbar.connect("leave-notify-event", self.__progressbar_leave_notify_event)
         self.bottom_toolbar.pb_fseek_btn.connect("clicked",      self.__bottom_toolbar_pb_fseek_btn_clicked)
         self.bottom_toolbar.pb_bseek_btn.connect("clicked",      self.__bottom_toolbar_pb_bseek_btn_clicked)
-        stop_button = self.bottom_toolbar.play_control_panel.stop_button
-        start_button = self.bottom_toolbar.play_control_panel.start_button
-        pre_button  = self.bottom_toolbar.play_control_panel.pre_button
-        next_button = self.bottom_toolbar.play_control_panel.next_button
+        
+        stop_button   = self.bottom_toolbar.play_control_panel.stop_button
+        start_button  = self.bottom_toolbar.play_control_panel.start_button
+        pre_button    = self.bottom_toolbar.play_control_panel.pre_button
+        next_button   = self.bottom_toolbar.play_control_panel.next_button
         volume_button = self.bottom_toolbar.volume_button
+
         stop_button.connect("clicked",  self.__bottom_toolbar_stop_button_clicked)
         start_button.connect("clicked", self.__bottom_toolbar_start_button_clicked)
         pre_button.connect("clicked", self.__pre_button_clicked)
@@ -179,15 +227,15 @@ class MediaPlayFun(object):
         self.ldmp.bseek(SEEK_VALUE)
 
     def __bottom_toolbar_stop_button_clicked(self, widget):
-        self.ldmp.stop()
-        #print self.play_list.get_next_file()
-        #print self.play_list.get_prev_file()
+        self.this.stop()
 
     def __bottom_toolbar_start_button_clicked(self, widget):
         self.__start_button_clicked()
         
+    '''
     def __stop_button_clicked(self):
         self.ldmp.stop()
+    '''
 
     def __start_button_clicked(self):
         self.ldmp.pause()
@@ -231,7 +279,7 @@ class MediaPlayFun(object):
         self.app_play_control_panel.pb_bseek_btn.set_sensitive(False)
         self.app_play_control_panel.play_control_panel.start_button.set_start_bool(True)
         #
-        print self.this.play_list_check
+        #print self.this.play_list_check
         if not self.this.play_list_check:
             self.this.next()
 

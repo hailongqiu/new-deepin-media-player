@@ -636,18 +636,21 @@ class LDMP(gobject.GObject):
     def addvolume(self, volume_num):
         '''Add volume'''
         self.player.volume += volume_num
+        self.player.volume = min(self.player.volume, 100)
         self.cmd('volume %d 1\n' % (self.player.volume))
         self.emit("volume-play", self.player.volume)
         
     def decvolume(self, volume_num):
         '''Decrease volume'''
         self.player.volume -= volume_num
+        self.player.volume = max(self.player.volume, 0)
         self.cmd('volume %d 1\n' % (self.player.volume))
         self.emit("volume-play", self.player.volume)
             
     def setvolume(self, volume_num):
-        '''Add volume'''
-        self.player.volume = volume_num
+        '''Set volume'''
+        value = min(max(volume_num, 0), 100)
+        self.player.volume = value
         self.cmd('volume %d 1\n' % (self.player.volume))
         self.emit("volume-play", self.player.volume)
             
@@ -1217,17 +1220,17 @@ def set_ascept_function(screen_frame, video_aspect):
     elif screen_frame_aspect > video_aspect:
         x = (float(h)* video_aspect) / w
         if x > 0.0:
-            screen_frame.set(0.5, 0.0, max(x, 0.1, 1.0), 1.0)
+            screen_frame.set(0.5, 0.0, _max(x, 0.1, 1.0), 1.0)
         else:
             screen_frame.set(0.5, 0.0, 1.0, 1.0)
     elif screen_frame_aspect < video_aspect:
         y = (float(w) / video_aspect) / h;
         if y > 0.0:
-            screen_frame.set(0.0, 0.5, 1.0, max(y, 0.1, 1.0))
+            screen_frame.set(0.0, 0.5, 1.0, _max(y, 0.1, 1.0))
         else:
             screen_frame.set(0.0, 0.5, 1.0, 1.0)
 
-def max(x, low, high):
+def _max(x, low, high):
     if low <= x <= high:
         return x
     if low > x:

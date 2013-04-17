@@ -499,6 +499,10 @@ class MediaPlayer(object):
             self.ldmp.offmute()
         else:
             self.ldmp.nomute()
+
+    def stop(self):
+        self.play_list_check = True
+        self.ldmp.stop()
         
     def open_file_dialog(self):
         # 多选文件对话框.
