@@ -156,6 +156,10 @@ class LDMP(gobject.GObject):
                             gobject.TYPE_NONE,(gobject.TYPE_INT, gobject.TYPE_INT)),        
         "pause-play":(gobject.SIGNAL_RUN_LAST,
                      gobject.TYPE_NONE,(gobject.TYPE_INT,)),
+        "mute-play":(gobject.SIGNAL_RUN_LAST,
+                     gobject.TYPE_NONE,(gobject.TYPE_INT,)),
+        "volume-play":(gobject.SIGNAL_RUN_LAST,
+                     gobject.TYPE_NONE,(gobject.TYPE_INT,)),
         "error-msg":(gobject.SIGNAL_RUN_LAST,
                      gobject.TYPE_NONE,(gobject.TYPE_INT,)),
         }
@@ -163,6 +167,7 @@ class LDMP(gobject.GObject):
         gobject.GObject.__init__(self)        
         # init values.
         self.xid = xid
+        self.volumebool = False
         self.player = Player()
         # 加入读取配置文件, 设置-vo等选项.
         
@@ -627,6 +632,7 @@ class LDMP(gobject.GObject):
         
         if self.player.state == STARTING_STATE:
             self.cmd('volume +%s 1\n' % str(self.volume))
+        self.emit("volume-play", self.volume)
         
     def decvolume(self, volume_num):
         '''Decrease volume'''
@@ -635,6 +641,7 @@ class LDMP(gobject.GObject):
         
         if self.player.state == STARTING_STATE:
             self.cmd('volume -%s 1\n' % str(self.volume))
+        self.emit("volume-play", self.volume)
             
     def setvolume(self, volume_num):
         '''Add volume'''
@@ -643,6 +650,7 @@ class LDMP(gobject.GObject):
         
         if self.player.state == STARTING_STATE:
             self.cmd('volume %s 1\n' % str(self.volume))
+        self.emit("volume-play", self.volume)
             
     def leftchannel(self):
         '''The left channel'''
@@ -665,11 +673,13 @@ class LDMP(gobject.GObject):
     def offmute(self): 
         self.volumebool = False
         self.cmd('mute 0\n')
+        self.emit("mute-play", self.volumebool)
                 
     def nomute(self):
         '''Active mute'''
         self.volumebool = True
         self.cmd('mute 1\n')
+        self.emit("mute-play", self.volumebool)
                 
     def off_switch_audio(self):
         self.switch_audio(-1)

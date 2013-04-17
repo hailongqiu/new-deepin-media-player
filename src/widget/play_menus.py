@@ -29,17 +29,15 @@ from locales import _
 
 class PlayMenus(object):
     def __init__(self):
-        pass
-        #self.init_system_pixbuf()
+        self.init_system_pixbuf()
         self.__init_menus()
         
     def init_system_pixbuf(self):    
-        # menu icon pixbuf. menupixbuf ..
-        self.video_aspect_pixbuf = app_theme.get_pixbuf("screen/check_normal.png") # aspect state pixbuf.
+        # aspect state pixbuf.
+        self.video_aspect_pixbuf        = app_theme.get_pixbuf("screen/check_normal.png") 
         self.video_aspect_select_pixbuf = app_theme.get_pixbuf("screen/check_hover.png")
-        self.video_aspect_none_pixbuf = app_theme.get_pixbuf("screen/check_none.png")
-        self.video_aspect_type = ASCEPT_NORMAL_STATE #"默认"
-        self.playwinmax_bool = True
+        self.video_aspect_none_pixbuf   = app_theme.get_pixbuf("screen/check_none.png")
+        '''
         # concie pixbuf.
         self.menu_concie_normal_pixbuf = app_theme.get_pixbuf("screen/menu_concise_normal.png")
         self.menu_concie_hover_pixbuf = app_theme.get_pixbuf("screen/menu_concise_hover.png")
@@ -116,55 +114,85 @@ class PlayMenus(object):
         self.down_sub_title_norma_pixbuf = app_theme.get_pixbuf("screen/check_normal.png")
         self.down_sub_title_hover_pixbuf = app_theme.get_pixbuf("screen/check_hover.png")
         self.down_sub_title_none_pixbuf = app_theme.get_pixbuf("screen/check_none.png")
-        
+        '''
         
     def __init_menus(self):
         self.config_gui      = None
         self.quit            = None
         self.init_user_guide = None
+        self.full_screen     = None
+        self.normal_mode     = None
+        self.compact_mode    = None # 简洁模式.
+        self.next            = None
+        self.prev            = None
+        self.fseek           = None
+        self.bseek           = None
+        
         ##############################################################
         self.file_menu = Menu([(None, _("Open File"), None),
                                (None, _("Open Directory"), None),
                                (None, _("Play Disc"), None)
                                ])
-        self.play_state_menu = Menu([(None, _("Play (track)"), None),
-                                     (None,  _("Default"), None),
-                                     (None, _("Random"), None),
-                                     (None, _("Repeat (track)"), None),
-                                     (None, _("Repeat (playlist)"), None)]
+        self.play_track            = None
+        self.play_default          = None
+        self.play_random           = None
+        self.play_repeat_track     = None
+        self.play_repeat_play_list = None
+        
+        # 播放顺序.
+        self.play_state_menu = Menu([(None, _("Play (track)"),      self.__menu_play_track), # 单曲
+                                     (None, _("Default"),           self.__menu_play_default), # 顺序
+                                     (None, _("Random"),            self.__menu_play_random), # 随机
+                                     (None, _("Repeat (track)"),    self.__menu_play_repeat_track), # 单曲循环
+                                     (None, _("Repeat (playlist)"), self.__menu_play_repeat_play_list)] # 列表循环
                                     )                       
-        self.play_menu = Menu([(None, _("Full Screen"), None),
-                               (None, _("Normal Mode"), None),
-                               (None, _("Compact Mode"), None),
-                               (None, _("Previous"), None),
-                               (None, _("Next"), None),
+        self.play_menu = Menu([(None, _("Full Screen"), self.__menu_full_screen),
+                               (None, _("Normal Mode"), self.__menu_normal_mode),
+                               (None, _("Compact Mode"), self.__menu_compact_mode),
+                               (None, _("Previous"), self.__menu_prev),
+                               (None, _("Next"),     self.__menu_next),
                                (None),
-                               (None, _("Jump Forward"), None),
-                               (None, _("Jump Backward"), None),
+                               (None, _("Jump Forward"),  self.__menu_fseek),
+                               (None, _("Jump Backward"), self.__menu_bseek),
                                (None, _("Order"), self.play_state_menu),
                                ])
-        self.video_menu = Menu([(None, _("Original"), None),
-                                 (None,    "4:3",   None),
-                                 (None,   "16:9",   None),
-                                 (None,  "16:10",   None),
-                                 (None, "1.85:1",   None),
-                                 (None, "2.35:1",   None),
+                               
+        self.normal_ascept     = None
+        self._4X3_ascept       = None
+        self._16X9_ascept      = None
+        self._16X10_ascept     = None
+        self._1_85X1_ascept    = None
+        self._2_35X1_ascept    = None
+        
+        self.video_menu = Menu([(None, _("Original"), self.__menu_normal_ascept),
+                                 (None,    "4:3",     self.__menu_4X3_ascept),
+                                 (None,   "16:9",     self.__menu_16X9_ascept),
+                                 (None,  "16:10",     self.__menu_16X10_ascept),
+                                 (None, "1.85:1",     self.__menu_1_85X1_ascept),
+                                 (None, "2.35:1",     self.__menu_2_35X1_ascept),
                                  (None),
                                  (None,  _("50%"),  None),
                                  (None,  _("100%"), None),
                                  (None,  _("150%"), None),
                                  (None,  _("200%"), None),
                                  ])  
+        self.stereo_channel = None
+        self.left_channel   = None
+        self.right_channel  = None
+        self.mute_unmute    = None
+        self.inc_volume     = None
+        self.dec_volume     = None
+        # 切换左右声道.
         self.channel_select_menu = Menu([
-                (None, _("Stereo"), None),
-                (None,   _("Left"), None),
-                (None,  _("Right"), None)
+                (None, _("Stereo"), self.__menu_stereo_channel),
+                (None,   _("Left"), self.__menu_left_channel),
+                (None,  _("Right"), self.__menu_right_channel)
                 ])
         self.audio_menu = Menu([(None, _("Channels"), self.channel_select_menu),
                                  (None),
-                                 (None, _("Increase Volume"),  None),
-                                 (None, _("Decrease Volume"),  None),
-                                 (None, _("Mute/Unmute"), None),
+                                 (None, _("Increase Volume"),  self.__menu_inc_volume),
+                                 (None, _("Decrease Volume"),  self.__menu_dec_volume),
+                                 (None, _("Mute/Unmute"), self.__menu_mute_unmute),
                                  ])
         self.sort_menu = Menu([(None, _("Take Screenshot"), None),
                                (None, _("Open Screenshot Directory"), None),
@@ -173,25 +201,55 @@ class PlayMenus(object):
         self.format_menu = Menu([(None, _("Format conversion"), None),
                             (None, _("Task Manager"), None)
                             ])
+        ################################################################
+        ## 主题弹出菜单.
         self.title_root_menu = Menu([
                                     (None, _("File"),  self.file_menu),
                                     (None, _("Play"),  self.play_menu),
                                     (None, _("Video"), self.video_menu),
                                     (None, _("Audio"), self.audio_menu),
-                                    (None, _("Take Screenshots"), self.sort_menu),
+                                    (None, _("Take Screenshots"),  self.sort_menu),
                                     (None, _("Format conversion"), self.format_menu),
                                     (None, _("View New Features"), self.__menu_init_user_guide),
-                                    (None, _("Preferences"), self.__menu_config_gui),
+                                    (None, _("Preferences"),       self.__menu_config_gui),
                                     (None),
                                     (None, _("Quit"), self.__menu_quit)
                                     ],
                                     True)
+        ###############################################################
+        # 排序.
+        self.sort_menu = Menu([(None, _("By Name"), None),
+                           (None, _("By Type"), None)])
+        #
+        ###############################################################
+        ## 播放列表弹出菜单.
+        self.play_list_root_menu = Menu([(None, _("Add File"), None),
+                                         (None, _("Add Directory"), None),
+                                         (None, _("Add URL"), None),
+                                         (None),
+                                         (None, _("Remove Selected"), None),
+                                         (None, _("Clear Playlist"),  None),
+                                         (None, _("Remove Unavailable Files"), None),
+                                         (None),
+                                         (None, _("Recent Played"), None),
+                                         (None, _("Order"), self.play_state_menu),
+                                         (None, _("Sort"),  self.sort_menu),
+                                         (None),
+                                         (None, _("Format conversion"), None),
+                                         (None, _("Open Containing Directory"), None),
+                                         (None, _("Properties"), None),
+                                         ],
+                                         True)
                                      
     def show_theme_menu(self, button): 
         # 显示主题上菜单.
         self.title_root_menu.show(
              get_widget_root_coordinate(button, WIDGET_POS_BOTTOM_LEFT),
              (button.get_allocation().width, 0)) 
+    
+    def show_play_list_menu(self, event):
+        # 显示播放列表上的菜单.
+        self.play_list_root_menu.show((int(event.x_root), int(event.y_root)), (0, 0))
                   
     def __menu_init_user_guide(self):
         if self.init_user_guide:
@@ -204,5 +262,107 @@ class PlayMenus(object):
     def __menu_quit(self):
         if self.quit:
             self.quit()
+    
+    def __menu_full_screen(self):
+        if self.full_screen:
+            self.full_screen()
+           
+    def __menu_normal_mode(self):
+        if self.normal_mode:
+            self.normal_mode()
+    
+    def __menu_compact_mode(self):
+        if self.compact_mode:
+            self.compact_mode()
+     
+    def __menu_next(self):
+        if self.next:
+            self.next()
+    
+    def __menu_prev(self):
+        if self.prev:
+            self.prev()
+    
+    def __menu_fseek(self):
+        if self.fseek:
+            self.fseek()
+     
+    def __menu_bseek(self):
+        if self.bseek:
+            self.bseek()
             
+    def __menu_inc_volume(self):
+        if self.inc_volume:
+            self.inc_volume()
+                
+    def __menu_dec_volume(self):
+        if self.dec_volume:
+            self.dec_volume()
+                  
+    def __menu_stereo_channel(self):
+        if self.stereo_channel:
+            self.stereo_channel()
+                
+    def __menu_left_channel(self):
+        if self.left_channel:
+            self.left_channel()
+            
+    def __menu_right_channel(self):
+        if self.right_channel:
+            self.right_channel()
+            
+    def __menu_mute_unmute(self):
+        if self.mute_unmute:
+            self.mute_unmute()
+                                             
+    def __menu_normal_ascept(self):
+        if self.normal_ascept:
+            self.normal_ascept()
+    
+    def __menu_4X3_ascept(self):
+        if self._4X3_ascept:
+            self._4X3_ascept()
+    
+    def __menu_16X9_ascept(self):
+        if self._16X9_ascept:
+            self._16X9_ascept()       
+                
+    def __menu_16X10_ascept(self):
+        if self._16X10_ascept:
+            self._16X10_ascept()    
+            
+    def __menu_1_85X1_ascept(self):
+        if self._1_85X1_ascept:  
+            self._1_85X1_ascept()     
+            
+    def __menu_2_35X1_ascept(self):
+        if self._2_35X1_ascept:
+            self._2_35X1_ascept()
+    
+    def __menu_play_track(self):
+        if self.play_track:
+            self.play_track()
+            
+    def __menu_play_default(self):
+        if self.play_default:
+            self.play_default()
+            
+    def __menu_play_random(self):
+        if self.play_random:
+            self.play_random()
+            
+    def __menu_play_repeat_track(self):
+        if self.play_repeat_track:
+            self.play_repeat_track()
+            
+    def __menu_play_repeat_play_list(self):
+        if self.play_repeat_play_list:
+            self.play_repeat_play_list()
+            
+            
+            
+            
+            
+                                        
+                                        
                                         

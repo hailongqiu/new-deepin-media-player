@@ -483,6 +483,12 @@ class MediaPlayer(object):
     def timeout_next(self, play_file):        
         self.ldmp.player.uri = play_file
         self.ldmp.play()                
+
+    def mute_umute(self):
+        if self.ldmp.volumebool:
+            self.ldmp.offmute()
+        else:
+            self.ldmp.nomute()
         
     def open_file_dialog(self):
         # 多选文件对话框.
@@ -520,6 +526,16 @@ class MediaPlayer(object):
 
     def restart_load_config_file(self, ini_gui, sec_root, sec_argv, sec_value):
         print "ini_gui", ini_gui, "sec_root:", sec_root, "sec_argv:", sec_argv, "sec_value:", sec_value
+
+    def top_toolbar_concise_button_clicked(self):
+        if self.concise_check == False or self.fullscreen_check:
+            self.concise_check = False
+            self.key_concise_mode()
+
+    def top_toolbar_common_button_clicked(self):
+        if self.concise_check == True or self.fullscreen_check: 
+            self.concise_check = True
+            self.key_concise_mode()
 
     ######################################################
     ## keymap press event

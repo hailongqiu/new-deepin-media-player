@@ -87,6 +87,9 @@ def is_double_click(event): # 双击
 
 def is_left_button(event): # 左键.
     return event.button == 1
+
+def is_right_button(event): # 右键.
+    return event.button == 3
                    
 ########################################################
 ## 打开对话框

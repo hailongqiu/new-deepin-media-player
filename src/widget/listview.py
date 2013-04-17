@@ -26,7 +26,7 @@ from skin import app_theme
 from draw import draw_text, draw_pixbuf
 from color import color_hex_to_cairo, alpha_color_hex_to_cairo
 from utils import get_text_size, get_match_parent, get_offset_coordinate
-from utils import is_single_click, is_double_click, is_left_button
+from utils import is_single_click, is_double_click, is_left_button, is_right_button
 from listview_base import type_check
 from listview_base import ListViewBase
 from listview_base import View, Text
@@ -212,6 +212,7 @@ class ListView(ListViewBase):
         self.__double_items_hd    = None
         self.__motion_items_hd    = None
         self.__single_items_hd    = None
+        self.__right_items_hd     = None
         #
         self.__motion_columns_hd  = None
         self.__single_columns_hd  = None
@@ -477,6 +478,10 @@ class ListView(ListViewBase):
             self.__save_press_items_check = False
             self.__drag_rect = (None, None, None)
             self.drag_preview_pixbuf = None
+        elif is_right_button(event):
+            row_index, col_index, item_x, item_y = self.__get_items_mouse_data(event)
+            if self.__right_items_hd:
+                self.__right_items_hd(self, event, row_index, col_index, item_x, item_y)
 
     def __listview_enter_notify_event(self, widget, event):
         #print "__listview_enter_enter...notify_event..."
@@ -494,6 +499,8 @@ class ListView(ListViewBase):
             self.__motion_items_hd   = function_point
         elif event_name == "single-items":
             self.__single_items_hd   = function_point
+        elif event_name == "right-items-event":
+            self.__right_items_hd    = function_point
         elif event_name == "motion-notify-columns":
             self.__motion_columns_hd = function_point
         elif event_name == "single-columns":

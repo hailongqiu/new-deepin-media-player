@@ -101,14 +101,10 @@ class MediaPlayFun(object):
         print "__top_toolbar_2X_button_clicked..."
 
     def __top_toolbar_concise_button_clicked(self, widget):
-        if self.this.concise_check == False or self.this.fullscreen_check:
-            self.this.concise_check = False
-            self.this.key_concise_mode()
+        self.this.top_toolbar_concise_button_clicked()
 
     def __top_toolbar_common_button_clicked(self, widget):
-        if self.this.concise_check == True or self.this.fullscreen_check: 
-            self.this.concise_check = True
-            self.this.key_concise_mode()
+        self.this.top_toolbar_common_button_clicked()
 
     def __top_toolbar_full_button_clicked(self, widget):
         self.this.fullscreen_function()
