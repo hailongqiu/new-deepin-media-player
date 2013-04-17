@@ -22,6 +22,7 @@
 
 
 from widget.constant import SEEK_VALUE
+from widget.tooltip  import tooltip_text
 
 
 
@@ -42,7 +43,12 @@ class MediaPlayFun(object):
         self.play_list = self.this.play_list
         self.list_view = self.this.gui.play_list_view.list_view
         self.list_view.connect_event("double-items",  self.list_view_double_items) 
+        self.list_view.connect_event("motion-notify-items", self.list_view_motion_notify_items)
         #
+
+    def list_view_motion_notify_items(self, listview, motion_items, row, col, item_x, item_y):
+        text = motion_items.sub_items[0].text
+        tooltip_text(self.list_view, text)
 
     def list_view_double_items(self, listview, double_items, row, col, item_x, item_y):
         self.play_list.set_items_index(double_items)
