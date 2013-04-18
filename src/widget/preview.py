@@ -22,7 +22,8 @@
 from dtk.ui.draw import draw_text
 from dtk.ui.constant import DEFAULT_FONT_SIZE
 from preview_bg import PreViewWin
-#from mplayer import Mplayer
+from mplayer.player import LDMP
+from mplayer.player import length_to_time 
 from constant import PREVIEW_PV_WIDTH, PREVIEW_PV_HEIGHT
 
 import gtk
@@ -36,6 +37,7 @@ class PreView(object):
         self.video_height = 0
         
         #self.mp = Mplayer()
+        self.mp = LDMP()
         self.xid = None
         self.pos = pos
         
@@ -71,6 +73,8 @@ class PreView(object):
         cr = widget.window.cairo_create()
         x, y, w, h = widget.get_allocation()
         
+        cr.rectangle(x, y, w, h)
+        cr.fill()
         if self.video_width or self.video_height:
             video_ratio = float(self.video_width) / self.video_height
             bit = video_ratio - (float(w) / h)
@@ -117,9 +121,11 @@ class PreView(object):
 
         # Draw preview time.
         font_height_padding = 15
+        show_time_text = length_to_time(self.pos)
         time_hour, time_min, time_sec = 1, 3, 30 #self.mp.time(self.pos)
         draw_text(cr, 
-                  "%s:%s:%s" % (self.time_to_string(time_hour), self.time_to_string(time_min), self.time_to_string(time_sec)),
+                  #"%s:%s:%s" % (self.time_to_string(time_hour), self.time_to_string(time_min), self.time_to_string(time_sec)),
+                  show_time_text,
                   x, h - font_height_padding, w, DEFAULT_FONT_SIZE,
                   text_color = "#ffffff",
                   alignment=pango.ALIGN_CENTER
@@ -132,20 +138,19 @@ class PreView(object):
         self.pv.move(int(x + 4), int(y+4))
         
     def show_preview(self, pos):        
-        self.pos = pos
-        self.bg.queue_draw()
-        
-        self.bg.show_all()
-        self.pv.show_all()
-        
-        self.xid = self.pv.window.xid        
-        region = gtk.gdk.Region()
-        self.bg.window.input_shape_combine_region(region, 0, 0)
-        self.pv.show_all()
-        self.pv.set_keep_above(True)
-        
-        # init preview window mplayer.
-        self.init_mplayer_window(pos)
+        if self.pos != pos:
+            self.pos = pos
+            self.bg.queue_draw()
+            
+            self.bg.show_all()
+            self.pv.show_all()
+            
+            region = gtk.gdk.Region()
+            self.bg.window.input_shape_combine_region(region, 0, 0)
+            #self.pv.show_all()
+            self.pv.set_keep_above(True)
+            # init preview window mplayer.
+            self.init_mplayer_window(pos)
         
     def hide_preview(self):
         self.bg.hide_all()
@@ -153,26 +158,18 @@ class PreView(object):
         
     def quit_preview_player(self):    
         self.hide_preview()
-        '''
-        if STARTING_PLAY == self.mp.state:            
-            self.mp.quit()
-        '''
+        self.mp.quit()
         
     def set_preview_path(self, path):        
-        '''
-        if STOPING_PLAY == self.mp.state:
-            self.pv.show_all()            
-            self.pv.set_opacity(0)
-            self.mp.xid = self.pv.window.xid
-            self.mp.path = path
-            self.mp.volumebool = True
-            self.mp.play(self.mp.path)                         
-            self.mp.pause()
-            self.mp.pause_bool = False
-            self.pv.hide_all()
-            self.pv.set_opacity(1)
-        '''
-        pass
+        self.pv.show_all()            
+        self.pv.set_opacity(0)
+        self.mp.xid = self.pv.window.xid
+        self.mp.player.uri = path
+        self.mp.play()   # 播放.
+        self.mp.pause()  # 暂停.
+        self.mp.nomute() # 静音.
+        self.pv.hide_all()
+        self.pv.set_opacity(1)
             
     def time_to_string(self, time_pos):        
         if 0<= time_pos <= 9:
@@ -183,12 +180,8 @@ class PreView(object):
         self.hide_preview()
         
     def init_mplayer_window(self, pos):       
-        '''
-        self.mp.xid = self.xid
-        if STARTING_PLAY == self.mp.state:
-            self.mp.seek(pos)
-        '''
-        pass
+        # 预览快进.
+        self.mp.seek(pos)
             
 if __name__ == "__main__": 
     pass

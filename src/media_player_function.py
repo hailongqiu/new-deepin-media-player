@@ -71,37 +71,42 @@ class MediaPlayFun(object):
 
     def __progressbar_motion_notify_event(self, widget, event):
         # self.pre_view.set_preview_path(... ...
-        value = 0
-        self.x_root = event.x_root
-        self.y_root = event.y_root
-        # 
-        if widget == self.bottom_toolbar.progressbar:
-            size = self.gui.screen_paned.bottom_window.get_size()
-            preview_y = (self.app.window.get_position()[1] + self.gui.screen_frame.allocation.height - 
-                         self.pre_view.bg.get_allocation()[3] - size[1])
+        if not widget.move_check:
+            value = 0
+            self.x_root = event.x_root
+            self.y_root = event.y_root
+            # 
+            if widget == self.bottom_toolbar.progressbar:
+                size = self.gui.screen_paned.bottom_window.get_size()
+                preview_y = (self.app.window.get_position()[1] + self.gui.screen_frame.allocation.height - 
+                             self.pre_view.bg.get_allocation()[3] - size[1])
+            else:
+                preview_y = (self.app.window.get_position()[1] + self.gui.screen_frame.allocation.height +
+                             self.app.titlebar.allocation.height - self.pre_view.bg.get_allocation()[3])
+            ###############################################33
+            move_x = self.x_root - self.pre_view.bg.get_allocation()[2]/2
+            move_y = preview_y
+            min_move_x = self.app.window.get_position()[0] + 8
+            max_move_x = min_move_x + self.app.window.allocation.width  - 16
+            mid_bg_w = self.pre_view.bg.allocation.width
+            #
+            if move_x < min_move_x:
+                offset = self.pre_view.bg.get_offset_mid_value() - (min_move_x - move_x)
+            elif move_x > (max_move_x - self.pre_view.bg.allocation.width):
+                offset = self.pre_view.bg.get_offset_mid_value() - ((max_move_x - move_x) - 
+                         self.pre_view.bg.allocation.width)
+            else:
+                offset = self.pre_view.bg.get_offset_mid_value()
+            #
+            offset_x = offset
+            move_x = max(min(move_x, max_move_x - mid_bg_w), min_move_x)
+            self.pre_view.bg.set_offset(offset)
+            value = event.x / widget.allocation.width * widget.max_value
+            pos = min(max(value, 0), widget.max_value - 5)
+            self.pre_view.show_preview(pos)
+            self.pre_view.move_preview(move_x, preview_y)
         else:
-            preview_y = (self.app.window.get_position()[1] + self.gui.screen_frame.allocation.height +
-                         self.app.titlebar.allocation.height - self.pre_view.bg.get_allocation()[3])
-        ###############################################33
-        move_x = self.x_root - self.pre_view.bg.get_allocation()[2]/2
-        move_y = preview_y
-        min_move_x = self.app.window.get_position()[0] + 8
-        max_move_x = min_move_x + self.app.window.allocation.width  - 16
-        mid_bg_w = self.pre_view.bg.allocation.width
-        #
-        if move_x < min_move_x:
-            offset = self.pre_view.bg.get_offset_mid_value() - (min_move_x - move_x)
-        elif move_x > (max_move_x - self.pre_view.bg.allocation.width):
-            offset = self.pre_view.bg.get_offset_mid_value() - ((max_move_x - move_x) - 
-                     self.pre_view.bg.allocation.width)
-        else:
-            offset = self.pre_view.bg.get_offset_mid_value()
-        #
-        offset_x = offset
-        move_x = max(min(move_x, max_move_x - mid_bg_w), min_move_x)
-        self.pre_view.bg.set_offset(offset)
-        self.pre_view.show_preview(value)
-        self.pre_view.move_preview(move_x, preview_y)
+            self.pre_view.hide_preview()
 
     def __progressbar_leave_notify_event(self, widget, event):
         self.pre_view.hide_preview()
@@ -258,6 +263,8 @@ class MediaPlayFun(object):
         self.app_play_control_panel.play_control_panel.start_button.set_start_bool(False)
         #
         self.this.play_list_check = False
+        # 预览设置.
+        self.pre_view.set_preview_path(ldmp.player.uri)
 
     def ldmp_end_media_player(self, ldmp):
         # 改变所有的状态.
@@ -282,7 +289,8 @@ class MediaPlayFun(object):
         #print self.this.play_list_check
         if not self.this.play_list_check:
             self.this.next()
-
+        # 退出预览.
+        self.pre_view.quit_preview_player()
 
     def ldmp_pause_play(self, pause_check):
         if pause_check: # 正在播放.

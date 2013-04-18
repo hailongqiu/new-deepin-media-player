@@ -57,7 +57,7 @@ class ProgressBar(gtk.Button):
         self.min_value = 0
         self.pos       = 0
         self.drag_show_check = False
-        self.__move_check = False
+        self.move_check = False
         #
 
     def __init_events(self):
@@ -70,7 +70,7 @@ class ProgressBar(gtk.Button):
         self.connect("expose-event",         self.__expose_event)
 
     def __motion_notify_event(self, widget, event):
-        if self.__move_check:
+        if self.move_check:
             self.__event_pos(event)
 
     def __enter_notify_event(self, widget, event):
@@ -81,7 +81,7 @@ class ProgressBar(gtk.Button):
 
     def __button_press_event(self, widget, event):
         self.__event_pos(event)
-        self.__move_check = True
+        self.move_check = True
 
     def __event_pos(self, event):
         press_x = event.x
@@ -92,7 +92,7 @@ class ProgressBar(gtk.Button):
         self.queue_draw()
 
     def __button_release_event(self, widget, event):
-        self.__move_check = False
+        self.move_check = False
 
     def __expose_event(self, widget, event):
         cr = widget.window.cairo_create()
@@ -160,7 +160,7 @@ class ProgressBar(gtk.Button):
         self.queue_draw()
 
     def set_pos(self, pos):
-        if not self.__move_check:
+        if not self.move_check:
             self.pos = pos
             self.queue_draw()
 
