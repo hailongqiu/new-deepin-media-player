@@ -164,6 +164,7 @@ class PreView(object):
         self.pv.show_all()            
         self.pv.set_opacity(0)
         self.mp.xid = self.pv.window.xid
+        self.mp.quit()
         self.mp.player.uri = path
         self.mp.play()   # 播放.
         self.mp.pause()  # 暂停.
