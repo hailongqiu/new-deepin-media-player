@@ -25,6 +25,7 @@ import gtk
 from gtk import gdk
 import gobject
 from color import alpha_color_hex_to_cairo
+from draw import draw_text
 from skin import app_theme
 
 
@@ -219,6 +220,15 @@ class Paned(gtk.Bin):
             cr = self.window.cairo_create()
             cr.set_source_pixmap(self.screen.window, *self.screen.window.get_position())
             cr.paint_with_alpha(self.alpha)
+            # 画提示信息.
+            #if self.toptip_text:
+            if False: # 预留功能. [画在屏幕上的提示信息].
+                draw_text(cr, 
+                          self.toptip_text, 
+                          self.toptip_x,
+                          self.toptip_y,
+                          text_color=self.toptip_color,
+                          text_size=self.toptip_size)
 
     def __paint_handle(self, e):
         if self.show_check:

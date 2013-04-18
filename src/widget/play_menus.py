@@ -21,11 +21,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+
 from dtk.ui.menu import Menu
 from dtk.ui.utils import get_widget_root_coordinate
 from dtk.ui.constant import WIDGET_POS_BOTTOM_LEFT
 from skin import app_theme
 from locales import _
+
+
 
 class PlayMenus(object):
     def __init__(self):
@@ -115,7 +118,7 @@ class PlayMenus(object):
         self.down_sub_title_hover_pixbuf = app_theme.get_pixbuf("screen/check_hover.png")
         self.down_sub_title_none_pixbuf = app_theme.get_pixbuf("screen/check_none.png")
         '''
-        
+
     def __init_menus(self):
         self.config_gui      = None
         self.quit            = None
@@ -127,12 +130,11 @@ class PlayMenus(object):
         self.prev            = None
         self.fseek           = None
         self.bseek           = None
-        
         ##############################################################
         self.file_menu = Menu([(None, _("Open File"), None),
                                (None, _("Open Directory"), None),
                                (None, _("Play Disc"), None)
-                               ])
+                              ])
         self.play_track            = None
         self.play_default          = None
         self.play_random           = None
@@ -146,15 +148,15 @@ class PlayMenus(object):
                                      (None, _("Repeat (track)"),    self.__menu_play_repeat_track), # 单曲循环
                                      (None, _("Repeat (playlist)"), self.__menu_play_repeat_play_list)] # 列表循环
                                     )                       
-        self.play_menu = Menu([(None, _("Full Screen"), self.__menu_full_screen),
-                               (None, _("Normal Mode"), self.__menu_normal_mode),
-                               (None, _("Compact Mode"), self.__menu_compact_mode),
-                               (None, _("Previous"), self.__menu_prev),
-                               (None, _("Next"),     self.__menu_next),
+        self.play_menu = Menu([(None, _("Full Screen"),   self.__menu_full_screen),
+                               (None, _("Normal Mode"),   self.__menu_normal_mode),
+                               (None, _("Compact Mode"),  self.__menu_compact_mode),
+                               (None, _("Previous"),      self.__menu_prev),
+                               (None, _("Next"),          self.__menu_next),
                                (None),
                                (None, _("Jump Forward"),  self.__menu_fseek),
                                (None, _("Jump Backward"), self.__menu_bseek),
-                               (None, _("Order"), self.play_state_menu),
+                               (None, _("Order"),         self.play_state_menu),
                                ])
                                
         self.normal_ascept     = None
@@ -185,22 +187,22 @@ class PlayMenus(object):
         # 切换左右声道.
         self.channel_select_menu = Menu([
                 (None, _("Stereo"), self.__menu_stereo_channel),
-                (None,   _("Left"), self.__menu_left_channel),
-                (None,  _("Right"), self.__menu_right_channel)
+                (None, _("Left"),   self.__menu_left_channel),
+                (None, _("Right"),  self.__menu_right_channel)
                 ])
         self.audio_menu = Menu([(None, _("Channels"), self.channel_select_menu),
                                  (None),
                                  (None, _("Increase Volume"),  self.__menu_inc_volume),
                                  (None, _("Decrease Volume"),  self.__menu_dec_volume),
-                                 (None, _("Mute/Unmute"), self.__menu_mute_unmute),
-                                 ])
-        self.sort_menu = Menu([(None, _("Take Screenshot"), None),
-                               (None, _("Open Screenshot Directory"), None),
-                               (None, _("Set Screenshot Directory"), None)
+                                 (None, _("Mute/Unmute"),      self.__menu_mute_unmute),
                                ])
+        self.sort_menu = Menu([(None, _("Take Screenshot"),           None),
+                               (None, _("Open Screenshot Directory"), None),
+                               (None, _("Set Screenshot Directory"),  None)
+                              ])
         self.format_menu = Menu([(None, _("Format conversion"), None),
-                            (None, _("Task Manager"), None)
-                            ])
+                                (None, _("Task Manager"), None)
+                                ])
         ################################################################
         ## 主题弹出菜单.
         self.title_root_menu = Menu([
@@ -222,24 +224,80 @@ class PlayMenus(object):
                            (None, _("By Type"), None)])
         #
         ###############################################################
+        self.remove_selected = self.__menu_remove_selected
+        self.clear_playlist  = self.__menu_clear_playlist
+        self.remove_unavailable_files  = self.__menu_remove_unavailable_files
+        self.open_containing_directory = self.__menu_open_containing_directory
         ## 播放列表弹出菜单.
-        self.play_list_root_menu = Menu([(None, _("Add File"), None),
+        self.play_list_root_menu = Menu([(None, _("Add File"),      None),
                                          (None, _("Add Directory"), None),
-                                         (None, _("Add URL"), None),
+                                         (None, _("Add URL"),       None),
                                          (None),
-                                         (None, _("Remove Selected"), None),
-                                         (None, _("Clear Playlist"),  None),
-                                         (None, _("Remove Unavailable Files"), None),
+                                         (None, _("Remove Selected"), self.__menu_remove_selected),
+                                         (None, _("Clear Playlist"),  self.__menu_clear_playlist),
+                                         (None, _("Remove Unavailable Files"), self.__menu_remove_unavailable_files),
                                          (None),
                                          (None, _("Recent Played"), None),
                                          (None, _("Order"), self.play_state_menu),
                                          (None, _("Sort"),  self.sort_menu),
                                          (None),
-                                         (None, _("Format conversion"), None),
-                                         (None, _("Open Containing Directory"), None),
+                                         (None, _("Format conversion"),         None),
+                                         (None, _("Open Containing Directory"), self.__menu_open_containing_directory),
                                          (None, _("Properties"), None),
                                          ],
                                          True)
+        #########################################################
+        # 播放菜单
+        self.screen_play_menu = Menu([            
+                          (None, _("Previous"),      self.__menu_prev),
+                          (None, _("Next"),          self.__menu_next),
+                          (None),
+                          (None, _("Jump Forward"),  self.__menu_fseek),
+                          (None, _("Jump Backward"), self.__menu_bseek),
+                          ])
+        ## 音轨选择
+        # Menu([(None, "音轨一", None), (... "音轨二", None)...])
+        self.switch_audio_menu = None 
+        self.audio_lang_menu = (None, _("Dubbing selection"), self.switch_audio_menu)
+        # 声音.
+        self.channel_select = Menu([
+                (None, _("Audio channels"), self.channel_select_menu),
+                self.audio_lang_menu,
+                ])
+        ### DVD内置菜单.
+        self.dvd_built_in_menu = Menu([
+                    (None, _("Move Up"),         None), 
+                    (None, _("Move Down"),       None),
+                    (None, _("Move Left"),       None),
+                    (None, _("Move Right"),      None), 
+                    (None, _("Select"),          None),
+                    (None, _("Return to Title"), None),
+                    (None, _("Return to Root"),  None),
+                    ])
+        ## DVD控制菜单. 有DVD的时候才显示出来.
+        self.dvd_navigation_menu = Menu([(None, _("Previous Title"), None), 
+                                         (None, _("Next title"),     None), 
+                                         (None, _("Jump to"),        None),
+                                         (None, _("DVD Menu"),       self.dvd_built_in_menu),
+                                         ]) 
+        # 屏幕弹出菜单.
+        self.screen_right_root_menu = Menu([
+                (None, _("Open File"),      None),
+                (None, _("Open Directory"), None),
+                (None, _("Open URL"),       None),
+                (None),
+                (None, _("Full Screen On/Off"), self.__menu_full_screen),
+                (None, _("Normal Mode"),        self.__menu_normal_mode),
+                (None, _("Compact Mode"),       self.__menu_compact_mode),
+                (None, _("Order"), self.play_state_menu),
+                (None, _("Play"),  self.screen_play_menu),
+                (None, _("Video"), self.video_menu),
+                (None, _("Audio"), self.channel_select),
+                (None, _("Subtitles"),      None),
+                (None, _("DVD Navigation"), self.dvd_navigation_menu),
+                (None, _("Preferences"),    None),
+                (None),
+                ], True)
                                      
     def show_theme_menu(self, button): 
         # 显示主题上菜单.
@@ -250,7 +308,14 @@ class PlayMenus(object):
     def show_play_list_menu(self, event):
         # 显示播放列表上的菜单.
         self.play_list_root_menu.show((int(event.x_root), int(event.y_root)), (0, 0))
-                  
+         
+    def show_screen_menu(self, event):
+        # 显示屏幕右键菜单.
+        self.screen_right_root_menu.show(
+                        (int(event.x_root),
+                        int(event.y_root)),
+                        (0, 0))
+                 
     def __menu_init_user_guide(self):
         if self.init_user_guide:
             self.init_user_guide()
@@ -358,11 +423,23 @@ class PlayMenus(object):
     def __menu_play_repeat_play_list(self):
         if self.play_repeat_play_list:
             self.play_repeat_play_list()
-            
-            
-            
-            
-            
+
+    def __menu_remove_selected(self):
+        if self.remove_selected:
+            self.remove_selected()
+    
+    def __menu_clear_playlist(self):
+        if self.clear_playlist:
+            self.clear_playlist()
+
+    def __menu_remove_unavailable_files(self): 
+        # 删除无效文件.
+        if self.remove_unavailable_files:
+            self.remove_unavailable_files()
+    
+    def __menu_open_containing_directory(self):
+        # 开打文件的所在路径.
+        if self.open_containing_directory:
+            self.open_containing_directory()
                                         
-                                        
-                                        
+

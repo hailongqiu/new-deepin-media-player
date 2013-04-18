@@ -150,6 +150,12 @@ def get_file_type(file_path): # 获取文件类型.
 def is_file_audio(file_name):    
     return get_file_type(file_name).startswith("audio")
     
+def open_file(file_name, type_check=True):
+    if type_check:
+        os.system("xdg-open '%s'" % (file_name))
+    else:
+        os.system("nautilus '%s'" % (file_name))
+
 ########################################################                
 ## 转换时间的函数.                
 def length_to_time(length):  
@@ -192,10 +198,10 @@ def allocation(widget): # 返回 cr, rect.
     rect = widget.get_allocation()
     return cr, rect
                     
-def get_paly_file_name(path): # 获取播放文件名.
+def get_play_file_name(path): # 获取播放文件名.
     return os.path.splitext(os.path.split(path)[1])[0]
 
-def get_paly_file_type(path): # 获取播放后缀名.
+def get_play_file_type(path): # 获取播放后缀名.
     return os.path.splitext(os.path.split(path)[1])[1][1:]
 
 
@@ -225,7 +231,7 @@ class ScanDir(gobject.GObject):
         "scan-file-event" : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                              (gobject.TYPE_STRING,)),
         "scan-end-event" : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                             ()),        
+                             (gobject.TYPE_INT,)),        
         }            
     def __init__(self, path):
         gobject.GObject.__init__(self)
@@ -267,15 +273,18 @@ class ScanDir(gobject.GObject):
             print "read file error!!"
                             
     def __run_func(self):    
+        num = 0
         for file_ in self.__scan(self.path):
+            num += 1
             self.emit("scan-file-event", file_)
-        self.emit("scan-end-event")    
+        self.emit("scan-end-event", num)    
         
 if __name__ == "__main__":            
     gtk.gdk.threads_init()    
     def scan_file_event(scan_dir, file_name):
         gtk.gdk.threads_enter()
-        label.set_label(file_name)
+        #label.set_label(file_name)
+        print file_name
         gtk.gdk.threads_leave()
         
     def scan_end_event(scan_dir):    
@@ -285,13 +294,13 @@ if __name__ == "__main__":
         
     def start_btn_clicked(widget):    
         scan_dir.start()
-        print show_open_file_dialog_window("测试")
+        #print show_open_file_dialog_window("测试")
         
     def pause_btn_clicked(widget):    
         scan_dir.pause()
-        print show_open_dir_dialog_window("测试")
+        #print show_open_dir_dialog_window("测试")
         
-    scan_dir = ScanDir("/home/long/")
+    scan_dir = ScanDir("/media/文档")
     scan_dir.connect("scan-file-event", scan_file_event)                
     scan_dir.connect("scan-end-event", scan_end_event)
     win = gtk.Window(gtk.WINDOW_TOPLEVEL)

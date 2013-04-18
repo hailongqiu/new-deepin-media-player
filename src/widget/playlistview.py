@@ -49,23 +49,31 @@ class PlayListView(object):
         #
         for path in [
                     "/home/long/视频/test.mp4",
-                    "/home/long/视频/test3.mkv",
+                    "/home/long/视频/test2.mkv",
                     "/home/long/视频/test2.rmvb",
-                    "/home/long/视频/test3.mkv",
                     "/home/long/视频/test4.mkv",
                     "/home/long/视频/test.mp4",
+                    "/home/long/视频/test.mp4",
+                    "/home/long/视频/test2.mkv",
+                    "/home/long/视频/test2.rmvb",
+                    "/home/long/视频/test4.mkv",
+                    "/home/long/视频/test2.mkv",
+                    "/home/long/视频/test2.rmvb",
+                    "/home/long/视频/test4.mkv",
                     ]:
             self.list_view.items.add([path, "12:12:12", path])
-        # 网络电视测试.
-        net_uri = "mms://112.230.192.196/zb10"
-        self.list_view.items.add(["网络电视:体育频道", "12:12:12", net_uri])
-        net_uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
-        self.list_view.items.add(["XXX卫视", "12:12:12", net_uri])
-        net_uri = 'http://124.232.151.187:80/play/B33F531650A004BAC82D003E7E52BE7FB744FCE0.mp4'
-        self.list_view.items.add(["风行网测试.", "12:12:12", net_uri])
-        net_uri = 'http://222.73.131.138:80/play/DBBD5251B732C0CFF02FAF29CABE4AB0473E3945.mp4'
-        self.list_view.items.add(["风行网测试2.", "22:22:22", net_uri])
+        from utils import ScanDir
+        scan_dir = ScanDir("/media/文档/娱乐/音乐无极限")
+        scan_dir.connect("scan-file-event", self.scan_file_event)                
+        scan_dir.connect("scan-end-event",  self.scan_end_event)
+        scan_dir.start()
 
+    def scan_file_event(self, scan_dir, file_name):
+        from utils  import get_play_file_name
+        self.list_view.items.add([get_play_file_name(file_name), "00:00:00", file_name])
+
+    def scan_end_event(self, scan_dir, sum):
+        print "扫描完毕", scan_dir, sum
 
     def __listview_on_draw_sub_item(self, e):
         color = self.listview_color.get_color()

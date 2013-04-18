@@ -67,7 +67,7 @@ class VolumeButton(gtk.HBox):
     def __init_values(self):
         self.max_value = 100
         self.min_value = 0
-        self.value = 0
+        self.value = 100
         self.mute_check = False
         self.move_check = False
         self.volume_level_values = [(1, 33),(34, 66),(67, 100)],

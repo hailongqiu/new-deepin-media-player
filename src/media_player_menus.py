@@ -21,6 +21,8 @@
 
 from skin import app_theme
 from user_guide import init_user_guide
+from widget.utils import is_right_button
+from widget.utils import open_file
 from widget.constant import SEEK_VALUE
 from widget.constant import VOLUME_VALUE
 from mplayer.player import ASCEPT_4X3_STATE, ASCEPT_16X9_STATE, ASCEPT_5X4_STATE
@@ -35,8 +37,10 @@ class MediaPlayMenus(object):
         self.ldmp = self.this.ldmp
         self.play_list = self.this.play_list
         self.list_view = self.this.gui.play_list_view.list_view
-        # test 播放列表弹出.
-        self.list_view.connect_event("right-items-event", self.list_veiw_test_show_menu)
+        # 屏幕右键弹出菜单.
+        self.gui.screen_frame_event.connect("button-release-event",   self.screen_frame_right_show_menu)
+        # 播放列表弹出.
+        self.list_view.connect_event("right-items-event", self.list_veiw_right_show_menu)
         self.menus = self.this.gui.play_menus
         # 初始化连接事件.
         self.menus.full_screen  = self.this.fullscreen_function
@@ -88,11 +92,20 @@ class MediaPlayMenus(object):
         #self.menus.play_state_menu.menu_items[1].set_item_icons((pixbuf, pixbuf1, pixbuf2))
         #self.menus.play_state_menu.set_mutual_icons(2, (pixbuf, pixbuf1, pixbuf2))
         #self.menus.video_menu.set_mutual_icons(0, (pixbuf, pixbuf1, pixbuf2))
+        # 播放列表.
+        self.menus.remove_selected = self.list_view.listview_delete_event
+        self.menus.clear_playlist  = self.list_view.clear
+        self.menus.open_containing_directory = self.menu_open_containing_directory
 
-    def test_ldmp_mute_play(self, ldmp, mute_check):
-        print "volume:", mute_check
+    def screen_frame_right_show_menu(self, widget, event):
+        if is_right_button(event):
+            self.menus.show_screen_menu(event)
 
-    def list_veiw_test_show_menu(self, list_view, event, row_index, col_index, item_x, item_y):
+    def list_veiw_right_show_menu(self, list_view, event, row_index, col_index, item_x, item_y):
+        if row_index != None:
+            self.open_file_name = list_view.items[row_index].sub_items[2].text
+        else:
+            self.open_file_name = None
         self.menus.show_play_list_menu(event)
 
     def menu_quit(self):
@@ -187,8 +200,14 @@ class MediaPlayMenus(object):
                    self.menus.video_aspect_select_pixbuf, 
                    self.menus.video_aspect_none_pixbuf))
 
-
-
+    # 播放列表.
+    def menu_open_containing_directory(self):
+        import os
+        if self.open_file_name:
+            path = os.path.split(self.open_file_name)[0]
+            if os.path.exists(path):
+                open_file(path)
+                #open_file(self.open_file_name, False)
 
 
 

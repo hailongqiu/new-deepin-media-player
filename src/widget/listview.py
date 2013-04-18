@@ -66,7 +66,7 @@ class ListView(ListViewBase):
                 "End"      :   self.__listview_end_event,
                 "Page_Up"  :   self.__listview_page_up_event,
                 "Page_Down":   self.__listview_page_down_event,
-                "Delete"   :   self.__listview_delete_event,
+                "Delete"   :   self.listview_delete_event,
                 "Return"   :   self.__listview_return_event,
                 "Ctrl + a" :   self.__listview_ctrl_a_event,
                 }
@@ -172,7 +172,7 @@ class ListView(ListViewBase):
                     vadjustment.set_value(value)
                 self.on_queue_draw_area()
 
-    def __listview_delete_event(self): # 删除一个选项.
+    def listview_delete_event(self): # 删除一个选项.
         #print "__listiew_delete_event..."
         if self.__single_items != []:
             for item in self.__single_items:
@@ -883,6 +883,13 @@ class ListView(ListViewBase):
             else:
                 vadjustment.set_value(value)
         #
+        self.on_queue_draw_area()
+
+    def clear(self):
+        self.items = []
+        self.__single_items = []
+        self.__motion_items = []
+        self.__double_items = []
         self.on_queue_draw_area()
 
 class ItemEventArgs(object):

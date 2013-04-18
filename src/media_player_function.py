@@ -24,6 +24,7 @@
 from widget.constant import SEEK_VALUE
 from widget.tooltip  import tooltip_text
 from widget.preview  import PreView
+from widget.utils import is_file_audio
 
 
 
@@ -51,6 +52,7 @@ class MediaPlayFun(object):
 
     def list_view_motion_notify_items(self, listview, motion_items, row, col, item_x, item_y):
         text = motion_items.sub_items[0].text
+        text = str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         tooltip_text(self.list_view, text)
 
     def list_view_double_items(self, listview, double_items, row, col, item_x, item_y):
@@ -71,7 +73,8 @@ class MediaPlayFun(object):
 
     def __progressbar_motion_notify_event(self, widget, event):
         # self.pre_view.set_preview_path(... ...
-        if not widget.move_check:
+        #if not widget.move_check and (not is_file_audio(self.ldmp.player.uri)):
+        if False:
             value = 0
             self.x_root = event.x_root
             self.y_root = event.y_root
@@ -263,8 +266,8 @@ class MediaPlayFun(object):
         self.app_play_control_panel.play_control_panel.start_button.set_start_bool(False)
         #
         self.this.play_list_check = False
-        # 预览设置.
-        self.pre_view.set_preview_path(ldmp.player.uri)
+        # 预览设置. 预览BUG-->> 会启动好多mplayer进程,杀不掉.
+        #self.pre_view.set_preview_path(ldmp.player.uri)
 
     def ldmp_end_media_player(self, ldmp):
         # 改变所有的状态.
@@ -286,11 +289,11 @@ class MediaPlayFun(object):
         self.app_play_control_panel.pb_bseek_btn.set_sensitive(False)
         self.app_play_control_panel.play_control_panel.start_button.set_start_bool(True)
         #
+        # 退出预览.
+        self.pre_view.quit_preview_player()
         #print self.this.play_list_check
         if not self.this.play_list_check:
             self.this.next()
-        # 退出预览.
-        self.pre_view.quit_preview_player()
 
     def ldmp_pause_play(self, pause_check):
         if pause_check: # 正在播放.

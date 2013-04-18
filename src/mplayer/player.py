@@ -20,6 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from dtk.ui.utils import remove_timeout_id
 from timer import Timer
 import gobject
 import subprocess        
@@ -172,7 +173,7 @@ class LDMP(gobject.GObject):
         # 加入读取配置文件, 设置-vo等选项.
         
     def play(self):                
-        self.player.type = self.set_play_file_type() # 设置文件类型
+        self.player.type = self.get_play_file_type() # 设置文件类型
         codecs_vdpau = None
         codecs_crystalhd = None
         
@@ -1130,25 +1131,31 @@ class LDMP(gobject.GObject):
         return True
     
     def player_thread_complete(self, source, condition): 
+        #print "player_thread_complete..."
         if DEBUG:
             print "player_thread_complete:", "断开管道!!"
         try:            
             # modify state.
             self.player.state = STOPING_STATE
+            #print "mplayer_pid:", self.mplayer_pid
             # close fd.
             self.mplayer_in.close()
             self.mplayer_out.close()
             self.mplayer_err.close()
+            remove_timeout_id(self.watch_in_id)
+            remove_timeout_id(self.watch_err_id)
+            remove_timeout_id(self.watch_in_hup_id)
             # kill mplayer.
             self.mp_id.kill() 
-            os.system("kill %s" % (self.mplayer_pid)) # 杀死 mplayer pid.
+            os.kill(self.mplayer_pid, 0)
+            #os.system("kill %s" % (self.mplayer_pid)) # 杀死 mplayer pid.
             self.timer.Enabled = False # 关闭发送get-time-pos命令的时钟.   
             self.emit("end-media-player")        
         except StandardError, e:
             print "player_thread_complete:", e
         return False
     
-    def set_play_file_type(self):
+    def get_play_file_type(self):
         if self.player.uri.startswith(('mmshttp', 'http', 'mms', 'https')):
             return TYPE_NETWORK        
         elif self.player.uri.startswith(('dvdnav', 'dvd')):
@@ -1167,7 +1174,17 @@ class LDMP(gobject.GObject):
             return TYPE_FILE
             
     def quit(self): # 退出.
-        self.cmd('quit \n')       
+        try: # BUG: 由于结束的进度太慢,所以需要在这里直接免杀进程.
+            self.cmd('quit \n')       
+            self.player.state = STOPING_STATE
+
+            self.mplayer_in.close()
+            self.mplayer_out.close()
+            self.mplayer_err.close()
+
+            self.emit("end-media-player")        
+        except:
+            pass
                 
 def remove_timeout_id(callback_id):
     if callback_id:

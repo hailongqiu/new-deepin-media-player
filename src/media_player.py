@@ -54,7 +54,6 @@ import gtk
 import sys
 import os
 
-JMP_TIME = 88
 
 class MediaPlayer(object):
     def __init__(self):
@@ -463,7 +462,7 @@ class MediaPlayer(object):
         play_file = play_name
         if play_file:
             self.init_ldmp_player()
-            gtk.timeout_add(88, self.timeout_prev, play_file)
+            self.ldmp_play(play_file)
 
     def init_ldmp_player(self):
         self.play_list_check = True
@@ -477,22 +476,18 @@ class MediaPlayer(object):
         play_file = self.play_list.get_prev_file()
         if play_file:
             self.init_ldmp_player()
-            gtk.timeout_add(JMP_TIME, self.timeout_prev, play_file)
-            
-    def timeout_prev(self, play_file):
-        self.ldmp.player.uri = play_file
-        self.ldmp.play()
+            self.ldmp_play(play_file)
     
     # 下一曲.
     def next(self):    
         play_file = self.play_list.get_next_file()
         if play_file:
             self.init_ldmp_player()
-            gtk.timeout_add(JMP_TIME, self.timeout_next, play_file)
-        
-    def timeout_next(self, play_file):        
-        self.ldmp.player.uri = play_file
-        self.ldmp.play()                
+            self.ldmp_play(play_file)
+
+    def ldmp_play(self, play_file):
+        self.ldmp.player.uri = "%s" % play_file
+        self.ldmp.play()
 
     def mute_umute(self):
         if self.ldmp.player.volumebool:
