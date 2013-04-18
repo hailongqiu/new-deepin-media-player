@@ -46,36 +46,6 @@ class PlayListView(object):
         #self.play_list_vbox.pack_start(gtk.Button("网络列表"), False, False)
         self.play_list_vbox.pack_start(self.scroll_win, True, True)
         #
-        #
-        for path in [
-                    "/home/long/视频/test.mp4",
-                    "/home/long/视频/test2.mkv",
-                    "/home/long/视频/test2.rmvb",
-                    "/home/long/视频/test4.mkv",
-                    "/home/long/视频/test.mp4",
-                    "/home/long/视频/test.mp4",
-                    "/home/long/视频/test2.mkv",
-                    "/home/long/视频/test2.rmvb",
-                    "/home/long/视频/test4.mkv",
-                    "/home/long/视频/test2.mkv",
-                    "/home/long/视频/test2.rmvb",
-                    "/home/long/视频/test4.mkv",
-                    ]:
-            self.list_view.items.add([path, "12:12:12", path])
-        '''
-        from utils import ScanDir
-        scan_dir = ScanDir("/media/文档/娱乐/音乐无极限")
-        scan_dir.connect("scan-file-event", self.scan_file_event)                
-        scan_dir.connect("scan-end-event",  self.scan_end_event)
-        scan_dir.start()
-
-    def scan_file_event(self, scan_dir, file_name):
-        from utils  import get_play_file_name
-        self.list_view.items.add([get_play_file_name(file_name), "00:00:00", file_name])
-
-    def scan_end_event(self, scan_dir, sum):
-        print "扫描完毕", scan_dir, sum
-        '''
 
     def __listview_on_draw_sub_item(self, e):
         color = self.listview_color.get_color()

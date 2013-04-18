@@ -499,7 +499,7 @@ class LDMP(gobject.GObject):
             
             self.command.append("%s" % (self.player.uri))    
             
-        print self.command
+        #print self.command
         # 链接管道.
         self.mp_id = subprocess.Popen(self.command, 
                                       stdin = subprocess.PIPE,

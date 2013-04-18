@@ -26,9 +26,9 @@ import dtk.ui.tooltip as Tooltip
 from dtk.ui.draw import draw_pixbuf
 from dtk.ui.utils import color_hex_to_cairo
 from locales import _ # 国际化翻译.
-from widget.utils import get_home_path
-from widget.utils import get_home_video
-from widget.utils  import get_play_file_name
+from widget.utils import get_home_path, get_home_video, get_play_file_name
+from widget.utils import is_file_audio
+from widget.utils import ScanDir
 from widget.keymap import get_keyevent_name
 from widget.ini_gui import IniGui
 from plugin_manage import PluginManage
@@ -266,7 +266,7 @@ class MediaPlayer(object):
         self.media_play_fun.ldmp_get_time_length(ldmp, length, time)
         
     def ldmp_start_media_player(self, ldmp):    
-        print "开始播放了..."
+        #print "开始播放了..."
         self.player_start_init()
         self.media_play_fun.ldmp_start_media_player(ldmp)
         
@@ -274,7 +274,7 @@ class MediaPlayer(object):
         pass
     
     def ldmp_end_media_player(self, ldmp):
-        print "播放结束!!", ldmp.player.type
+        #print "播放结束!!", ldmp.player.type
         self.player_end_init()
         self.media_play_fun.ldmp_end_media_player(ldmp)
         
@@ -534,7 +534,7 @@ class MediaPlayer(object):
 
     def timeout_add_paths(self, paths):
         for path in paths:
-            self.gui.play_list_view.list_view.items.add([get_play_file_name(path), "00:00:00", path])
+            self.scan_file_event(None, path)
 
     def open_dir_dialog(self):
         # 多选目录对话框.
@@ -550,7 +550,7 @@ class MediaPlayer(object):
         paths = []
         if res == gtk.RESPONSE_OK:
             paths = open_dialog.get_filenames()
-        print paths
+        #print paths
         open_dialog.destroy()
         return paths
 
@@ -559,25 +559,47 @@ class MediaPlayer(object):
         if type_check and paths:
             self.gui.play_list_view.list_view.clear()
         for path in paths:
-            print path
-            from widget.utils import ScanDir
             scan_dir = ScanDir(path)
             scan_dir.connect("scan-file-event", self.scan_file_event)                
             scan_dir.connect("scan-end-event",  self.scan_end_event)
             scan_dir.start()
 
+    def get_length(self, file_path):
+        import subprocess
+        cmd = "ffmpeg -i '%s' 2>&1 | grep 'Duration' | cut -d ' ' -f 4 | sed s/,//" % (file_path)
+        fp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        cmd_str = fp.communicate()[0]
+        if cmd_str:
+            try:
+                cmd_str = cmd_str.replace("\n", "")
+                time = cmd_str.split(":")
+                hour = time[0]
+                min  = time[1]
+                sec  = time[2].split(".")[0]
+                cmd_str = hour + ":" + min + ":" + sec
+            except:
+                cmd_str = None
+        return cmd_str
+
     def scan_file_event(self, scan_dir, file_name):
-        self.gui.play_list_view.list_view.items.add([get_play_file_name(file_name), "00:00:00", file_name])
+        # 判断文件类型是否可播放..
+        # get_play_type(file_name)
+        if True: #is_file_audio(file_name):
+            cmd_str = self.get_length(file_name)
+            if cmd_str:
+                self.gui.play_list_view.list_view.items.add([get_play_file_name(file_name), cmd_str, file_name])
 
     def scan_end_event(self, scan_dir, sum):
-        print "扫描完毕", scan_dir, sum
+        #print "扫描完毕", scan_dir, sum
+        pass
 
     def config_gui(self):
         ini_gui = IniGui()
         ini_gui.ini.connect("config-changed", self.restart_load_config_file)
 
     def restart_load_config_file(self, ini_gui, sec_root, sec_argv, sec_value):
-        print "ini_gui", ini_gui, "sec_root:", sec_root, "sec_argv:", sec_argv, "sec_value:", sec_value
+        #print "ini_gui", ini_gui, "sec_root:", sec_root, "sec_argv:", sec_argv, "sec_value:", sec_value
+        pass
 
     def top_toolbar_concise_button_clicked(self):
         if self.concise_check == False or self.fullscreen_check:
