@@ -123,18 +123,21 @@ class MediaPlayFun(object):
         self.app_play_control_panel.play_list_btn.button.connect("clicked", 
                  self.__app_play_control_panel_play_list_btn_clicked)
 
-        start_button = self.app_play_control_panel.play_control_panel
-        stop_button = self.app_play_control_panel.play_control_panel.stop_button
-        pre_button  = self.app_play_control_panel.play_control_panel.pre_button
-        next_button = self.app_play_control_panel.play_control_panel.next_button
+        start_button  = self.app_play_control_panel.play_control_panel
+        stop_button   = self.app_play_control_panel.play_control_panel.stop_button
+        pre_button    = self.app_play_control_panel.play_control_panel.pre_button
+        next_button   = self.app_play_control_panel.play_control_panel.next_button
+        open_button   = self.app_play_control_panel.play_control_panel.open_button
         volume_button = self.app_play_control_panel.volume_button
         #
         start_button.start_button.connect("clicked", self.__bottom_toolbar_start_button_clicked)
-        stop_button.connect("clicked",  self.__bottom_toolbar_stop_button_clicked)
-        pre_button.connect("clicked", self.__pre_button_clicked)
-        next_button.connect("clicked", self.__next_button_clicked)
-        volume_button.mute_btn.connect("clicked", self.__mute_btn_state_changed)
-        volume_button.volume_btn.connect("button-press-event", self.__volume_btn_button_press_event)
+        stop_button.connect("clicked",               self.__bottom_toolbar_stop_button_clicked)
+        pre_button.connect("clicked",                self.__pre_button_clicked)
+        next_button.connect("clicked",               self.__next_button_clicked)
+        open_button.connect("clicked",               self.__open_button_clicked)
+
+        volume_button.mute_btn.connect("clicked",               self.__mute_btn_state_changed)
+        volume_button.volume_btn.connect("button-press-event",  self.__volume_btn_button_press_event)
         volume_button.volume_btn.connect('motion-notify-event', self.__volume_btn_motion_notify_event)
         '''
             # 这里需要读 ini文件, 是否显示初始化的时候显示播放列表. 默认不显示播放列表.
@@ -223,6 +226,10 @@ class MediaPlayFun(object):
 
     def __next_button_clicked(self, widget):
         self.this.next()
+
+    def __open_button_clicked(self, widget):
+        #self.this.open_files_to_play_list()
+        self.this.open_dirs_to_play_list()
 
     def __bottom_toolbar_pb_value_changed(self, pb, value):
         self.ldmp.seek(value)

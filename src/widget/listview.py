@@ -29,7 +29,7 @@ from utils import get_text_size, get_match_parent, get_offset_coordinate
 from utils import is_single_click, is_double_click, is_left_button, is_right_button
 from listview_base import type_check
 from listview_base import ListViewBase
-from listview_base import View, Text
+from listview_base import View, Text, Items
 from keymap import get_keyevent_name, ctrl_mask_check, shift_mask_check
 import pango
 import cairo
@@ -886,7 +886,7 @@ class ListView(ListViewBase):
         self.on_queue_draw_area()
 
     def clear(self):
-        self.items = []
+        self.items.clear()
         self.__single_items = []
         self.__motion_items = []
         self.__double_items = []

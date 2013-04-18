@@ -62,6 +62,7 @@ class PlayListView(object):
                     "/home/long/视频/test4.mkv",
                     ]:
             self.list_view.items.add([path, "12:12:12", path])
+        '''
         from utils import ScanDir
         scan_dir = ScanDir("/media/文档/娱乐/音乐无极限")
         scan_dir.connect("scan-file-event", self.scan_file_event)                
@@ -74,6 +75,7 @@ class PlayListView(object):
 
     def scan_end_event(self, scan_dir, sum):
         print "扫描完毕", scan_dir, sum
+        '''
 
     def __listview_on_draw_sub_item(self, e):
         color = self.listview_color.get_color()

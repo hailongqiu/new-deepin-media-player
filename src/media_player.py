@@ -27,6 +27,8 @@ from dtk.ui.draw import draw_pixbuf
 from dtk.ui.utils import color_hex_to_cairo
 from locales import _ # 国际化翻译.
 from widget.utils import get_home_path
+from widget.utils import get_home_video
+from widget.utils  import get_play_file_name
 from widget.keymap import get_keyevent_name
 from widget.ini_gui import IniGui
 from plugin_manage import PluginManage
@@ -302,7 +304,8 @@ class MediaPlayer(object):
         self.media_play_fun.ldmp_volume_play(value)
 
     def ldmp_error_msg(self, ldmp, error_code): # 接收后端错误信息.
-        print "ldmp_error_msg->error_code:", error_code
+        #print "ldmp_error_msg->error_code:", error_code
+        pass 
         
     def screen_expose_event(self, widget, event):    
         cr = widget.window.cairo_create()
@@ -466,7 +469,8 @@ class MediaPlayer(object):
 
     def init_ldmp_player(self):
         self.play_list_check = True
-        self.ldmp.quit()
+        if self.ldmp.player.state: # 判断是否在播放,如果在播放就先退出.
+            self.ldmp.quit()
         ####################################
         ## 初始化设置, 比如加载的字幕或者起始时间等等.
         self.ldmp.player.start_time = 0
@@ -505,14 +509,31 @@ class MediaPlayer(object):
                                             None,
                                             gtk.FILE_CHOOSER_ACTION_OPEN,
                                             (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                                             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+                                             gtk.STOCK_OPEN, gtk.RESPONSE_ACCEPT))
 
-        open_dialog.set_current_folder(get_home_path())
+        open_dialog.set_current_folder(get_home_video())
         open_dialog.set_select_multiple(True) # 多选文件.
         res = open_dialog.run()
-        if res == gtk.RESPONSE_OK:
-            print open_dialog.get_filenames()
+        paths = []
+        if res == gtk.RESPONSE_ACCEPT:
+            paths = open_dialog.get_filenames()
+            '''
+            filename = open_dialog.get_uris()
+            paths = filename
+            print open_dialog.get_current_folder_uri()
+            '''
         open_dialog.destroy()
+        return paths
+
+    def open_files_to_play_list(self, type_check=True):
+        paths = self.open_file_dialog()
+        if type_check and paths:
+            self.gui.play_list_view.list_view.clear()
+        gtk.timeout_add(1, self.timeout_add_paths, paths)
+
+    def timeout_add_paths(self, paths):
+        for path in paths:
+            self.gui.play_list_view.list_view.items.add([get_play_file_name(path), "00:00:00", path])
 
     def open_dir_dialog(self):
         # 多选目录对话框.
@@ -522,12 +543,33 @@ class MediaPlayer(object):
                                             (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                                              gtk.STOCK_OPEN, gtk.RESPONSE_OK))
 
-        open_dialog.set_current_folder(get_home_path())
-        open_dialog.set_select_multiple(True) # 多选文件.
+        open_dialog.set_current_folder(get_home_video())
+        open_dialog.set_select_multiple(True) # 多选文件夹.
         res = open_dialog.run()
+        paths = []
         if res == gtk.RESPONSE_OK:
-            print open_dialog.get_filenames()
+            paths = open_dialog.get_filenames()
+        print paths
         open_dialog.destroy()
+        return paths
+
+    def open_dirs_to_play_list(self, type_check=True):
+        paths = self.open_dir_dialog()
+        if type_check and paths:
+            self.gui.play_list_view.list_view.clear()
+        for path in paths:
+            print path
+            from widget.utils import ScanDir
+            scan_dir = ScanDir(path)
+            scan_dir.connect("scan-file-event", self.scan_file_event)                
+            scan_dir.connect("scan-end-event",  self.scan_end_event)
+            scan_dir.start()
+
+    def scan_file_event(self, scan_dir, file_name):
+        self.gui.play_list_view.list_view.items.add([get_play_file_name(file_name), "00:00:00", file_name])
+
+    def scan_end_event(self, scan_dir, sum):
+        print "扫描完毕", scan_dir, sum
 
     def config_gui(self):
         ini_gui = IniGui()

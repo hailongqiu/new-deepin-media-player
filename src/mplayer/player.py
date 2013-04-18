@@ -1058,7 +1058,7 @@ class LDMP(gobject.GObject):
                 
         try:
             buffer = source.readline()
-            print "error:--->>", buffer
+            #print "error:--->>", buffer
         except Exception , e:
             buffer = ""
             
