@@ -182,6 +182,7 @@ class MediaPlayer(object):
         print "app_window_min_button_clicked function", "-->>min window!!"
         
     def app_window_quit(self, widget): # 窗口销毁.destroy
+        self.play_list_check  = True
         self.ldmp.quit()
         
     def app_window_configure_event(self, widget, event): # configure-event
