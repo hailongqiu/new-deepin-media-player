@@ -51,6 +51,12 @@ class MediaPlayMenus(object):
         self.menus.prev         = self.this.prev
         self.menus.fseek        = self.menu_fseek
         self.menus.bseek        = self.menu_bseek
+        self.menus.open_file    = self.this.open_files_to_play_list
+        self.menus.open_dir     = self.this.open_dirs_to_play_list
+        #self.menus.open_url     = 
+        self.menus.add_open_file = self.menu_add_open_file #self.this.open_files_to_play_list
+        self.menus.add_open_dir  = self.menu_add_open_dir #self.this.open_dirs_to_play_list
+        #self.menus.add_open_url  = self.menu_add_open_url
         #
         self.menus.stereo_channel = self.menu_stereo_channel  # 立体声.
         self.menus.left_channel   = self.menu_left_channel 
@@ -208,6 +214,13 @@ class MediaPlayMenus(object):
             if os.path.exists(path):
                 open_file(path)
                 #open_file(self.open_file_name, False)
+
+    def menu_add_open_file(self):
+        self.this.open_files_to_play_list(type_check=False)
+
+    def menu_add_open_dir(self):
+        self.this.open_dirs_to_play_list(type_check=False)
+
 
 
 

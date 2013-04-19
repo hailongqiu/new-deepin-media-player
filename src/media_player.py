@@ -492,6 +492,7 @@ class MediaPlayer(object):
 
     def ldmp_play(self, play_file):
         self.ldmp.player.uri = "%s" % play_file
+        self.gui.show_messagebox(get_play_file_name(play_file))
         self.ldmp.play()
 
     def mute_umute(self):
@@ -518,23 +519,25 @@ class MediaPlayer(object):
         paths = []
         if res == gtk.RESPONSE_ACCEPT:
             paths = open_dialog.get_filenames()
-            '''
-            filename = open_dialog.get_uris()
-            paths = filename
-            print open_dialog.get_current_folder_uri()
-            '''
+
         open_dialog.destroy()
         return paths
 
     def open_files_to_play_list(self, type_check=True):
         paths = self.open_file_dialog()
+        run_check = False
         if type_check and paths:
             self.gui.play_list_view.list_view.clear()
-        gtk.timeout_add(1, self.timeout_add_paths, paths)
+            self.play_list.set_index(-1)
+            run_check = True
+        gtk.timeout_add(1, self.timeout_add_paths, paths, run_check)
 
-    def timeout_add_paths(self, paths):
+    def timeout_add_paths(self, paths, run_check):
         for path in paths:
             self.scan_file_event(None, path)
+
+        if run_check: # 如果是清空列表添加的文件,播放东西.
+            self.next()
 
     def open_dir_dialog(self):
         # 多选目录对话框.
@@ -550,19 +553,24 @@ class MediaPlayer(object):
         paths = []
         if res == gtk.RESPONSE_OK:
             paths = open_dialog.get_filenames()
-        #print paths
+
         open_dialog.destroy()
         return paths
 
     def open_dirs_to_play_list(self, type_check=True):
         paths = self.open_dir_dialog()
+        self.run_check = False
         if type_check and paths:
             self.gui.play_list_view.list_view.clear()
+            self.play_list.set_index(-1)
+            self.run_check = True
+
         for path in paths:
             scan_dir = ScanDir(path)
             scan_dir.connect("scan-file-event", self.scan_file_event)                
             scan_dir.connect("scan-end-event",  self.scan_end_event)
             scan_dir.start()
+
 
     def get_length(self, file_path):
         import subprocess
@@ -590,8 +598,10 @@ class MediaPlayer(object):
                 self.gui.play_list_view.list_view.items.add([get_play_file_name(file_name), cmd_str, file_name])
 
     def scan_end_event(self, scan_dir, sum):
-        #print "扫描完毕", scan_dir, sum
-        pass
+        if self.run_check:
+            self.next()
+            self.run_check = False
+
 
     def config_gui(self):
         ini_gui = IniGui()

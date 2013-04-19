@@ -24,14 +24,12 @@
 import gtk
 from gtk import gdk
 import gobject
-from color import alpha_color_hex_to_cairo, color_hex_to_cairo
+from color import alpha_color_hex_to_cairo
 from skin import app_theme
 from utils import get_text_size
 from dtk.ui.skin import ui_theme
 from dtk.ui.draw import draw_text
 import cairo
-import pangocairo, pango
-from constant import DEFAULT_FONT, DEFAULT_FONT_SIZE
 
 
 
@@ -71,34 +69,6 @@ class Paned(gtk.Bin):
         #
         self.in_pixbuf = app_theme.get_pixbuf("paned/in.png").get_pixbuf()
         self.out_pixbuf = app_theme.get_pixbuf("paned/out.png").get_pixbuf()
-        # tooltip text.
-        self.tooltip_show_check = False
-        self.text_color = ui_theme.get_color("scrolledbar")
-        self.tooltip_text = ""
-        self.tooltip_x = 30
-        self.tooltip_y = 30
-        self.tooltip_alpha = 0.0
-        self.border_radious = 1
-        self.tooltip_size = 15
-        self.tooltip_hide_hd = None
-        self.border_color = ui_theme.get_color("osd_tooltip_border")
-
-    def show_tooltip_text(self, text, sec=1500, alpha=0.95):
-        if self.tooltip_hide_hd:
-            gtk.timeout_remove(self.tooltip_hide_hd)
-        self.tooltip_show_check = True
-        self.tooltip_text = text
-        self.tooltip_alpha = alpha
-        #
-        # 启动隐藏的时间.
-        self.tooltip_hide_hd = gtk.timeout_add(sec, self.hide_tooltip_text)
-
-    def hide_tooltip_text(self):
-        self.tooltip_show_check = False
-        self.tooltip_text = ""
-        self.tooltip_alpha = 0.0
-        self.queue_draw()
-        return False
 
     def do_realize(self):
         gtk.Bin.do_realize(self)
@@ -255,54 +225,36 @@ class Paned(gtk.Bin):
             cr.paint_with_alpha(self.alpha)
             # 画提示信息.
             #if self.toptip_text:
-            if self.tooltip_show_check: # 预留功能. [画在屏幕上的提示信息].
-                 
-                self.draw_tooltip_text(cr, 
+            if True: # 预留功能. [画在屏幕上的提示信息].
+                self.text_color = ui_theme.get_color("scrolledbar")
+                self.tooltip_text = "深度影音 version 3.0"
+                self.tooltip_x = 30
+                self.tooltip_y = 30
+                self.tooltip_alpha = 1.0
+                self.border_radious = 1
+                self.tooltip_size = 18
+                text_size = get_text_size(self.tooltip_text, text_size=self.tooltip_size)
+                self.tooltip_w = text_size[0]
+                self.tooltip_h = text_size[1]
+                self.border_color = ui_theme.get_color("osd_tooltip_border")
+                surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                   self.tooltip_w + self.tooltip_x,
+                                   self.tooltip_h + self.tooltip_y)
+                surface_cr = cairo.Context(surface)
+
+                draw_text(surface_cr, 
                           self.tooltip_text, 
                           self.tooltip_x,
                           self.tooltip_y,
-                          text_size=self.tooltip_size,
-                          out_text_color=self.text_color.get_color(),
-                          #in_text_color=self.border_color.get_color(),
-                          alpha = self.tooltip_alpha
+                          self.tooltip_w,
+                          self.tooltip_h,
+                          self.tooltip_size,
+                          self.text_color.get_color(),
+                          border_radious=self.border_radious,
+                          border_color=self.border_color.get_color()
                           )
-
-    def draw_tooltip_text(self, cr, text, x, y, 
-                      out_text_color="#000000",
-                      in_text_color="#FFFFFF",
-                      line_width=3,
-                      text_font=DEFAULT_FONT,
-                      text_size=DEFAULT_FONT_SIZE,
-                      alpha=1.0
-                      ):
-            line_width = line_width
-            cr_alpha = alpha
-            # set out text color.
-            r, g, b = color_hex_to_cairo(out_text_color)
-            context = pangocairo.CairoContext(cr)
-            layout = context.create_layout()
-            layout.set_font_description(pango.FontDescription("%s %s" % (text_font, text_size)))
-            # set text.
-            layout.set_text(text)
-            #
-            cr.move_to(x, y)
-            cr.save()       
-            cr.layout_path(layout)
-            cr.set_line_width(line_width)
-            cr.set_source_rgba(r, g, b, cr_alpha)
-            cr.stroke_preserve()
-            cr.fill()
-            cr.restore()
-
-            cr.save()
-            cr.new_path()
-
-            r, g, b = color_hex_to_cairo(in_text_color) 
-            cr.set_source_rgba(r, g, b, cr_alpha)
-            cr.set_operator(cairo.OPERATOR_OVER)
-
-            cr.move_to(x, y)       
-            context.show_layout(layout)
+                cr.set_source_surface(surface)
+                cr.paint_with_alpha(self.tooltip_alpha)
 
     def __paint_handle(self, e):
         if self.show_check:

@@ -21,10 +21,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from dtk.ui.cache_pixbuf import CachePixbuf
-from draw import draw_pixbuf
 from dtk.ui.theme import ui_theme
 from dtk.ui.utils import set_clickable_cursor
-import dtk.ui.tooltip as Tooltip
+#import dtk.ui.tooltip as Tooltip
+from draw import draw_pixbuf
+from tooltip import tooltip_text
 from skin import app_theme
 import gobject
 import gtk
@@ -128,6 +129,8 @@ class VolumeButton(gtk.HBox):
         rect = widget.allocation
         value = event.x / (float(rect.width) / self.max_value)
         self.value = max(min(value, self.max_value), self.min_value)
+        # 添加提示信息.
+        tooltip_text(widget, str(int(self.value)))
         self.mute_check = False
         self.queue_draw()
 

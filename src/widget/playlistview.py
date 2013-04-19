@@ -27,6 +27,7 @@ from dtk.ui.draw import draw_vlinear
 from listview import ListView
 from listview_base import Text
 from color import alpha_color_hex_to_cairo, color_hex_to_cairo
+from utils import get_text_size
 import gtk
 
 class PlayListView(object):
@@ -78,10 +79,15 @@ class PlayListView(object):
         else:
             e.text_color = "#FFFFFF"
             text_size=9
+
+
         text = e.text.decode("utf-8")
-         
-        if len(text) > 8: 
-            text = text[0:8] + "..."
+        if e.w == 100: # 显示播放名字的第一列.
+            size = get_text_size(text, text_size=text_size)
+            if size[0] >= 200:
+                text = text[0:6] + "..."
+            elif 80 < size[0] < 200:
+                text = text[0:7] + "..."
 
         e.draw_text(e.cr, 
                 str(text), 

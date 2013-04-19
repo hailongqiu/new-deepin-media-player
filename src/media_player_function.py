@@ -228,8 +228,7 @@ class MediaPlayFun(object):
         self.this.next()
 
     def __open_button_clicked(self, widget):
-        #self.this.open_files_to_play_list()
-        self.this.open_dirs_to_play_list()
+        self.this.open_files_to_play_list()
 
     def __bottom_toolbar_pb_value_changed(self, pb, value):
         self.ldmp.seek(value)
@@ -252,7 +251,15 @@ class MediaPlayFun(object):
     '''
 
     def __start_button_clicked(self):
-        self.ldmp.pause()
+        # 判断列表是否为空. 空->添加!!
+        if not len(self.gui.play_list_view.list_view.items):
+            self.this.open_files_to_play_list()
+        else:
+            # 判断是否在播放.
+            if self.ldmp.player.state:
+                self.ldmp.pause()
+            else:
+                self.this.play(self.ldmp.player.uri)
 
     def __init_ldmp_values(self):
         self.__pos = "00:00:00 / "
