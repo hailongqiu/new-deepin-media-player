@@ -58,7 +58,13 @@ class Player(object):
         self.vo = None # -vo
         self.ao = None # -ao
         self.cache_size = 0 # 缓冲大小
-        self.subtitle = []
+        # 字幕添加.
+        self.sub_index = 0
+        self.subtitle  = []
+        # 音轨选择.
+        self.audio_index = 0
+        self.audio_list = []
+
         self.audio_track = None
         self.af_export_filename = "/tmp/mplayer_af_export" # af 临时保存文件.
         # 设置/调整视频参数.
@@ -150,6 +156,10 @@ class LDMP(gobject.GObject):
                         gobject.TYPE_NONE,(gobject.TYPE_INT,gobject.TYPE_STRING,)),
         "get-time-length":(gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_NONE,(gobject.TYPE_INT, gobject.TYPE_STRING,)),
+        "get-subtitle":(gobject.SIGNAL_RUN_LAST,
+                        gobject.TYPE_NONE,(gobject.TYPE_STRING,)),
+        "get-audio-info":(gobject.SIGNAL_RUN_LAST,
+                        gobject.TYPE_NONE,(gobject.TYPE_STRING,)),
         "end-media-player":(gobject.SIGNAL_RUN_LAST,
                             gobject.TYPE_NONE,()),
         "start-media-player":(gobject.SIGNAL_RUN_LAST,
@@ -943,37 +953,60 @@ class LDMP(gobject.GObject):
                 self.get_time_length()
                 
             if buffer.startswith("ID_SUBTITLE_ID="): 
-                print "ID_SUBTITLE_ID:", buffer
-                #if False: # 有BUG, 需要调整.
                 id = buffer.replace("ID_SUBTITLE_ID=", "").split("\n")[0]
-                lang = "Unknown"
-                name = "Unknown"
-                sub_text = "%s (%s) - %s" % (lang, name, str(id))
-                self.player.subtitle.append(sub_text)                
+                self.sub_index = int(id)
+                self.player.subtitle.append(id)                
                 
             if buffer.startswith("ID_SID_"):
-                print "ID_SID:", buffer.split("_")[3]
-                # id = buffer
-                # buffer.readline()
-                # if buffer.startswith("_LANG="):                    
-                # ... ...
+                text = buffer.split("_")[3]
+                if text.startswith("NAME="):
+                    name = text.replace("NAME=", "").split("\n")[0]
+                    text = self.player.subtitle[self.sub_index]
+                    text += ':' + name
+                    self.player.subtitle[self.sub_index] = text
+                elif text.startswith("LANG="):
+                    lang = text.replace("LANG=", "").split("\n")[0]
+                    text = self.player.subtitle[self.sub_index]
+                    text_list = text.split(":")
+                    id = text_list[0]
+                    name = text_list[1]
+                    text = name + "（" + lang + "）" + "-" + id
+                    self.player.subtitle[self.sub_index] = text
+                    # 发送字幕字符串.
+                    self.emit("get-subtitle", text)
                     
             if buffer.startswith("ID_FILE_SUB_ID="):
                 print "ID_FILE_SUB_ID:", buffer
                 id = buffer.replace("ID_FILE_SUB_ID=")
-                # ... ...
                 
             if buffer.startswith("ID_AUDIO_ID="):
                 self.emit("start-media-player")
-                print 'ID_AUDIO_ID:', buffer
-                id = buffer.replace("ID_AUDIO_ID=", "")
-                # ... ...
-                
+                id = buffer.replace("ID_AUDIO_ID=", "").split("\n")[0]
+                self.audio_index = int(id)
+                self.player.audio_list.append(id)
+
             if buffer.startswith("ID_AID_"):    
-                print "ID_AID_:", buffer
-                id = buffer.replace("ID_AID_", "")
-                # _NAME=" ... ... _LANG=
-                
+                text = buffer.split("\n")[0]
+                scan_aid_name = "ID_AID_%s_NAME=" % str(self.audio_index)
+                scan_aid_lang = "ID_AID_%s_LANG=" % str(self.audio_index)
+                if text.find(scan_aid_name) != -1:
+                    name = text.replace(scan_aid_name, "")
+                    text = self.player.audio_list[self.audio_index]
+                    text += ":" + name
+                    self.player.audio_list[self.audio_index] = text
+                elif text.find(scan_aid_lang) != -1:
+                    lang = text.replace(scan_aid_lang, "")
+                    text_list = self.player.audio_list[self.audio_index].split(":")
+                    if text_list:
+                        try:
+                            id = text_list[0]
+                            name = text_list[1]
+                            text = name + "（" + lang + "）" + "-" + id 
+                            self.player.audio_list[self.audio_index] = text
+                        except:
+                            text = "Unknown" + "（" + lang + "）" + "-" + str(self.audio_index)
+                        self.emit("get-audio-info", text)
+
             if  buffer.startswith("ID_CHAPTERS="):   
                 print "ID_CHAPTERS:", buffer.replace("ID_CHAPTERS=", "")
                 

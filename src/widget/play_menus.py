@@ -301,7 +301,7 @@ class PlayMenus(object):
                 (None, _("Audio"), self.channel_select),
                 (None, _("Subtitles"),      None),
                 (None, _("DVD Navigation"), self.dvd_navigation_menu),
-                (None, _("Preferences"),    None),
+                (None, _("Preferences"),    self.__menu_config_gui),
                 (None),
                 ], True)
                                      
