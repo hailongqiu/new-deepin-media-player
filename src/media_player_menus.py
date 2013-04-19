@@ -41,6 +41,10 @@ class MediaPlayMenus(object):
         self.gui.screen_frame_event.connect("button-release-event",   self.screen_frame_right_show_menu)
         # 播放列表弹出.
         self.list_view.connect_event("right-items-event", self.list_veiw_right_show_menu)
+        #
+        self.ldmp.connect("get-subtitle",   self.ldmp_get_subtitle)
+        self.ldmp.connect("get-audio-info", self.ldmp_get_audio_info)
+        #
         self.menus = self.this.gui.play_menus
         # 初始化连接事件.
         self.menus.full_screen  = self.this.fullscreen_function
@@ -102,6 +106,20 @@ class MediaPlayMenus(object):
         self.menus.remove_selected = self.list_view.listview_delete_event
         self.menus.clear_playlist  = self.list_view.clear
         self.menus.open_containing_directory = self.menu_open_containing_directory
+        #
+        # add_menu_items.
+
+    def ldmp_get_subtitle(self, ldmp, sub_info, index):
+        # 添加字幕信息.
+        self.menus.subtitles_select.add_menu_items([
+                            (None, sub_info, None),
+                            ])
+
+    def ldmp_get_audio_info(self, ldmp, audio_info, index):
+        # 添加音频语言信息.
+        self.menus.switch_audio_menu.add_menu_items([
+                            (None, audio_info, None),
+                            ])
 
     def screen_frame_right_show_menu(self, widget, event):
         if is_right_button(event):
@@ -137,10 +155,7 @@ class MediaPlayMenus(object):
         self.set_audio_menu_state(2)
 
     def set_audio_menu_state(self, index):
-        self.menus.channel_select_menu.set_mutual_icons(index,
-                  (self.menus.video_aspect_pixbuf, 
-                   self.menus.video_aspect_select_pixbuf, 
-                   self.menus.video_aspect_none_pixbuf))
+        self.menus.channel_select_menu.set_mutual_icons(index, self.menus.select_pixbuf)
 
     def menu_mute_unmute(self):
         self.this.mute_umute()
@@ -176,10 +191,7 @@ class MediaPlayMenus(object):
         self.set_menu_ascept(5, ASCEPT_2_35X1_STATE)
 
     def set_menu_ascept(self, index, state):
-        self.menus.video_menu.set_mutual_icons(index, 
-                  (self.menus.video_aspect_pixbuf, 
-                   self.menus.video_aspect_select_pixbuf, 
-                   self.menus.video_aspect_none_pixbuf))
+        self.menus.video_menu.set_mutual_icons(index, self.menus.select_pixbuf)
         self.ldmp.player.ascept_state = state
         self.this.set_ascept_restart()
 
@@ -201,10 +213,7 @@ class MediaPlayMenus(object):
 
     def set_play_list_state(self, index, state):
         self.play_list.set_state(state)
-        self.menus.play_state_menu.set_mutual_icons(index,
-                  (self.menus.video_aspect_pixbuf, 
-                   self.menus.video_aspect_select_pixbuf, 
-                   self.menus.video_aspect_none_pixbuf))
+        self.menus.play_state_menu.set_mutual_icons(index, self.menus.select_pixbuf)
 
     # 播放列表.
     def menu_open_containing_directory(self):

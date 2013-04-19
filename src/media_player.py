@@ -235,8 +235,6 @@ class MediaPlayer(object):
         self.ldmp.xid = widget.window.xid
         self.ldmp.connect("get-time-pos",       self.ldmp_get_time_pos)
         self.ldmp.connect("get-time-length",    self.ldmp_get_time_length)
-        self.ldmp.connect("get-subtitle",       self.ldmp_get_subtitle)
-        self.ldmp.connect("get-audio-info",     self.ldmp_get_audio_info)
         self.ldmp.connect("end-media-player",   self.ldmp_end_media_player)
         self.ldmp.connect("start-media-player", self.ldmp_start_media_player)
         self.ldmp.connect("screen-changed",     self.ldmp_screen_changed)
@@ -267,12 +265,6 @@ class MediaPlayer(object):
         # print "length:", length, time
         self.media_play_fun.ldmp_get_time_length(ldmp, length, time)
 
-    def ldmp_get_subtitle(self, ldmp, subtitle):
-        print "获取字幕:", subtitle
-
-    def ldmp_get_audio_info(self, ldmp, audio_info):
-        print "获取音频语言:", audio_info
-        
     def ldmp_start_media_player(self, ldmp):    
         #print "开始播放了..."
         self.player_start_init()

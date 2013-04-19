@@ -157,9 +157,9 @@ class LDMP(gobject.GObject):
         "get-time-length":(gobject.SIGNAL_RUN_LAST,
                            gobject.TYPE_NONE,(gobject.TYPE_INT, gobject.TYPE_STRING,)),
         "get-subtitle":(gobject.SIGNAL_RUN_LAST,
-                        gobject.TYPE_NONE,(gobject.TYPE_STRING,)),
+                        gobject.TYPE_NONE,(gobject.TYPE_STRING, gobject.TYPE_INT,)),
         "get-audio-info":(gobject.SIGNAL_RUN_LAST,
-                        gobject.TYPE_NONE,(gobject.TYPE_STRING,)),
+                        gobject.TYPE_NONE,(gobject.TYPE_STRING, gobject.TYPE_INT,)),
         "end-media-player":(gobject.SIGNAL_RUN_LAST,
                             gobject.TYPE_NONE,()),
         "start-media-player":(gobject.SIGNAL_RUN_LAST,
@@ -973,7 +973,7 @@ class LDMP(gobject.GObject):
                     text = name + "（" + lang + "）" + "-" + id
                     self.player.subtitle[self.sub_index] = text
                     # 发送字幕字符串.
-                    self.emit("get-subtitle", text)
+                    self.emit("get-subtitle", text, self.sub_index)
                     
             if buffer.startswith("ID_FILE_SUB_ID="):
                 print "ID_FILE_SUB_ID:", buffer
@@ -1005,7 +1005,7 @@ class LDMP(gobject.GObject):
                             self.player.audio_list[self.audio_index] = text
                         except:
                             text = "Unknown" + "（" + lang + "）" + "-" + str(self.audio_index)
-                        self.emit("get-audio-info", text)
+                        self.emit("get-audio-info", text, self.audio_index)
 
             if  buffer.startswith("ID_CHAPTERS="):   
                 print "ID_CHAPTERS:", buffer.replace("ID_CHAPTERS=", "")

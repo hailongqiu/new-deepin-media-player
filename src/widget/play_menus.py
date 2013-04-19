@@ -40,6 +40,9 @@ class PlayMenus(object):
         self.video_aspect_pixbuf        = app_theme.get_pixbuf("screen/check_normal.png") 
         self.video_aspect_select_pixbuf = app_theme.get_pixbuf("screen/check_hover.png")
         self.video_aspect_none_pixbuf   = app_theme.get_pixbuf("screen/check_none.png")
+        self.select_pixbuf = (self.video_aspect_pixbuf, 
+                              self.video_aspect_select_pixbuf,
+                              self.video_aspect_none_pixbuf)
         '''
         # concie pixbuf.
         self.menu_concie_normal_pixbuf = app_theme.get_pixbuf("screen/menu_concise_normal.png")
@@ -263,7 +266,7 @@ class PlayMenus(object):
                           ])
         ## 音轨选择
         # Menu([(None, "音轨一", None), (... "音轨二", None)...])
-        self.switch_audio_menu = None 
+        self.switch_audio_menu = Menu(None) 
         self.audio_lang_menu = (None, _("Dubbing selection"), self.switch_audio_menu)
         # 声音.
         self.channel_select = Menu([
@@ -286,6 +289,8 @@ class PlayMenus(object):
                                          (None, _("Jump to"),        None),
                                          (None, _("DVD Menu"),       self.dvd_built_in_menu),
                                          ]) 
+        ## 字幕选择:
+        self.subtitles_select = Menu(None)
         # 屏幕弹出菜单.
         self.screen_right_root_menu = Menu([
                 (None, _("Open File"),      self.__menu_open_file),
@@ -299,7 +304,7 @@ class PlayMenus(object):
                 (None, _("Play"),  self.screen_play_menu),
                 (None, _("Video"), self.video_menu),
                 (None, _("Audio"), self.channel_select),
-                (None, _("Subtitles"),      None),
+                (None, _("Subtitles"),      self.subtitles_select),
                 (None, _("DVD Navigation"), self.dvd_navigation_menu),
                 (None, _("Preferences"),    self.__menu_config_gui),
                 (None),
