@@ -41,7 +41,7 @@ class MediaPlayMenus(object):
         self.gui.screen_frame_event.connect("button-release-event",   self.screen_frame_right_show_menu)
         # 播放列表弹出.
         self.list_view.connect_event("right-items-event", self.list_veiw_right_show_menu)
-        #
+        # ldmp后端连接事件.
         self.ldmp.connect("get-subtitle",   self.ldmp_get_subtitle)
         self.ldmp.connect("get-audio-info", self.ldmp_get_audio_info)
         #
@@ -92,7 +92,7 @@ class MediaPlayMenus(object):
         self.menus.play_random           = self.menu_play_random
         self.menus.play_repeat_track     = self.menu_play_repeat_track
         self.menus.play_repeat_play_list = self.menu_play_repeat_play_list
-        # 初始化为顺序播放.
+        # 初始化为顺序播放. 1 代表的是菜单的顺序.
         self.set_play_list_state(1, ORDER_PLAY)
         ############################
         # 修改图标.
@@ -107,15 +107,18 @@ class MediaPlayMenus(object):
         self.menus.clear_playlist  = self.list_view.clear
         self.menus.open_containing_directory = self.menu_open_containing_directory
         #
-        # add_menu_items.
+        self.menus.screen_right_root_menu.set_menu_item_sensitive_by_index(11, False)
+        self.menus.channel_select.set_menu_item_sensitive_by_index(1, False)
 
     def ldmp_get_subtitle(self, ldmp, sub_info, index):
+        self.menus.screen_right_root_menu.set_menu_item_sensitive_by_index(11, True)
         # 添加字幕信息.
         self.menus.subtitles_select.add_menu_items([
                             (None, sub_info, None),
                             ])
 
     def ldmp_get_audio_info(self, ldmp, audio_info, index):
+        self.menus.channel_select.set_menu_item_sensitive_by_index(1, True)
         # 添加音频语言信息.
         self.menus.switch_audio_menu.add_menu_items([
                             (None, audio_info, None),
@@ -197,6 +200,7 @@ class MediaPlayMenus(object):
 
     #SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SINGLE_LOOP, LIST_LOOP 
     def menu_play_track(self):
+        # 0 代表的是菜单的顺序.
         self.set_play_list_state(0, SINGLA_PLAY)
 
     def menu_play_default(self):

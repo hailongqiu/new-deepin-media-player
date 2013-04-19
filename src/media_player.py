@@ -22,6 +22,7 @@
 
 
 from skin import app_theme
+from dtk.ui.menu import Menu
 import dtk.ui.tooltip as Tooltip
 from dtk.ui.draw import draw_pixbuf
 from dtk.ui.utils import color_hex_to_cairo
@@ -284,6 +285,12 @@ class MediaPlayer(object):
         self.ldmp.player.video_height = 0
         self.set_draw_background(0, 0)
         self.gui.screen.queue_draw()
+        # 设置菜单禁用(字幕/音频语言).
+        self.media_play_menus.menus.screen_right_root_menu.set_menu_item_sensitive_by_index(11, False)
+        self.media_play_menus.menus.subtitles_select.clear_menus()
+        self.media_play_menus.menus.switch_audio_menu.clear_menus()
+        self.media_play_menus.menus.channel_select.set_menu_item_sensitive_by_index(1, False)
+
         
     def ldmp_screen_changed(self, ldmp, video_width, video_height):
         #print "ldmp_screen_changed...", "video_width:", video_width, "video_height:", video_height
