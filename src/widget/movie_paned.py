@@ -25,8 +25,10 @@ import gtk
 from gtk import gdk
 import gobject
 from color import alpha_color_hex_to_cairo
-from draw import draw_text
 from skin import app_theme
+from utils import get_text_size
+from dtk.ui.skin import ui_theme
+from dtk.ui.draw import draw_text
 
 
 
@@ -222,13 +224,37 @@ class Paned(gtk.Bin):
             cr.paint_with_alpha(self.alpha)
             # 画提示信息.
             #if self.toptip_text:
-            if False: # 预留功能. [画在屏幕上的提示信息].
-                draw_text(cr, 
-                          self.toptip_text, 
-                          self.toptip_x,
-                          self.toptip_y,
-                          text_color=self.toptip_color,
-                          text_size=self.toptip_size)
+            if True: # 预留功能. [画在屏幕上的提示信息].
+                text_color = ui_theme.get_color("scrolledbar")
+                self.tooltip_text = ""
+                self.tooltip_x = 30
+                self.tooltip_y = 30
+                self.tooltip_alpha = 1.0
+                self.border_radious = 1
+                self.tooltip_size = 18
+                text_size = get_text_size(self.tooltip_text, text_size=self.tooltip_size)
+                self.tooltip_w = text_size[0]
+                self.tooltip_h = text_size[1]
+                self.border_color = ui_theme.get_color("osd_tooltip_border")
+                import cairo
+                surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                   self.tooltip_w + self.tooltip_x,
+                                   self.tooltip_h + self.tooltip_y)
+                surface_cr = cairo.Context(surface)
+
+                draw_text(surface_cr, 
+                          self.tooltip_text, 
+                          self.tooltip_x,
+                          self.tooltip_y,
+                          self.tooltip_w,
+                          self.tooltip_h,
+                          self.tooltip_size,
+                          text_color.get_color(),
+                          border_radious=self.border_radious,
+                          border_color=self.border_color.get_color()
+                          )
+                cr.set_source_surface(surface)
+                cr.paint_with_alpha(self.tooltip_alpha)
 
     def __paint_handle(self, e):
         if self.show_check:
