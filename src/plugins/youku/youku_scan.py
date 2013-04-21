@@ -100,8 +100,11 @@ if __name__ == "__main__":
         print "图片地址:", info[2]
         print "播放长度:", info[3]
         print "----------------------"
-        flvcd.parse(info[1])
 
+    print "测试地址解析"
+    flvcd_addr_list = flvcd.parse(info_list[0][1])
+    import os
+    os.system("mplayer %s" % flvcd_addr_list[0])
     print "sum:", sum
     print "总页数:", sum/page_num
 

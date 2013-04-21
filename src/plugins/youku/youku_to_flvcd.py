@@ -26,6 +26,7 @@ class YouToFlvcd(object):
         re_res = self.pattern.findall(data)
         #print "re_res:", re_res
         if re_res:
+            '''
             filename = datetime.datetime.now().strftime("%Y%m%d-%H%M%S.lst")
             fhandle = open("test.lst", "w")
             for url in re_res:
@@ -33,9 +34,13 @@ class YouToFlvcd(object):
                 # 注意是\r\n还是\n
                 fhandle.write(url + "\n")
             fhandle.close()
+            '''
             print("地址解析成功")
+            #print re_res
+            return re_res
         else:
             print("地址找不到")
+            return -1
  
 if __name__ == "__main__":
     flvcd = YouToFlvcd()
