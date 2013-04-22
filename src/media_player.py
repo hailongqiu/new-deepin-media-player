@@ -66,6 +66,8 @@ import os
 
 class MediaPlayer(object):
     def __init__(self):
+        self.__init_config_file()
+        #
         self.first_run = False
         if not os.path.exists(os.path.join(get_config_path(), "deepin_media_config.ini")):
             init_user_guide(self.start)
@@ -87,7 +89,44 @@ class MediaPlayer(object):
         self.media_play_menus = MediaPlayMenus(self)
         self.media_play_kes   = MediaPlayKeys(self)
 
+    def __init_config_file(self):
+        # 配置文件.
+        self.ini = Config(get_home_path() + "/.config/deepin-media-player/config.ini")
+        self.config = Config(get_home_path() + "/.config/deepin-media-player/deepin_media_config.ini")
+        self.config.connect("config-changed", self.modify_config_section_value)
+
     def __init_dbus_id(self): # 初始化DBUS ID 唯一值.
+        run_check = self.config.get("FilePlay", "check_run_a_deepin_media_player")
+        if "True" == run_check:
+            import dbus
+            from unique_service import UniqueService, is_exists
+            APP_DBUS_NAME   = "com.deepin.mediaplayer"
+            APP_OBJECT_NAME = "/com/deepin/mediaplayer"
+            # 判断是否已经在运行了.
+            if is_exists(APP_DBUS_NAME, APP_OBJECT_NAME):
+                # DBUS控制深度影音.
+                import sys
+                bus = dbus.SessionBus()
+
+                try:
+                    remote_object = bus.get_object("com.deepin_media_player.SampleService.A.U.W.J.X.R",
+                                                   '/deepin_media_player')
+                except dbus.DbusException:
+                    sys.exit(1)
+                        
+                iface = dbus.Interface(remote_object,
+                                       "com.deepin_media_player.SampleInterface")
+                #print iface.play("i love c and linux /test/debus.com")
+                #iface.play()
+                #iface.pause()
+                #iface.stop()
+                iface.next()
+                #iface.prev()
+                #
+                sys.exit()
+            app_bus_name = dbus.service.BusName(APP_DBUS_NAME, bus=dbus.SessionBus())
+            UniqueService(app_bus_name, APP_DBUS_NAME, APP_OBJECT_NAME)
+
         dbus_id_list = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time())).split("-")
         dbus_id = ""
         dbus_id_list[0] = random.randint(0, 1000)
@@ -100,25 +139,14 @@ class MediaPlayer(object):
                 dbus_id += "." + chr(number)
             else:
                 dbus_id += "." + chr(random.randint(65, 90))
-        print "dbus_id:", dbus_id
         self.dbus_id = dbus_id
+        print "dbus_id:", self.dbus_id
 
     def __init_values(self):
-        '''
-        self.keymap = {} # 快捷键.
-        self.keymap["Escape"]  = self.key_quit_fullscreen
-        self.keymap["Return"]  = self.fullscreen_function
-        self.keymap["Space"]   = self.key_pause
-        self.keymap["Shift + Return"] = self.key_concise_mode
-        '''
         #
         self.play_list_check = False
         self.ldmp = LDMP()
         self.gui = GUI()        
-        # 配置文件.
-        self.ini = Config(get_home_path() + "/.config/deepin-media-player/config.ini")
-        self.config = Config(get_home_path() + "/.config/deepin-media-player/deepin_media_config.ini")
-        self.config.connect("config-changed", self.modify_config_section_value)
         #
         self.play_list = PlayList(self.gui.play_list_view.list_view) 
         # 初始化播放列表.

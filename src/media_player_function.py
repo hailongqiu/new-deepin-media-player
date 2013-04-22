@@ -72,42 +72,52 @@ class MediaPlayFun(object):
 
     def __progressbar_motion_notify_event(self, widget, event):
         # self.pre_view.set_preview_path(... ...
-        if not widget.move_check and (not is_file_audio(self.ldmp.player.uri)):
-            value = 0
-            self.x_root = event.x_root
-            self.y_root = event.y_root
-            # 
-            if widget == self.bottom_toolbar.progressbar:
-                size = self.gui.screen_paned.bottom_window.get_size()
-                preview_y = (self.app.window.get_position()[1] + self.gui.screen_frame.allocation.height - 
-                             self.pre_view.bg.get_allocation()[3] - size[1])
+        pre_view_check = self.this.config.get("FilePlay", "mouse_progressbar_show_preview") 
+        if "True" == pre_view_check:
+            if not widget.move_check and (not is_file_audio(self.ldmp.player.uri)):
+                #
+                if not self.pre_view.mp.player.state: 
+                    # 如果突然设置了，没有东西视频在预览窗口中，则.
+                    self.pre_view.set_preview_path(self.ldmp.player.uri)
+                #
+                value = 0
+                self.x_root = event.x_root
+                self.y_root = event.y_root
+                # 
+                if widget == self.bottom_toolbar.progressbar:
+                    size = self.gui.screen_paned.bottom_window.get_size()
+                    preview_y = (self.app.window.get_position()[1] + self.gui.screen_frame.allocation.height - 
+                                 self.pre_view.bg.get_allocation()[3] - size[1])
+                else:
+                    preview_y = (self.app.window.get_position()[1] + self.gui.screen_frame.allocation.height +
+                                 self.app.titlebar.allocation.height - self.pre_view.bg.get_allocation()[3])
+                ###############################################33
+                move_x = self.x_root - self.pre_view.bg.get_allocation()[2]/2
+                move_y = preview_y
+                min_move_x = self.app.window.get_position()[0] + 8
+                max_move_x = min_move_x + self.app.window.allocation.width  - 16
+                mid_bg_w = self.pre_view.bg.allocation.width
+                #
+                if move_x < min_move_x:
+                    offset = self.pre_view.bg.get_offset_mid_value() - (min_move_x - move_x)
+                elif move_x > (max_move_x - self.pre_view.bg.allocation.width):
+                    offset = self.pre_view.bg.get_offset_mid_value() - ((max_move_x - move_x) - 
+                             self.pre_view.bg.allocation.width)
+                else:
+                    offset = self.pre_view.bg.get_offset_mid_value()
+                #
+                offset_x = offset
+                move_x = max(min(move_x, max_move_x - mid_bg_w), min_move_x)
+                self.pre_view.bg.set_offset(offset)
+                value = event.x / widget.allocation.width * widget.max_value
+                pos = min(max(value, 0), widget.max_value - 5)
+                self.pre_view.show_preview(pos)
+                self.pre_view.move_preview(move_x, preview_y)
             else:
-                preview_y = (self.app.window.get_position()[1] + self.gui.screen_frame.allocation.height +
-                             self.app.titlebar.allocation.height - self.pre_view.bg.get_allocation()[3])
-            ###############################################33
-            move_x = self.x_root - self.pre_view.bg.get_allocation()[2]/2
-            move_y = preview_y
-            min_move_x = self.app.window.get_position()[0] + 8
-            max_move_x = min_move_x + self.app.window.allocation.width  - 16
-            mid_bg_w = self.pre_view.bg.allocation.width
-            #
-            if move_x < min_move_x:
-                offset = self.pre_view.bg.get_offset_mid_value() - (min_move_x - move_x)
-            elif move_x > (max_move_x - self.pre_view.bg.allocation.width):
-                offset = self.pre_view.bg.get_offset_mid_value() - ((max_move_x - move_x) - 
-                         self.pre_view.bg.allocation.width)
-            else:
-                offset = self.pre_view.bg.get_offset_mid_value()
-            #
-            offset_x = offset
-            move_x = max(min(move_x, max_move_x - mid_bg_w), min_move_x)
-            self.pre_view.bg.set_offset(offset)
-            value = event.x / widget.allocation.width * widget.max_value
-            pos = min(max(value, 0), widget.max_value - 5)
-            self.pre_view.show_preview(pos)
-            self.pre_view.move_preview(move_x, preview_y)
+                self.pre_view.hide_preview()
         else:
-            self.pre_view.hide_preview()
+            # 如果突然关闭预览，则关闭在跑的预览窗口中的mplayer.
+            self.pre_view.quit_preview_player()
 
     def __progressbar_leave_notify_event(self, widget, event):
         self.pre_view.hide_preview()
@@ -281,8 +291,10 @@ class MediaPlayFun(object):
         #
         self.this.play_list_check = False
         # 预览设置. 预览BUG-->> 会启动好多mplayer进程,杀不掉.
-        if (not is_file_audio(self.ldmp.player.uri)):
-            self.pre_view.set_preview_path(ldmp.player.uri)
+        pre_view_check = self.this.config.get("FilePlay", "mouse_progressbar_show_preview") 
+        if "True" == pre_view_check:
+            if (not is_file_audio(self.ldmp.player.uri)):
+                self.pre_view.set_preview_path(ldmp.player.uri)
 
     def ldmp_end_media_player(self, ldmp):
         # 退出预览.
