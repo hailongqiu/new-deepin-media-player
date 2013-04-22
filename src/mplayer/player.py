@@ -64,6 +64,8 @@ class Player(object):
         # 音轨选择.
         self.audio_index = 0
         self.audio_list = []
+        #
+        self.audio_select_index = None
 
         self.audio_track = None
         self.af_export_filename = "/tmp/mplayer_af_export" # af 临时保存文件.
@@ -566,12 +568,10 @@ class LDMP(gobject.GObject):
         if self.player.state == STARTING_STATE: # STARTING_STATE
             self.cmd("sub_load '%s'\n" % (sub_file))
             
-    def sub_select(self, index, drag_sub=True):        
-        if self.player.state == STARTING_STATE: # STARTING_STATE
+    def sub_select(self, index):        
+        # 字幕选择.
+        if self.player.state: # STARTING_STATE
             self.cmd('sub_select %s\n' % str(index))
-            if drag_sub:
-                for sub_num in range(0, self.sub_sum):
-                    self.sub_del(sub_num)
 
     def sub_clear(self, end_index): # clear all subtitl file.
         if self.player.state == STARTING_STATE:
@@ -696,7 +696,6 @@ class LDMP(gobject.GObject):
         
     def switch_audio(self, number):        
         self.cmd('switch_audio %s\n'% str(number))
-        self.aid_number = number
             
     '''视频控制''' # video123456
     # brightness.
@@ -921,8 +920,11 @@ class LDMP(gobject.GObject):
                 self.audio_track = buffer.replace("ID_AUDIO_TRACK=", "").split("\n")[0]
                 # print "ID_AUDIO_TRACK:", self.audio_track
                 
-            if buffer.startswith("ANS_switch_audio"):
-                print "ANS_switch_audio:", buffer.replace("ANS_switch_audio=", "").split("\n")[0]
+            if buffer.startswith("ANS_switch_audio"): 
+                # 字幕选择的那个!!
+                switch_audio_index = buffer.replace("ANS_switch_audio=", "").split("\n")[0]
+                self.player.audio_select_index = switch_audio_index
+                
                
             if buffer.startswith("ANS_sub_source"):                    
                 self.player.subtitle_source = buffer.replace("ANS_sub_source=", "").split("\n")[0]

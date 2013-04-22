@@ -114,15 +114,29 @@ class MediaPlayMenus(object):
         self.menus.screen_right_root_menu.set_menu_item_sensitive_by_index(11, True)
         # 添加字幕信息.
         self.menus.subtitles_select.add_menu_items([
-                            (None, sub_info, None),
+                            (None, sub_info, lambda : self.menu_switch_subtitle(index)),
                             ])
+        if index == 0: # 设置默认项.
+            self.menu_switch_subtitle(0)
+
+    def menu_switch_subtitle(self, index):
+        self.ldmp.sub_select(index)
+        self.menus.subtitles_select.set_mutual_icons(index, self.menus.select_pixbuf)
+
+
 
     def ldmp_get_audio_info(self, ldmp, audio_info, index):
         self.menus.channel_select.set_menu_item_sensitive_by_index(1, True)
         # 添加音频语言信息.
         self.menus.switch_audio_menu.add_menu_items([
-                            (None, audio_info, None),
+                            (None, audio_info, lambda : self.menu_switch_audio(index)),
                             ])
+        if index == 0: # 设置默认项.
+            self.menu_switch_audio(0)
+
+    def menu_switch_audio(self, index):
+        self.ldmp.switch_audio(index)
+        self.menus.switch_audio_menu.set_mutual_icons(index, self.menus.select_pixbuf)
 
     def screen_frame_right_show_menu(self, widget, event):
         if is_right_button(event):
