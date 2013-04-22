@@ -79,6 +79,7 @@ class Paned(gtk.Bin):
         self.tooltip_y = 30
         self.tooltip_alpha = 0.0
         self.border_radious = 1
+        self.tooltip_font = DEFAULT_FONT
         self.tooltip_size = 15
         self.tooltip_hide_hd = None
         self.border_color = ui_theme.get_color("osd_tooltip_border")
@@ -262,6 +263,7 @@ class Paned(gtk.Bin):
                           self.tooltip_x,
                           self.tooltip_y,
                           text_size=self.tooltip_size,
+                          text_font=self.tooltip_font,
                           out_text_color=self.text_color.get_color(),
                           #in_text_color=self.border_color.get_color(),
                           alpha = self.tooltip_alpha
@@ -303,6 +305,11 @@ class Paned(gtk.Bin):
 
             cr.move_to(x, y)       
             context.show_layout(layout)
+
+    def change_style(self, font, font_size):
+        self.tooltip_font = font
+        self.tooltip_size = font_size
+        self.queue_draw()
 
     def __paint_handle(self, e):
         if self.show_check:

@@ -193,6 +193,10 @@ def get_home_video():
 def get_home_image():
     return glib.get_user_special_dir(glib.USER_DIRECTORY_PICTURES)
 
+def get_config_path():
+    path = get_home_path() + "/.config/"
+    return os.path.join(path, "deepin-media-player")
+
 def allocation(widget): # 返回 cr, rect.
     cr = widget.window.cairo_create()
     rect = widget.get_allocation()

@@ -156,17 +156,6 @@ class GUI(object):
     def hide_play_control_paned(self):
         self.main_vbox.remove(self.play_control_panel.vbox)
 
-    def show_messagebox(self, text, icon_path=None):
-        # 判断是使用影音自带提示还是使用气泡.[读取ini文件]
-        if True:
-            self.show_tooltip_text(text)
-
-        if True:
-            if not icon_path:
-                path = os.path.abspath(os.path.dirname(sys.argv[0]))
-                image_path = os.path.join(path, "widget/logo.png")
-            self.notify_msgbox("deepin-media-player", text, icon_path)
-
     def show_tooltip_text(self, text, sec=1500):
         self.screen_paned.show_tooltip_text(text, sec)
 
@@ -179,6 +168,9 @@ class GUI(object):
             msg.show()
         except Exception, e:
             print "message[error]:", e
+    
+    def tooltip_change_style(self, font, font_size):
+        self.screen_paned.change_style(font, font_size)
 
 
 

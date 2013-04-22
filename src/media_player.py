@@ -27,15 +27,19 @@ import dtk.ui.tooltip as Tooltip
 from dtk.ui.draw import draw_pixbuf
 from dtk.ui.utils import color_hex_to_cairo
 from locales import _ # 国际化翻译.
-from widget.utils import get_home_path, get_home_video, get_play_file_name
-from widget.utils import is_file_audio
-from widget.utils import ScanDir
-from widget.keymap import get_keyevent_name
+from ini     import Config
+from user_guide import init_user_guide
+from widget.utils   import get_config_path
+from widget.utils   import get_home_path, get_home_video, get_play_file_name
+from widget.utils   import is_file_audio
+from widget.utils   import ScanDir
 from widget.ini_gui import IniGui
+from widget.init_ldmp import init_media_player_config
 from plugin_manage import PluginManage
 from gui import GUI # 播放器界面布局.
 from media_player_function import MediaPlayFun
 from media_player_menus    import MediaPlayMenus
+from media_player_keys     import MediaPlayKeys
 from mplayer.timer import Timer
 # mplayer后端.
 from mplayer.player import LDMP, set_ascept_function, unset_flags, set_flags, Player
@@ -60,6 +64,12 @@ import os
 
 class MediaPlayer(object):
     def __init__(self):
+        self.first_run = False
+        if not os.path.exists(os.path.join(get_config_path(), "deepin_media_config.ini")):
+            init_user_guide(self.start)
+            init_media_player_config()
+            self.first_run = True
+        # init dubs id.
         self.__init_dbus_id()
         self.__init_values()
         # init double timer.
@@ -68,11 +78,12 @@ class MediaPlayer(object):
         self.__init_gui_app_events()
         self.__init_gui_screen()
         # show gui window.
-        self.gui.app.window.show_all()
-        self.gui.screen.window.set_composited(True)
+        if not self.first_run:
+            self.start()
         # 全部的执行函数方法.
-        self.media_play_fun = MediaPlayFun(self)
+        self.media_play_fun   = MediaPlayFun(self)
         self.media_play_menus = MediaPlayMenus(self)
+        self.media_play_kes   = MediaPlayKeys(self)
 
     def __init_dbus_id(self): # 初始化DBUS ID 唯一值.
         dbus_id_list = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time())).split("-")
@@ -91,15 +102,22 @@ class MediaPlayer(object):
         self.dbus_id = dbus_id
 
     def __init_values(self):
+        '''
         self.keymap = {} # 快捷键.
         self.keymap["Escape"]  = self.key_quit_fullscreen
         self.keymap["Return"]  = self.fullscreen_function
         self.keymap["Space"]   = self.key_pause
         self.keymap["Shift + Return"] = self.key_concise_mode
+        '''
         #
         self.play_list_check = False
         self.ldmp = LDMP()
         self.gui = GUI()        
+        # 配置文件.
+        self.ini = Config(get_home_path() + "/.config/deepin-media-player/config.ini")
+        self.config = Config(get_home_path() + "/.config/deepin-media-player/deepin_media_config.ini")
+        self.config.connect("config-changed", self.modify_config_section_value)
+        #
         self.play_list = PlayList(self.gui.play_list_view.list_view) 
         # 初始化播放列表.
         self.play_list.set_file_list(self.gui.play_list_view.list_view.items)
@@ -136,16 +154,8 @@ class MediaPlayer(object):
         # self.app.window.connect("leave-notify-event", )
         # self.app.window.connect("focus-out-event", )
         # self.app.window.connect("focus-in-event", )
-        self.gui.app.window.connect("key-press-event", self.app_window_key_press_event)
-        # self.app.window.connect("key-release-event", )
         # self.app.window.connect("scroll_event", )
         # self.app.window.connect("check-resize",)         
-
-    def app_window_key_press_event(self, widget, event):
-        keyval_name = get_keyevent_name(event)
-        print "name:", keyval_name
-        if self.keymap.has_key(keyval_name):
-            self.keymap[keyval_name]()
 
     def __init_gui_screen(self):
         '''screen events init.'''
@@ -504,7 +514,7 @@ class MediaPlayer(object):
 
     def ldmp_play(self, play_file):
         self.ldmp.player.uri = "%s" % play_file
-        self.gui.show_messagebox(get_play_file_name(play_file))
+        self.show_messagebox(get_play_file_name(play_file))
         self.ldmp.play()
 
     def mute_umute(self):
@@ -621,7 +631,8 @@ class MediaPlayer(object):
 
     def restart_load_config_file(self, ini_gui, sec_root, sec_argv, sec_value):
         #print "ini_gui", ini_gui, "sec_root:", sec_root, "sec_argv:", sec_argv, "sec_value:", sec_value
-        pass
+        self.config.set(sec_root, sec_argv, sec_value)
+        self.config.save()
 
     def top_toolbar_concise_button_clicked(self):
         if self.concise_check == False or self.fullscreen_check:
@@ -655,3 +666,35 @@ class MediaPlayer(object):
 
     def key_pause(self):
         self.ldmp.pause()
+
+    def start(self):
+        self.gui.app.window.show_all()
+        self.gui.screen.window.set_composited(True)
+
+    def modify_config_section_value(self, config, section, argv, value):
+        if section == "SystemSet" and (argv in ["font", "font_size"]):
+            font = config.get(section, "font")
+            font_size = config.get(section, "font_size")
+            # 设置深度影音提示字体和颜色.
+            self.gui.tooltip_change_style(font, font_size)
+
+    def show_messagebox(self, text, icon_path=None):
+        # 判断是使用影音自带提示还是使用气泡.[读取ini文件]
+        sys_check  = self.config.get("SystemSet", "start_sys_bubble_msg")
+        play_check = self.config.get("SystemSet", "start_play_win_msg")
+        # 是否深度影音自带的提示.
+        if "True" == play_check:
+            self.gui.show_tooltip_text(text)
+        # 还是使用系统的气泡垃圾提示.
+        if "True" == sys_check:
+            print "气泡提示..."
+            if not icon_path:
+                path = os.path.abspath(os.path.dirname(sys.argv[0]))
+                image_path = os.path.join(path, "widget/logo.png")
+            self.gui.notify_msgbox("deepin-media-player", text, icon_path)
+
+
+
+
+
+
