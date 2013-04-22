@@ -32,8 +32,9 @@ gtk.gdk.threads_init()#         线程初始化.#
 app = MediaPlayer()                        #
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 session_bus = dbus.SessionBus()            #
-name = dbus.service.BusName("com.deepin_media_player.SampleService" + app.dbus_id, session_bus)
-app_ser = SomeObject(session_bus, "/deepin_media_player")
+#name = dbus.service.BusName("com.deepin_media_player.SampleService" + app.dbus_id, session_bus)
+name = dbus.service.BusName("org.mpris.MediaPlayer2" + app.dbus_id, session_bus)
+app_ser = SomeObject(session_bus, "/org/mpris/MediaPlayer2")
 app_ser.set_dmp(app)                  #
 gtk.main()                                 #
 ############################################

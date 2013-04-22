@@ -33,12 +33,19 @@ s     : 字符串
 a{ss} : 字典
 '''
 
-DEEPIN_MEDIA_PLAYER_DBUS_NAME = "com.deepin_media_player.SampleInterface"
+#DEEPIN_MEDIA_PLAYER_DBUS_NAME = "com.deepin_media_player.SampleInterface"
+
+DEEPIN_MEDIA_DBUS_NAME_PROPERTY = "org.freedesktop.DBus.Properties"
+DEEPIN_MEDIA_DBUS_NAME = "org.mpris.MediaPlayer2"
+DEEPIN_MEDIA_PLAYER_DBUS_NAME = "org.mpris.MediaPlayer2.Player"
+
 
 class DemoException(dbus.DBusException):
     _dbus_error_name = 'com.deepin_media_player.DemoException'
 
 class SomeObject(dbus.service.Object):
+    properties = {'Identity': '深度阴影', 'DesktopEntry': 'deepin-media-player'}
+    player_properties = {'PlaybackStatus': 'Stopped', 'Volume': 0.9, 'Metadata': {'a': 1}}
     def set_dmp(self, app):
         self.app  = app
         self.ldmp = app.ldmp
@@ -46,31 +53,31 @@ class SomeObject(dbus.service.Object):
     '''play video/audio file.'''
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
                          in_signature='', out_signature='')
-    def play(self):
+    def Play(self):
         print "play media player file..."
         self.ldmp.play()
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
                          in_signature='', out_signature='')
-    def pause(self):
+    def Pause(self):
         print "pause.. pause..pause.."
         self.ldmp.pause()
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
                          in_signature='', out_signature='')
-    def stop(self):  
+    def Stop(self):  
         print "stop stop stop ..."
         self.ldmp.stop()
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
                          in_signature='', out_signature='')
-    def next(self):  # next play file.
+    def Next(self):  # next play file.
         print "next..next..next"
         self.app.next()
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
                          in_signature='', out_signature='')
-    def prev(self): # prev play file.
+    def Prev(self): # prev play file.
         print "prev...prev...prev"
         self.app.prev()
 
@@ -87,10 +94,47 @@ class SomeObject(dbus.service.Object):
         print "prev...prev...prev"
         self.ldmp.bseek(value)
 
-    @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
+    @dbus.service.method(DEEPIN_MEDIA_DBUS_NAME,
                          in_signature='', out_signature='')
-    def quit(self): # prev play file.
+    def Quit(self): # prev play file.
         print "prev...prev...prev"
         self.ldmp.quit()
         gtk.main_quit()
 
+
+    @dbus.service.method(DEEPIN_MEDIA_DBUS_NAME,
+                         in_signature='', out_signature='')
+    def Raise(self): # prev play file.
+        pass
+
+    @dbus.service.method(DEEPIN_MEDIA_DBUS_NAME_PROPERTY,
+                         in_signature='ss', out_signature='v')
+    def Get(self, interface, prop):
+        if interface == "org.mpris.MediaPlayer2":
+            if prop in self.properties:
+                return self.properties[prop]
+            return ""
+        elif interface == "org.mpris.MediaPlayer2.Player":
+            if prop in self.player_properties:
+                return self.player_properties[prop]
+            return ""
+
+    @dbus.service.method(DEEPIN_MEDIA_DBUS_NAME_PROPERTY,
+                         in_signature='s', out_signature='a{sv}')
+    def GetAll(self, interface):
+        if interface == "org.mpris.MediaPlayer2":
+            return self.properties
+        elif interface == "org.mpris.MediaPlayer2.Player":
+            return self.player_properties
+
+    @dbus.service.method(DEEPIN_MEDIA_DBUS_NAME_PROPERTY,
+                         in_signature='ssv', out_signature='')
+    def Set(self, interface, prop, value):                                      
+        print "Set", interface, prop, value
+        if interface == "org.mpris.MediaPlayer2.Player":
+            self.player_properties[prop] = value
+
+                                                                            
+    @dbus.service.signal(DEEPIN_MEDIA_DBUS_NAME_PROPERTY, signature='sa{sv}as')           
+    def PropertiesChanged(self, interface, updated, invalid):                   
+        pass                                                     

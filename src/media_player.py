@@ -57,11 +57,16 @@ from mplayer.playlist import PlayList, SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SIN
 # 播放列表 .       0        1       2         3          4
 #           { 单曲播放、顺序播放、随机播放、单曲循环播放、列表循环播放、}
 #            SINGLA_PLAY ... ...                ...LIST_LOOP
+from unique_service import UniqueService, is_exists
 import random
 import time
 import gtk
 import sys
 import os
+import dbus
+
+APP_DBUS_NAME   = "com.deepin.mediaplayer"
+APP_OBJECT_NAME = "/com/deepin/mediaplayer"
 
 
 class MediaPlayer(object):
@@ -69,6 +74,7 @@ class MediaPlayer(object):
         self.__init_config_file()
         #
         self.first_run = False
+        # 判断是否存在这个配置文件.
         if not os.path.exists(os.path.join(get_config_path(), "deepin_media_config.ini")):
             init_user_guide(self.start)
             init_media_player_config()
@@ -96,37 +102,7 @@ class MediaPlayer(object):
         self.config.connect("config-changed", self.modify_config_section_value)
 
     def __init_dbus_id(self): # 初始化DBUS ID 唯一值.
-        run_check = self.config.get("FilePlay", "check_run_a_deepin_media_player")
-        if "True" == run_check:
-            import dbus
-            from unique_service import UniqueService, is_exists
-            APP_DBUS_NAME   = "com.deepin.mediaplayer"
-            APP_OBJECT_NAME = "/com/deepin/mediaplayer"
-            # 判断是否已经在运行了.
-            if is_exists(APP_DBUS_NAME, APP_OBJECT_NAME):
-                # DBUS控制深度影音.
-                import sys
-                bus = dbus.SessionBus()
-
-                try:
-                    remote_object = bus.get_object("com.deepin_media_player.SampleService.A.U.W.J.X.R",
-                                                   '/deepin_media_player')
-                except dbus.DbusException:
-                    sys.exit(1)
-                        
-                iface = dbus.Interface(remote_object,
-                                       "com.deepin_media_player.SampleInterface")
-                #print iface.play("i love c and linux /test/debus.com")
-                #iface.play()
-                #iface.pause()
-                #iface.stop()
-                iface.next()
-                #iface.prev()
-                #
-                sys.exit()
-            app_bus_name = dbus.service.BusName(APP_DBUS_NAME, bus=dbus.SessionBus())
-            UniqueService(app_bus_name, APP_DBUS_NAME, APP_OBJECT_NAME)
-
+        # 随机DBUS-ID.
         dbus_id_list = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time())).split("-")
         dbus_id = ""
         dbus_id_list[0] = random.randint(0, 1000)
@@ -140,7 +116,40 @@ class MediaPlayer(object):
             else:
                 dbus_id += "." + chr(random.randint(65, 90))
         self.dbus_id = dbus_id
-        print "dbus_id:", self.dbus_id
+        print "dbus_id:", dbus_id
+        ##################################################################
+        run_check = self.config.get("FilePlay", "check_run_a_deepin_media_player")
+        # 判断是否可以是运行一个深度影音.
+        if not ("True" == run_check):
+            # 判断是否已经在运行了.
+            if is_exists(APP_DBUS_NAME, APP_OBJECT_NAME):
+                # DBUS控制深度影音 的服务初始化.
+                import sys
+                bus = dbus.SessionBus()
+                # 获取保存下来的单实例ID.
+                dbus_id = self.config.get("DBUS", "id")
+                #
+                try:
+                    remote_object = bus.get_object(
+                                        "com.deepin_media_player.SampleService" + dbus_id,
+                                        '/deepin_media_player')
+                except: #dbus.DbusException:
+                    sys.exit(1)
+                    #pass
+                        
+                iface = dbus.Interface(remote_object,
+                                       "com.deepin_media_player.SampleInterface")
+                # iface 加入播放文件或者播放文件夹.
+                iface.next()
+                #
+                sys.exit()
+            # 保存ID。
+            self.config.set("DBUS", "id", self.dbus_id)
+            self.config.save()
+            #########################
+            # 单实例一个深度影音.
+            app_bus_name = dbus.service.BusName(APP_DBUS_NAME, bus=dbus.SessionBus())
+            UniqueService(app_bus_name, APP_DBUS_NAME, APP_OBJECT_NAME)
 
     def __init_values(self):
         #
@@ -671,7 +680,6 @@ class MediaPlayer(object):
             self.next()
             self.run_check = False
 
-
     def config_gui(self):
         ini_gui = IniGui()
         ini_gui.ini.connect("config-changed", self.restart_load_config_file)
@@ -724,6 +732,15 @@ class MediaPlayer(object):
             font_size = config.get(section, "font_size")
             # 设置深度影音提示字体和颜色.
             self.gui.tooltip_change_style(font, font_size)
+        # 判断是否设置了 可以运行多个深度影音的选项.
+        if section == "FilePlay" and (argv in ["check_run_a_deepin_media_player"]):
+            run_check = self.config.get("FilePlay", "check_run_a_deepin_media_player")
+            # 判断是否可以是运行一个深度影音.
+            if not ("True" == run_check):
+                if not is_exists(APP_DBUS_NAME, APP_OBJECT_NAME):
+                    # 单实例一个深度影音.
+                    app_bus_name = dbus.service.BusName(APP_DBUS_NAME, bus=dbus.SessionBus())
+                    UniqueService(app_bus_name, APP_DBUS_NAME, APP_OBJECT_NAME)
 
     def show_messagebox(self, text, icon_path=None):
         # 判断是使用影音自带提示还是使用气泡.[读取ini文件]
