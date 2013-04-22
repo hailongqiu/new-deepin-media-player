@@ -25,6 +25,7 @@ import gtk
 import dbus
 import dbus.service
 import dbus.mainloop.glib
+from locales import _ # 国际化翻译.
 
 '''
 as    : 列表
@@ -44,18 +45,34 @@ class DemoException(dbus.DBusException):
     _dbus_error_name = 'com.deepin_media_player.DemoException'
 
 class SomeObject(dbus.service.Object):
-    properties = {'Identity': '深度阴影', 'DesktopEntry': 'deepin-media-player'}
-    player_properties = {'PlaybackStatus': 'Stopped', 'Volume': 0.9, 'Metadata': {'a': 1}}
+    properties = {'Identity': _('深度影音'), 'DesktopEntry': 'deepin-media-player'}
+    player_properties = {'PlaybackStatus': 'Stopped', 'Volume': 1.0, 'Metadata': {'xesam:title': ""}}
     def set_dmp(self, app):
-        self.app  = app
-        self.ldmp = app.ldmp
+        self.this  = app
+        self.ldmp = self.this.ldmp
+        self.ldmp.connect("start-media-player", self.dbus_ldmp_start_media_player)
+        self.ldmp.connect("end-media-player",   self.dbus_ldmp_end_media_player)
+
+    def dbus_ldmp_start_media_player(self, ldmp):    
+        from widget.utils import get_play_file_name
+        file_name = get_play_file_name(ldmp.player.uri)
+        self.player_properties["PlaybackStatus"] = "Playing"
+        data = {
+                "mpris:trackid":'o',
+                "xesam:title":file_name,
+                }
+        self.player_properties["Metadata"] = data
+
+    def dbus_ldmp_end_media_player(self, ldmp):
+        print "停止播放..."
+        self.player_properties["PlaybackStatus"] = "Stopped"
+        self.player_properties["Metadata"]["xesam:title"] = ""
 
     '''play video/audio file.'''
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
                          in_signature='', out_signature='')
     def Play(self):
         print "play media player file..."
-        self.ldmp.play()
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
                          in_signature='', out_signature='')
@@ -73,13 +90,13 @@ class SomeObject(dbus.service.Object):
                          in_signature='', out_signature='')
     def Next(self):  # next play file.
         print "next..next..next"
-        self.app.next()
+        self.this.next()
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
                          in_signature='', out_signature='')
-    def Prev(self): # prev play file.
+    def Previous(self): # prev play file.
         print "prev...prev...prev"
-        self.app.prev()
+        self.this.prev()
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
                          in_signature='i', out_signature='')
@@ -122,6 +139,7 @@ class SomeObject(dbus.service.Object):
     @dbus.service.method(DEEPIN_MEDIA_DBUS_NAME_PROPERTY,
                          in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface):
+        print "*********get all... getall", interface
         if interface == "org.mpris.MediaPlayer2":
             return self.properties
         elif interface == "org.mpris.MediaPlayer2.Player":
@@ -133,8 +151,16 @@ class SomeObject(dbus.service.Object):
         print "Set", interface, prop, value
         if interface == "org.mpris.MediaPlayer2.Player":
             self.player_properties[prop] = value
+            self.this.key_set_volume(int(value * 100))
 
                                                                             
     @dbus.service.signal(DEEPIN_MEDIA_DBUS_NAME_PROPERTY, signature='sa{sv}as')           
     def PropertiesChanged(self, interface, updated, invalid):                   
         pass                                                     
+
+    @dbus.service.signal(DEEPIN_MEDIA_PLAYER_DBUS_NAME, signature='x')
+    def Seeked(self, pos):
+        pass 
+
+
+

@@ -117,7 +117,10 @@ class MediaPlayer(object):
                 dbus_id += "." + chr(random.randint(65, 90))
         self.dbus_id = dbus_id
         print "dbus_id:", dbus_id
-        ##################################################################
+        #
+        self.in_run_check()
+
+    def in_run_check(self):
         run_check = self.config.get("FilePlay", "check_run_a_deepin_media_player")
         # 判断是否可以是运行一个深度影音.
         if not ("True" == run_check):
@@ -140,17 +143,21 @@ class MediaPlayer(object):
                 iface = dbus.Interface(remote_object,
                                        "org.mpris.MediaPlayer2.Player")
                 # iface 加入播放文件或者播放文件夹.
-                print "next............"
                 iface.Next()
                 #
                 sys.exit()
-            # 保存ID。
-            self.config.set("DBUS", "id", self.dbus_id)
-            self.config.save()
-            #########################
-            # 单实例一个深度影音.
-            app_bus_name = dbus.service.BusName(APP_DBUS_NAME, bus=dbus.SessionBus())
-            UniqueService(app_bus_name, APP_DBUS_NAME, APP_OBJECT_NAME)
+            self.save_dbus_id()
+            self.signal_run_ldmp()
+
+    def save_dbus_id(self):
+        # 保存ID。
+        self.config.set("DBUS", "id", self.dbus_id)
+        self.config.save()
+
+    def signal_run_ldmp(self):
+        # 单实例一个深度影音.
+        app_bus_name = dbus.service.BusName(APP_DBUS_NAME, bus=dbus.SessionBus())
+        UniqueService(app_bus_name, APP_DBUS_NAME, APP_OBJECT_NAME)
 
     def __init_values(self):
         #
@@ -583,6 +590,9 @@ class MediaPlayer(object):
     def key_dec_volume(self): # 减少音量.
         self.ldmp.decvolume(VOLUME_VALUE)
 
+    def key_set_volume(self, volume):
+        self.ldmp.setvolume(volume)
+
     ########################################
     def open_file_dialog(self):
         # 多选文件对话框.
@@ -739,9 +749,8 @@ class MediaPlayer(object):
             # 判断是否可以是运行一个深度影音.
             if not ("True" == run_check):
                 if not is_exists(APP_DBUS_NAME, APP_OBJECT_NAME):
-                    # 单实例一个深度影音.
-                    app_bus_name = dbus.service.BusName(APP_DBUS_NAME, bus=dbus.SessionBus())
-                    UniqueService(app_bus_name, APP_DBUS_NAME, APP_OBJECT_NAME)
+                    self.save_dbus_id()
+                    self.signal_run_ldmp()
 
     def show_messagebox(self, text, icon_path=None):
         # 判断是使用影音自带提示还是使用气泡.[读取ini文件]
@@ -757,9 +766,6 @@ class MediaPlayer(object):
                 path = os.path.abspath(os.path.dirname(sys.argv[0]))
                 image_path = os.path.join(path, "widget/logo.png")
             self.gui.notify_msgbox("deepin-media-player", text, icon_path)
-
-
-
 
 
 
