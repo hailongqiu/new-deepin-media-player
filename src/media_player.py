@@ -131,16 +131,17 @@ class MediaPlayer(object):
                 #
                 try:
                     remote_object = bus.get_object(
-                                        "com.deepin_media_player.SampleService" + dbus_id,
-                                        '/deepin_media_player')
-                except: #dbus.DbusException:
+                                        "org.mpris.MediaPlayer2.SampleService" + dbus_id,
+                                        '/org/mpris/MediaPlayer2')
+                except dbus.DbusException:
                     sys.exit(1)
                     #pass
                         
                 iface = dbus.Interface(remote_object,
-                                       "com.deepin_media_player.SampleInterface")
+                                       "org.mpris.MediaPlayer2.Player")
                 # iface 加入播放文件或者播放文件夹.
-                iface.next()
+                print "next............"
+                iface.Next()
                 #
                 sys.exit()
             # 保存ID。
