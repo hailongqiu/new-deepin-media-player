@@ -23,8 +23,6 @@ from skin import app_theme
 from user_guide import init_user_guide
 from widget.utils import is_right_button
 from widget.utils import open_file
-from widget.constant import SEEK_VALUE
-from widget.constant import VOLUME_VALUE
 from mplayer.player import ASCEPT_4X3_STATE, ASCEPT_16X9_STATE, ASCEPT_5X4_STATE
 from mplayer.player import ASCEPT_16X10_STATE, ASCEPT_1_85X1_STATE, ASCEPT_2_35X1_STATE
 from mplayer.player import ASCEPT_FULL_STATE, ASCEPT_DEFULAT
@@ -154,10 +152,10 @@ class MediaPlayMenus(object):
         self.gui.app.window.destroy()
 
     def menu_fseek(self):
-        self.ldmp.fseek(SEEK_VALUE)
+        self.this.key_fseek()
 
     def menu_bseek(self):
-        self.ldmp.bseek(SEEK_VALUE)
+        self.this.key_bseek()
 
     def menu_stereo_channel(self):
         self.ldmp.normalchannel()
@@ -178,10 +176,10 @@ class MediaPlayMenus(object):
         self.this.mute_umute()
 
     def menu_inc_volume(self): # 添加音量.
-        self.ldmp.addvolume(VOLUME_VALUE)
+        self.this.key_inc_volume()
 
     def menu_dec_volume(self): # 减少音量.
-        self.ldmp.decvolume(VOLUME_VALUE)
+        self.this.key_dec_volume()
 
     def menu_normal_ascept(self):
         # 默认.

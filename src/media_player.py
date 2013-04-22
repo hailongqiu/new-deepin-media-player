@@ -29,6 +29,8 @@ from dtk.ui.utils import color_hex_to_cairo
 from locales import _ # 国际化翻译.
 from ini     import Config
 from user_guide import init_user_guide
+from widget.constant import SEEK_VALUE
+from widget.constant import VOLUME_VALUE
 from widget.utils   import get_config_path
 from widget.utils   import get_home_path, get_home_video, get_play_file_name
 from widget.utils   import is_file_audio
@@ -395,8 +397,9 @@ class MediaPlayer(object):
         self.set_double_bit_false()
 
     def double_clicked_connect_function(self):
-        #print "你双击了............."
-        self.fullscreen_function() # 全屏和退出全屏处理函数.
+        double_check = self.config.get("OtherKey", "mouse_left_double_clicked")
+        if "Full Screen" == double_check:
+            self.fullscreen_function() # 全屏和退出全屏处理函数.
 
     def fullscreen_function(self):
         if not self.fullscreen_check: # 判断是否全屏.
@@ -434,7 +437,10 @@ class MediaPlayer(object):
     def click_connect_function(self):
         # 暂停/继续. 
         # 应该去连接后端事件,暂停/播放的时候去改变按钮状态.
-        self.ldmp.pause()
+        pause_play_check = self.config.get("OtherKey", "mouse_left_single_clicked")
+        #[OtherKey] 其它快捷键.
+        if "Pause/Play" == pause_play_check:
+            self.ldmp.pause()
 
     def set_double_bit_false(self):
         self.double_check = False
@@ -527,6 +533,19 @@ class MediaPlayer(object):
         self.play_list_check = True
         self.ldmp.stop()
         
+    def key_fseek(self):
+        self.ldmp.fseek(SEEK_VALUE)
+
+    def key_bseek(self):
+        self.ldmp.bseek(SEEK_VALUE)
+
+    def key_inc_volume(self): # 添加音量.
+        self.ldmp.addvolume(VOLUME_VALUE)
+
+    def key_dec_volume(self): # 减少音量.
+        self.ldmp.decvolume(VOLUME_VALUE)
+
+    ########################################
     def open_file_dialog(self):
         # 多选文件对话框.
         open_dialog = gtk.FileChooserDialog(_("Select Files"),

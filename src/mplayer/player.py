@@ -895,7 +895,8 @@ class LDMP(gobject.GObject):
                 self.player.position = pos
                 if old_position != self.player.position:
                     #print "postion:", self.player.position
-                    self.emit("get-time-pos", pos, length_to_time(pos))
+                    if pos:
+                        self.emit("get-time-pos", pos, length_to_time(pos))
                 '''
                 if pos >= int(self.player.length): # 结束播放.
                     self.quit()

@@ -21,7 +21,6 @@
 
 
 
-from widget.constant import SEEK_VALUE
 from widget.tooltip  import tooltip_text
 from widget.preview  import PreView
 from widget.utils import is_file_audio
@@ -234,10 +233,12 @@ class MediaPlayFun(object):
         self.ldmp.seek(value)
 
     def __bottom_toolbar_pb_fseek_btn_clicked(self, widget):
-        self.ldmp.fseek(SEEK_VALUE)
+        #self.ldmp.fseek(SEEK_VALUE)
+        self.this.key_fseek()
 
     def __bottom_toolbar_pb_bseek_btn_clicked(self, widget):
-        self.ldmp.bseek(SEEK_VALUE)
+        #self.ldmp.bseek(SEEK_VALUE)
+        self.this.key_bseek()
 
     def __bottom_toolbar_stop_button_clicked(self, widget):
         self.this.stop()
