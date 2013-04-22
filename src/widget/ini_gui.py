@@ -1317,7 +1317,7 @@ class OtherKey(gtk.VBox):
             
             for title, widget, init_key in for_widgets_right:
                 key_value = self.ini.get("OtherKey", title)
-                if key_value:                            
+                if key_value == "Disabled":                            
                     widget.label.set_text(_(str(key_value)))
                 else:    
                     widget.label.set_text(init_key)
@@ -1358,17 +1358,17 @@ class OtherKey(gtk.VBox):
         for key_title, widget in map(lambda key_title, widget:(key_title, widget),
                                      self.key_titles_right, self.widgets_right):
             if key_title in ["mouse_left_single_clicked"]:
-                if widget.select_index:
+                if widget.get_select_index():
                     text = "Disabled"
                 else:    
                     text = "Pause/Play"
             elif key_title in ["mouse_left_double_clicked"]:
-                if widget.select_index:
+                if widget.get_select_index():
                     text = "Disabled"
                 else:    
                     text = "Full Screen"
             elif key_title in ["mouse_wheel_event"]:
-                if widget.select_index:
+                if widget.get_select_index():
                     text = "Disabled"
                 else:    
                     text = "Volume"

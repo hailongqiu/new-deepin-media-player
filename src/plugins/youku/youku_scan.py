@@ -21,7 +21,7 @@ def scan_page(page_index=1, keyword="linuxdeepin"):
         data = data[55000:]
     elif data.find("热门作品") != -1:
         data = data.decode("utf-8")
-        data = data[40000:]
+        data = data[22000:]
     sounp = BeautifulSoup(data)
 
     # 获取图片.
@@ -74,12 +74,10 @@ def scan_page(page_index=1, keyword="linuxdeepin"):
         # 获取视频的总数.
         sum_str = sounp.findAll('div', {'class':'stat'})[0].string
         sum = int(sum_str.replace("\n", "").strip().split(" ")[1])
-        '''
         print "length num:", len(length_list)
         print "image num:", len(image_list)
         print "page_num:", page_num
         print "sum:", sum
-        '''
     return save_info_list, page_num, sum
 
 
@@ -102,7 +100,7 @@ if __name__ == "__main__":
         print "----------------------"
 
     print "测试地址解析"
-    flvcd_addr_list = flvcd.parse(info_list[0][1])
+    flvcd_addr_list = flvcd.parse(info_list[int(sys.argv[2])][1])
     import os
     os.system("mplayer %s" % flvcd_addr_list[0])
     print "sum:", sum
