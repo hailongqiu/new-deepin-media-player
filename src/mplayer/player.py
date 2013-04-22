@@ -846,7 +846,9 @@ class LDMP(gobject.GObject):
         if source == None:
             return False        
         
-        # if self.player_state == PLAYER_STATE_DEAD
+        if not self.player.state: # 如果播放结束,直接退出.
+            return False
+
         try:
             buffer = source.readline()
         except:
@@ -1088,7 +1090,7 @@ class LDMP(gobject.GObject):
     def player_thread_reader_error(self, source, condition): # 错误处理.
         error_code = None
         
-        if not source:
+        if not source or not self.player.state:
             return False
                 
         try:
