@@ -107,7 +107,7 @@ if __name__ == "__main__":
     
     #os.system("mplayer %s" % flvcd_addr_list[0])
     bus = dbus.SessionBus()
-    dbus_id = ".z.P.P.C.D.b"
+    dbus_id = ".L.A.Y.U.s.V"
     try:
         remote_object = bus.get_object(
                             "org.mpris.MediaPlayer2.SampleService" + dbus_id,
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     for addr in flvcd_addr_list:
         check = False
         if not index:
-            check = True
+            check = int(sys.argv[3])
         iface.add_net_to_play_list(info_list[int(sys.argv[2])][0] + str(index), 
                                    addr,
                                    info_list[int(sys.argv[2])][3], check)                       
