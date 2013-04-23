@@ -254,12 +254,11 @@ class MediaPlayFun(object):
         self.this.stop()
 
     def __bottom_toolbar_start_button_clicked(self, widget):
-        self.__start_button_clicked()
+        self.this.start_button_clicked()
         
     '''
     def __stop_button_clicked(self):
         self.ldmp.stop()
-    '''
 
     def __start_button_clicked(self):
         # 判断列表是否为空. 空->添加!!
@@ -271,6 +270,7 @@ class MediaPlayFun(object):
                 self.ldmp.pause()
             else:
                 self.this.play(self.ldmp.player.uri)
+    '''
 
     def __init_ldmp_values(self):
         self.__pos = "00:00:00 / "

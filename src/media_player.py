@@ -748,8 +748,8 @@ class MediaPlayer(object):
             run_check = self.config.get("FilePlay", "check_run_a_deepin_media_player")
             # 判断是否可以是运行一个深度影音.
             if not ("True" == run_check):
+                self.save_dbus_id() # 保存dbus ID.
                 if not is_exists(APP_DBUS_NAME, APP_OBJECT_NAME):
-                    self.save_dbus_id()
                     self.signal_run_ldmp()
 
     def show_messagebox(self, text, icon_path=None):
@@ -767,5 +767,15 @@ class MediaPlayer(object):
                 image_path = os.path.join(path, "widget/logo.png")
             self.gui.notify_msgbox("deepin-media-player", text, icon_path)
 
+    def start_button_clicked(self):
+        # 判断列表是否为空. 空->添加!!
+        if not len(self.gui.play_list_view.list_view.items):
+            self.open_files_to_play_list()
+        else:
+            # 判断是否在播放.
+            if self.ldmp.player.state:
+                self.ldmp.pause()
+            else:
+                self.play(self.ldmp.player.uri)
 
 
