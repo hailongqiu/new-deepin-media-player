@@ -85,6 +85,7 @@ def scan_page(page_index=1, keyword="linuxdeepin"):
 
 if __name__ == "__main__":
     import sys
+    import dbus
     from youku_to_flvcd import YouToFlvcd
     scan_info = scan_page(1, sys.argv[1])
     info_list = scan_info[0]
@@ -103,7 +104,28 @@ if __name__ == "__main__":
     flvcd_addr_list = flvcd.parse(info_list[int(sys.argv[2])][1])
     print flvcd_addr_list
     import os
-    os.system("mplayer %s" % flvcd_addr_list[0])
+    
+    #os.system("mplayer %s" % flvcd_addr_list[0])
+    bus = dbus.SessionBus()
+    dbus_id = ".z.P.P.C.D.b"
+    try:
+        remote_object = bus.get_object(
+                            "org.mpris.MediaPlayer2.SampleService" + dbus_id,
+                            '/org/mpris/MediaPlayer2')
+    except dbus.DbusException:
+        sys.exit(1)
+        
+    iface = dbus.Interface(remote_object,
+                           "org.mpris.MediaPlayer2.Player")
+    index = 0
+    for addr in flvcd_addr_list:
+        check = False
+        if not index:
+            check = True
+        iface.add_net_to_play_list(info_list[int(sys.argv[2])][0] + str(index), 
+                                   addr,
+                                   info_list[int(sys.argv[2])][3], check)                       
+        index += 1
     print "sum:", sum
     print "总页数:", sum/page_num
 

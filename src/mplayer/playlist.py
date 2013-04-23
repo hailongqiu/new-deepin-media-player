@@ -131,6 +131,9 @@ class PlayList(object):
     def set_index(self, index):
         self.__index = index
 
+    def get_index(self):
+        return self.__index
+
     def set_items_index(self, play_file): # 设置index.
         index = self.__file_list.index(play_file)
         if index != None:

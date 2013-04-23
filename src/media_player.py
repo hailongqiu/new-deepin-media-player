@@ -565,7 +565,10 @@ class MediaPlayer(object):
 
     def ldmp_play(self, play_file):
         self.ldmp.player.uri = "%s" % play_file
-        self.show_messagebox(get_play_file_name(play_file))
+        if self.play_list.get_index() != -1:
+            list_view = self.gui.play_list_view.list_view
+            name = list_view.items[self.play_list.get_index()].sub_items[0].text
+        self.show_messagebox(name)
         self.ldmp.play()
 
     def mute_umute(self):

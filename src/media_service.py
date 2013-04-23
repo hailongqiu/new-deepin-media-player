@@ -163,7 +163,11 @@ class SomeObject(dbus.service.Object):
 
     def set_dmp(self, app):
         self.this  = app
+        #
         self.ldmp = self.this.ldmp
+        self.play_list = self.this.play_list
+        self.list_view = self.this.gui.play_list_view.list_view
+        #
         self.ldmp.connect("pause-play",         self.dbus_ldmp_pause_play)
         self.ldmp.connect("volume-play",        self.dbus_ldmp_volume_play)
         self.ldmp.connect("start-media-player", self.dbus_ldmp_start_media_player)
@@ -216,36 +220,22 @@ class SomeObject(dbus.service.Object):
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME)
     def Stop(self):  
-        print "stop stop stop ..."
+        # 停止播放.
         self.ldmp.stop()
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME)
     def Next(self):  # next play file.
-        print "next..next..next"
+        # 上一曲.
         self.this.next()
 
     @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME)
     def Previous(self): # prev play file.
-        print "prev...prev...prev"
+        # 下一曲.
         self.this.prev()
-
-    @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
-                         in_signature='i', out_signature='')
-    def fseek(self, value): # prev play file.
-        print "prev...prev...prev"
-        self.ldmp.fseek(value)
-
-    @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
-                         in_signature='i', out_signature='')
-    def bseek(self, value): # prev play file.
-        print "prev...prev...prev"
-        self.ldmp.bseek(value)
 
     @dbus.service.method(DEEPIN_MEDIA_DBUS_NAME)
     def Quit(self): # prev play file.
-        print "prev...prev...prev"
-        self.ldmp.quit()
-        gtk.main_quit()
+        pass
 
     @dbus.service.method(DEEPIN_MEDIA_DBUS_NAME)
     def Raise(self): # prev play file.
@@ -291,5 +281,34 @@ class SomeObject(dbus.service.Object):
     def Seeked(self, pos):
         pass 
         
+    @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
+                         in_signature='i', out_signature='')
+    def fseek(self, value): # prev play file.
+        self.ldmp.fseek(value)
+
+    @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
+                         in_signature='i', out_signature='')
+    def bseek(self, value): # prev play file.
+        self.ldmp.bseek(value)
+
+    '''
+    [in_signature]:
+    @: s =>> 网络播放名字.
+    @: s =>> 网络播放地址.
+    @: s =>> 网络播放的长度.
+    @: b =>> 是否播放.
+    '''
+    @dbus.service.method(DEEPIN_MEDIA_PLAYER_DBUS_NAME,
+                         in_signature='sssb', out_signature='')
+    def add_net_to_play_list(self, name, play_uri, length, check): 
+        # 添加网络地址到播放列表，再的判断是否播放.
+        if check:
+            self.play_list.set_index(len(self.list_view.items) - 1)
+        #
+        self.list_view.items.add([str(name), str(length), str(play_uri)])
+        #
+        if check:
+            self.this.next()
+
     
 
