@@ -101,6 +101,7 @@ class MediaPlayer(object):
         self.config.connect("config-changed", self.modify_config_section_value)
 
     def __init_dbus_id(self): # 初始化DBUS ID 唯一值.
+        self.is_exists_check = False
         # 随机DBUS-ID.
         dbus_id_list = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time())).split("-")
         dbus_id = ""
@@ -157,6 +158,7 @@ class MediaPlayer(object):
         # 单实例一个深度影音.
         app_bus_name = dbus.service.BusName(APP_DBUS_NAME, bus=dbus.SessionBus())
         UniqueService(app_bus_name, APP_DBUS_NAME, APP_OBJECT_NAME)
+        self.is_exists_check = True
 
     def __init_values(self):
         #
@@ -723,8 +725,9 @@ class MediaPlayer(object):
             # 判断是否可以是运行一个深度影音.
             if not ("True" == run_check):
                 self.save_dbus_id() # 保存dbus ID.
-                if not is_exists(APP_DBUS_NAME, APP_OBJECT_NAME):
+                if (not self.is_exists_check) and not is_exists(APP_DBUS_NAME, APP_OBJECT_NAME):
                     self.signal_run_ldmp()
+                    self.is_exists_check = True
 
     def show_messagebox(self, text, icon_path=None):
         # 判断是使用影音自带提示还是使用气泡.[读取ini文件]
