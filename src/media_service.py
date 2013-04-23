@@ -254,19 +254,17 @@ class SomeObject(dbus.service.Object):
     @dbus.service.method(dbus.PROPERTIES_IFACE, #DEEPIN_MEDIA_DBUS_NAME_PROPERTY,
                          in_signature='ss', out_signature='v')
     def Get(self, interface, prop):
-        print"get:", prop
         if interface == "org.mpris.MediaPlayer2":
             if prop in self.properties:
                 return self.properties[prop]
         elif interface == "org.mpris.MediaPlayer2.Player":
             if prop in self.player_properties:
                 return self.player_properties[prop]
-        else:
-            return None
 
     @dbus.service.method(dbus.PROPERTIES_IFACE, #DEEPIN_MEDIA_DBUS_NAME_PROPERTY,
                          in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface):
+        self.emit_changed()
         if interface == "org.mpris.MediaPlayer2":
             return self.properties
         elif interface == "org.mpris.MediaPlayer2.Player":
