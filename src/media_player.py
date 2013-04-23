@@ -37,7 +37,6 @@ from widget.utils   import is_file_audio
 from widget.utils   import ScanDir
 from widget.ini_gui import IniGui
 from widget.init_ldmp import init_media_player_config
-from plugin_manage import PluginManage
 from gui import GUI # 播放器界面布局.
 from media_player_function import MediaPlayFun
 from media_player_menus    import MediaPlayMenus
@@ -168,7 +167,6 @@ class MediaPlayer(object):
         self.play_list = PlayList(self.gui.play_list_view.list_view) 
         # 初始化播放列表.
         self.play_list.set_file_list(self.gui.play_list_view.list_view.items)
-        #self.plugin_manage = PluginManage()
         self.fullscreen_check = False # 全屏
         self.concise_check    = False # 简洁模式 # True 简洁模式 False 普通模式
         #
@@ -218,23 +216,6 @@ class MediaPlayer(object):
         self.gui.screen_frame_event.connect("motion-notify-event",  self.screen_frame_event_button_motoin_notify_event)
         self.gui.screen_frame_event.connect("leave-notify-event", self.screen_frame_event_leave_notify_event)
 
-    def init_plugin_manage(self): # 初始化插件系统.
-        # 加载自带插件.
-        for zip_file in os.listdir("plugins"):
-            try:
-                self.plugin_manage.load_zip(os.path.join("plugins", zip_file))
-            except Exception, e:        
-                print "init_plugin_manage[error]:", e
-                
-        # 加载用户编写的插件.
-        self.plugin_manage.load_dir()
-        
-        for plugin in self.plugin_manage.plugins_list:
-            # if not plugin.name() in zip_name_list:
-            if plugin.auto():
-                plugin.init_values(self, self.gui, self.ldmp)
-                plugin.start()
-        
     '''application event conect function.窗口事件连接函数.'''
     def app_window_min_button_clicked(self, widget): # 缩小按钮单击.
         print "app_window_min_button_clicked function", "-->>min window!!"
@@ -301,16 +282,6 @@ class MediaPlayer(object):
         self.ldmp.connect("volume-play",        self.ldmp_volume_play)
         self.ldmp.connect("error-msg",          self.ldmp_error_msg)
         
-        # self.ldmp.player.ascept_state = ASCEPT_16X10_STATE
-        # self.ldmp.player.vo = "vdpau"
-        # self.ldmp.player.type = TYPE_NETWORK
-        # self.ldmp.player.ascept_state = ASCEPT_4X3_STATE
-        # self.ldmp.player.flip_screen = "mirror"
-        # self.ldmp.player.flip_screen = "rotate=2"
-        # self.ldmp.player.uri = "mms://mediasrv2.iptv.xmg.com.cn/tvyingshi"        
-        #self.ldmp.player.uri = "mms://112.230.192.196/zb10"
-        #self.ldmp.player.cache_size = 1000
-        #self.ldmp.play()                
         # 初始化插件系统.
         #self.init_plugin_manage()
         
