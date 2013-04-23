@@ -852,7 +852,7 @@ class LDMP(gobject.GObject):
         try:
             buffer = source.readline()
         except:
-            return True
+            return False # 白屏BUG，所以返回假.
         '''
         if buffer == gobject.IO_STATUS_ERROR:
             if DEBUG:
@@ -1099,6 +1099,8 @@ class LDMP(gobject.GObject):
             #print "error:--->>", buffer
         except Exception , e:
             buffer = ""
+            return False # 白屏BUG，所以返回假.（假死)
+
             
         if self.player.type == TYPE_FILE:    
             if buffer.startswith("Failed to recognize file format"):

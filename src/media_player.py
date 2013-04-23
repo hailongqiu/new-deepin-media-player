@@ -332,7 +332,7 @@ class MediaPlayer(object):
         pass
     
     def ldmp_end_media_player(self, ldmp):
-        #print "播放结束!!", ldmp.player.type
+        print "===========播放结束!!==========", ldmp.player.type
         self.player_end_init()
         self.media_play_fun.ldmp_end_media_player(ldmp)
         

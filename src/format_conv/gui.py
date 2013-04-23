@@ -154,14 +154,17 @@ class Form(DialogBox):
         # brand_combo.
         brand_items = []
         for brand in self.read_xml.brand_dict.keys():
+            print brand
             brand_po = brand
             if self.brand_dict.has_key(brand):
                 brand_po = self.brand_dict[brand]
+                print "brand_po:", brand_po
             brand_items.append((brand_po, brand))
         
         self.brand_combo.set_items(brand_items, 0) 
+        #self.brand_combo.add_items(brand_items, 0)
         
-        self.brand_combo.prepend_text(_("No Presets"))
+        #self.brand_combo.prepend_text(_("No Presets"))
         self.brand_combo.connect("changed", self.brand_combo_item_selected)
         # model_combo.
         self.model_label.set_sensitive(False)
@@ -306,7 +309,7 @@ class Form(DialogBox):
             model_items = []
             for model in self.model_dict:
                 model_items.append((model, model))
-            self.model_combo.set_items(model_items, 0, fixed_width=self.model_combo.fixed_width)    
+            self.model_combo.set_items(model_items, 0)    
             
             # self.model_combo.droplist.set_size_request(-1, self.model_combo.droplist_height)
             self.model_combo.set_active(0)            

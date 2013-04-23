@@ -4,11 +4,12 @@
 import os
 import gtk
 from widget.utils import is_file_audio, get_file_type
-from format_conv.gui import Form
+
+from format_conv.transmageddon import TransmageddonUI
+from format_conv.conv_task_gui import ConvTAskGui
 
 
 if __name__ == "__main__":
-    win = Form()
-    win.show_all()
+    TransmageddonUI(["/home/long/视频/test.mp4"])
 
     gtk.main()
