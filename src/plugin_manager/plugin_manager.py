@@ -64,6 +64,8 @@ class PluginManager(object):
         self.__reload_modules = {}
         self.__plugin_modules = {}
         #
+        self.__faile_modules  = {} # 保存加载失败.
+        #
         self.__auto_plugin_modules = {}
         self.__auto_plugin_plugins = {}
         #
@@ -122,6 +124,7 @@ class PluginManager(object):
         if not hasattr(module, "auto_check"):
             print "插件模块加载失败...模块",\
                   name, "缺少变量auto_check = True"
+            self.__faile_modules[name] = module
             return False
         # 保存用于热更新.
         self.__reload_modules[name] = module
@@ -157,6 +160,8 @@ class PluginManager(object):
             return False
         # 判断是否满足加载的条件.
         if not self.__can_auto_plugin(module):
+            # 加入失败中去.
+            self.__faile_modules[name] = module
             return False
         # 读取信息.
         version       = getattr(module,   "version")
@@ -213,7 +218,9 @@ class PluginManager(object):
         return True
 
     def __can_error_msg(self, module, msg):
-        print "模块:", module, "缺少: ", msg
+        error_msg = "模块:", module, "缺少: ", msg
+        module.error_msg = error_msg
+        print error_msg
         return False
 
     #########################################
@@ -265,6 +272,31 @@ class PluginManager(object):
             '''
             plugin_object    = plugin_class(self.__this)
             class_.__dict__  = plugin_object.__dict__
+    
+    def get_plugin_info(self, name):
+        # 获取插件信息.
+        infos = {}
+        #
+        auto_check = 1
+        #
+        if self.__auto_plugin_modules.has_key(name):
+            module = self.__auto_plugin_modules[str(name)]
+        elif self.__auto_flase_modules.has_key(name):
+            module = self.__auto_flase_modules[str(name)]
+            auto_check = 0
+        elif self.__faile_modules.has_key(name):
+            module = self.__faile_modules[name]
+            auto_check = -1
+        else:
+            return None
+        # 
+        infos["title"]  = getattr(module, "title", "deepin_media_plugin")
+        infos["module_name"] = name
+        infos["version"] = getattr(module, "version", "") # 获取插件版本.
+        infos["author"]  = getattr(module, "author", "hailongqiu 356752238@qq.com") # 获取插件作者.
+        infos["auto"]  = auto_check
+        infos["error"] = getattr(module, "error_msg", "")
+        return infos
 
 if __name__ == "__main__":
     import gtk
@@ -290,10 +322,13 @@ if __name__ == "__main__":
         def open_btn_clicked(self, widget):
             self.plugin_man.open_plugin("plugin_tudou")
             self.plugin_man.open_plugin("plugin_youku")
+            print self.plugin_man.get_plugin_info("plugin_window_layic")
+            print self.plugin_man.get_plugin_info("plugin_youku")
 
         def close_btn_clicked(self, widget):
             self.plugin_man.close_plugin("plugin_youku")
             self.plugin_man.close_plugin("plugin_tudou")
+            print self.plugin_man.get_plugin_info("plugin_youku")
 
 
 
