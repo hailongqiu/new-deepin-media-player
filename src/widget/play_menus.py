@@ -190,6 +190,9 @@ class PlayMenus(object):
         self.mute_unmute    = None
         self.inc_volume     = None
         self.dec_volume     = None
+        ## 格式转换.
+        self.format_conversion = None
+        self.task_manager      = None
         # 切换左右声道.
         self.channel_select_menu = Menu([
                 (None, _("Stereo"), self.__menu_stereo_channel),
@@ -206,8 +209,8 @@ class PlayMenus(object):
                                (None, _("Open Screenshot Directory"), None),
                                (None, _("Set Screenshot Directory"),  None)
                               ])
-        self.format_menu = Menu([(None, _("Format conversion"), None),
-                                (None, _("Task Manager"), None)
+        self.format_menu = Menu([(None, _("Format conversion"), self.__menu_format_conversion),
+                                (None, _("Task Manager"),       self.__menu_task_manager)
                                 ])
         ################################################################
         ## 主题弹出菜单.
@@ -237,6 +240,7 @@ class PlayMenus(object):
         self.add_open_file = None
         self.add_open_dir  = None
         self.add_open_url  = None
+        self.screen_format_conversion = None
         ## 播放列表弹出菜单.
         self.play_list_root_menu = Menu([(None, _("Add File"),      self.__menu_add_open_file),
                                          (None, _("Add Directory"), self.__menu_add_open_dir),
@@ -250,7 +254,7 @@ class PlayMenus(object):
                                          (None, _("Order"), self.play_state_menu),
                                          (None, _("Sort"),  self.sort_menu),
                                          (None),
-                                         (None, _("Format conversion"),         None),
+                                         (None, _("Format conversion"), self.__menu_screen_format_conversion),
                                          (None, _("Open Containing Directory"), self.__menu_open_containing_directory),
                                          (None, _("Properties"), None),
                                          ],
@@ -479,7 +483,20 @@ class PlayMenus(object):
         if self.add_open_dir:
             self.add_open_dir()
             
+    def __menu_format_conversion(self):
+        if self.format_conversion:
+            self.format_conversion()
+    
+    def __menu_task_manager(self):
+        if self.task_manager:
+            self.task_manager()
+            
+    def __menu_screen_format_conversion(self):
+        if self.screen_format_conversion:
+            self.screen_format_conversion()
+            
+            
+            
             
             
                                         
-

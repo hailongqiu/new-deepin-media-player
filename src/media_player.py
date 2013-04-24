@@ -57,6 +57,7 @@ from mplayer.playlist import PlayList, SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SIN
 #           { 单曲播放、顺序播放、随机播放、单曲循环播放、列表循环播放、}
 #            SINGLA_PLAY ... ...                ...LIST_LOOP
 from unique_service import UniqueService, is_exists
+from format_conv.conv_task_gui import ConvTAskGui
 import random
 import time
 import gtk
@@ -165,6 +166,8 @@ class MediaPlayer(object):
         self.play_list_check = False
         self.ldmp = LDMP()
         self.gui = GUI()        
+        self.conv_task_gui = ConvTAskGui()
+        self.conv_form     = None
         #
         self.play_list = PlayList(self.gui.play_list_view.list_view) 
         # 初始化播放列表.

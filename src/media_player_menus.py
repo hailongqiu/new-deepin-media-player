@@ -27,6 +27,11 @@ from mplayer.player import ASCEPT_4X3_STATE, ASCEPT_16X9_STATE, ASCEPT_5X4_STATE
 from mplayer.player import ASCEPT_16X10_STATE, ASCEPT_1_85X1_STATE, ASCEPT_2_35X1_STATE
 from mplayer.player import ASCEPT_FULL_STATE, ASCEPT_DEFULAT
 from mplayer.playlist import SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SINGLE_LOOP, LIST_LOOP 
+from format_conv.transmageddon import TransmageddonUI
+
+import os
+
+
 
 class MediaPlayMenus(object):
     def __init__(self, this):
@@ -92,6 +97,10 @@ class MediaPlayMenus(object):
         self.menus.play_repeat_play_list = self.menu_play_repeat_play_list
         # 初始化为顺序播放. 1 代表的是菜单的顺序.
         self.set_play_list_state(1, ORDER_PLAY)
+        # 格式转换.
+        self.menus.format_conversion = self.menu_format_conversion
+        self.menus.task_manager      = self.menu_task_manager
+        self.menus.screen_format_conversion = self.menu_screen_format_conversion
         ############################
         # 修改图标.
         #self.menus.title_root_menu.menu_items[0].set_item_icons((pixbuf, pixbuf, pixbuf))
@@ -120,8 +129,6 @@ class MediaPlayMenus(object):
     def menu_switch_subtitle(self, index):
         self.ldmp.sub_select(index)
         self.menus.subtitles_select.set_mutual_icons(index, self.menus.select_pixbuf)
-
-
 
     def ldmp_get_audio_info(self, ldmp, audio_info, index):
         self.menus.channel_select.set_menu_item_sensitive_by_index(1, True)
@@ -245,6 +252,40 @@ class MediaPlayMenus(object):
 
     def menu_add_open_dir(self):
         self.this.open_dirs_to_play_list(type_check=False)
+
+    def menu_format_conversion(self):
+        format_files = self.this.open_file_dialog()
+        # 将文件传入格式转换.
+        self.menu_open_format_conv_form(format_files)
+
+    def menu_task_manager(self):
+        # 格式转换任务管理器.
+        if not self.this.conv_task_gui.get_visible():
+            self.this.conv_task_gui.show_all()
+        else:
+            self.this.conv_task_gui.hide_all()
+
+    def menu_screen_format_conversion(self):
+        format_files = []
+        for item in self.list_view.get_single_items():
+            text = item.sub_items[2].text
+            if os.path.exists(text):
+                format_files.append(text)
+        # 播放列表打开格式转换.
+        self.menu_open_format_conv_form(format_files)
+
+    def menu_open_format_conv_form(self, format_files):
+        if format_files:
+            if self.this.conv_form == None:
+                self.this.conv_form = TransmageddonUI(format_files)
+                if self.this.conv_task_gui:
+                    self.this.conv_form.conv_task_gui = self.this.conv_task_gui
+            else:
+                self.this.conv_form.conv_list = format_files
+                self.this.conv_form.form.show_all_new()
+                self.this.conv_form.form.higt_set_bool = True
+                self.this.conv_form.form.higt_set_btn_clicked(self.this.conv_form.form.start_btn)
+                self.this.conv_form.form.brand_combo.set_active(0)
 
 
 

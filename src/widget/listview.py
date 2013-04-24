@@ -892,6 +892,9 @@ class ListView(ListViewBase):
         self.__double_items = []
         self.on_queue_draw_area()
 
+    def get_single_items(self):
+        return self.__single_items 
+
 class ItemEventArgs(object):
     def __init__(self):
         self.cr = None
