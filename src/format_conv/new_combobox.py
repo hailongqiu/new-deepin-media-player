@@ -49,11 +49,11 @@ class NewComboBox(ComboBox):
         self.add_items(self._items, 0)
         
     def prepend_text(self, text):
-        temp_imtes = []
-        temp_imtes.append([text, text])
-        for item in self._items:
-            temp_imtes.append([item[0], item[1]])
-        self.add_items(temp_imtes, 0)
+        temp_items = []
+        temp_items.append([text, text])
+        for item in self.combo_list.items:
+            temp_items.append([item.title, item.item_value])
+        self.add_items(temp_items, 0)
         
     def get_active_text(self):
         return self.label.get_text()
