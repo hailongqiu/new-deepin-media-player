@@ -149,14 +149,11 @@ class PluginManager(object):
         names.sort()
         #
         for name in names:
-            print name
             self.auto_plugin(name)
 
     def auto_plugin(self, name, auto=True, open=None):
         module = self.__plugin_modules[name]
-        print "******", getattr(module, "auto_check")
         if not (getattr(module, "auto_check") == auto) and open==None: # 不加载的过滤.
-            print "[[[[[[[[[[[[[[["
             return False
         # 判断是否满足加载的条件.
         if not self.__can_auto_plugin(module):
@@ -189,30 +186,29 @@ class PluginManager(object):
             self.__auto_plugin_plugins[name] = plugin_object
             self.__auto_plugin_modules[name] = module
         else:
-            print "**********8"
             self.__auto_flase_plugins[name] = plugin_object
             self.__auto_flase_modules[name] = module
 
     def __can_auto_plugin(self, module):
         # 判断是否满足加载的条件.
         if not hasattr(module, "version"):
-            self.__can_error_msg(module, "version")
+            return self.__can_error_msg(module, "version")
         if not hasattr(module, "class_name"):
-            self.__can_error_msg(module, "class_name")
+            return self.__can_error_msg(module, "class_name")
         #
         class_name = getattr(module, "class_name")
         if not hasattr(module, class_name):
-            self.__can_error_msg(module, class_name)
+            return self.__can_error_msg(module, class_name)
         #
         plugin_class = getattr(module, class_name)
         if not hasattr(plugin_class, "__init__"):
-            self.__can_error_msg(module, "__init__")
+            return self.__can_error_msg(module, "__init__")
 
         if not hasattr(plugin_class, "start_plugin"):
-            self.__can_error_msg(module, "start_plugin")
+            return self.__can_error_msg(module, "start_plugin")
 
         if not hasattr(plugin_class, "stop_plugin"):
-            self.__can_error_msg(module, "stop_plugin")
+            return self.__can_error_msg(module, "stop_plugin")
 
         return True
 
@@ -263,9 +259,9 @@ class PluginManager(object):
         class_.__class__ = plugin_class
         if god_mode:
             '''
-            @ 上帝模式，可以任意的更改类中的属性.
+            @ 上帝模式，可以任意的更改模块的东西(包括$类中的属性).
               但是，插件的加载和卸载会出现问题，所以只有完全调试
-              的时候使用，切忌.
+              的时候使用，切忌在正常模式的情况下，不要开启.
             '''
             plugin_object    = plugin_class(self.__this)
             class_.__dict__  = plugin_object.__dict__
