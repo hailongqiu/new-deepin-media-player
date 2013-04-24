@@ -107,7 +107,7 @@ if __name__ == "__main__":
     
     #os.system("mplayer %s" % flvcd_addr_list[0])
     bus = dbus.SessionBus()
-    dbus_id = ".L.A.Y.U.s.V"
+    dbus_id = ".G.W.I.E.q.J"
     try:
         remote_object = bus.get_object(
                             "org.mpris.MediaPlayer2.SampleService" + dbus_id,
