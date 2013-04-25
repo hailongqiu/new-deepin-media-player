@@ -91,10 +91,6 @@ class MediaPlayer(object):
         # show gui window.
         if not self.first_run:
             self.start()
-        # 全部的执行函数方法.
-        self.media_play_fun   = MediaPlayFun(self)
-        self.media_play_menus = MediaPlayMenus(self)
-        self.media_play_kes   = MediaPlayKeys(self)
 
     def __init_config_file(self):
         # 配置文件.
@@ -167,10 +163,8 @@ class MediaPlayer(object):
         self.play_list_check = False
         self.ldmp = LDMP()
         self.gui = GUI()        
-        # 插件初始化.
-        self.plugin_man = PluginManager(self)
-        self.plugin_man.load_auto_plugins()
-        self.plugin_man.load_auto_flase_plugins()
+        #
+        self.list_view = self.gui.play_list_view.list_view
         #
         self.conv_task_gui = ConvTAskGui()
         self.conv_form     = None
@@ -293,8 +287,18 @@ class MediaPlayer(object):
         self.ldmp.connect("volume-play",        self.ldmp_volume_play)
         self.ldmp.connect("error-msg",          self.ldmp_error_msg)
         
+        # 全部的执行函数方法.
+        self.media_play_fun   = MediaPlayFun(self)
+        self.media_play_menus = MediaPlayMenus(self)
+        self.media_play_kes   = MediaPlayKeys(self)
         # 初始化插件系统.
-        #self.init_plugin_manage()
+        self.init_plugin_manage()
+
+    def init_plugin_manage(self):
+        # 插件初始化.
+        self.plugin_man = PluginManager(self)
+        self.plugin_man.load_auto_plugins()
+        self.plugin_man.load_auto_flase_plugins()
         
     def ldmp_get_time_pos(self, ldmp, pos, time):
         # print "pos:", pos
@@ -764,4 +768,13 @@ class MediaPlayer(object):
             else:
                 self.play(self.ldmp.player.uri)
 
+    def add_net_to_play_list(self, name, play_uri, length, check): 
+        # 添加网络地址到播放列表，再的判断是否播放.
+        if check:
+            self.play_list.set_index(len(self.list_view.items) - 1)
+        #
+        self.list_view.items.add([str(name), str(length), str(play_uri)])
+        #
+        if check:
+            self.next()
 

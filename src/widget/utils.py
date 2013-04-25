@@ -197,6 +197,15 @@ def get_config_path():
     path = get_home_path() + "/.config/"
     return os.path.join(path, "deepin-media-player")
 
+def get_user_plugin_path():
+    # 用户插件目录.
+    return os.path.join(get_config_path(), "plugins")
+
+def get_ldmp_plugin_path():
+    # 获取系统自带插件目录.
+    path = os.path.abspath(os.path.dirname(sys.argv[0]))
+    return os.path.join(path, "plugins")
+
 def allocation(widget): # 返回 cr, rect.
     cr = widget.window.cairo_create()
     rect = widget.get_allocation()

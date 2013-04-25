@@ -24,6 +24,7 @@ import imp
 import sys
 import os
 
+from widget.utils import get_ldmp_plugin_path, get_user_plugin_path
 
 '''
 name = "插件管理"
@@ -51,8 +52,8 @@ class PluginManager(object):
 
     def __init_values(self, this):
         # 插件目录.
-        self.__user_path = "/home/long/.config/deepin-media-player/plugins"
-        self.__ldmp_path = "/home/long/Desktop/source/new-deepin-media-player/src/plugins"
+        self.__user_path = get_user_plugin_path()
+        self.__ldmp_path = get_ldmp_plugin_path()
         self.__dir_list = ["ldmp", "user"]
         self.plugin_dirs = {
                 "ldmp" : self.__ldmp_path,
