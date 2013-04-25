@@ -58,6 +58,7 @@ from mplayer.playlist import PlayList, SINGLA_PLAY, ORDER_PLAY, RANDOM_PLAY, SIN
 #            SINGLA_PLAY ... ...                ...LIST_LOOP
 from unique_service import UniqueService, is_exists
 from format_conv.conv_task_gui import ConvTAskGui
+from plugin_manager.plugin_manager import PluginManager
 import random
 import time
 import gtk
@@ -166,6 +167,11 @@ class MediaPlayer(object):
         self.play_list_check = False
         self.ldmp = LDMP()
         self.gui = GUI()        
+        # 插件初始化.
+        self.plugin_man = PluginManager(self)
+        self.plugin_man.load_auto_plugins()
+        self.plugin_man.load_auto_flase_plugins()
+        #
         self.conv_task_gui = ConvTAskGui()
         self.conv_form     = None
         #

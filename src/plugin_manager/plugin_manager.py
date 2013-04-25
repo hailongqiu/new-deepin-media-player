@@ -218,7 +218,7 @@ class PluginManager(object):
         return True
 
     def __can_error_msg(self, module, msg):
-        error_msg = "模块:", module, "缺少: ", msg
+        error_msg = "模块:"+ str(module) + "缺少: " + str(msg)
         module.error_msg = error_msg
         print error_msg
         return False
