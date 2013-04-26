@@ -91,6 +91,10 @@ def is_left_button(event): # 左键.
 def is_right_button(event): # 右键.
     return event.button == 3
                    
+def is_file_sub_type(file_name):
+    file_type = get_file_type(str(file_name))
+    return file_type in ["text/x-ssa", "application/x-subrip"]
+
 ########################################################
 ## 打开对话框
 def show_open_dir_dialog_window(title):

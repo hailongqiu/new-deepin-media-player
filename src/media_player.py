@@ -35,12 +35,14 @@ from widget.utils   import get_config_path
 from widget.utils   import get_home_path, get_home_video, get_play_file_name
 from widget.utils   import is_file_audio
 from widget.utils   import ScanDir
+from widget.utils import is_file_sub_type
 from widget.ini_gui import IniGui
 from widget.init_ldmp import init_media_player_config
 from gui import GUI # 播放器界面布局.
 from media_player_function import MediaPlayFun
 from media_player_menus    import MediaPlayMenus
 from media_player_keys     import MediaPlayKeys
+from media_player_drag     import MediaPlayDrag
 from mplayer.timer import Timer
 # mplayer后端.
 from mplayer.player import LDMP, set_ascept_function, unset_flags, set_flags, Player
@@ -197,15 +199,46 @@ class MediaPlayer(object):
     def __init_gui_app_events(self):
         '''application events init.'''
         self.gui.app.titlebar.min_button.connect("clicked", self.app_window_min_button_clicked)        
+        self.gui.app.window.add_events(gtk.gdk.ALL_EVENTS_MASK)
         self.gui.app.window.connect("destroy", self.app_window_quit)
         self.gui.app.window.connect("configure-event", self.app_window_configure_event)
         self.gui.app.window.connect("check-resize", self.app_window_check_resize)
+        self.gui.app.window.connect("button-press-event", self.app_window_button_press_event)
+        self.gui.app.window.connect("motion-notify-event", self.app_window_motion_notify_event)
         # self.app.window.connect("window-state-event", )
         # self.app.window.connect("leave-notify-event", )
         # self.app.window.connect("focus-out-event", )
         # self.app.window.connect("focus-in-event", )
         # self.app.window.connect("scroll_event", )
         # self.app.window.connect("check-resize",)         
+
+    def app_window_button_press_event(self, widget, event):
+        # 判断是否可拖动大小.
+        if self.in_drag_position(widget, event):
+            drag = gtk.gdk.WINDOW_EDGE_SOUTH_EAST
+            self.gui.app.window.begin_resize_drag(drag, 
+                                event.button,
+                                int(event.x_root),
+                                int(event.y_root),
+                                event.time)
+
+    def app_window_motion_notify_event(self, widget, event):
+        # 更改鼠标样式.
+        if self.in_drag_position(widget, event):
+            drag = gtk.gdk.BOTTOM_RIGHT_CORNER
+            widget.window.set_cursor(gtk.gdk.Cursor(drag))
+        else:
+            widget.window.set_cursor(None)
+
+    def in_drag_position(self, widget, event):
+        # 判断是否在拖动大小的区域内.
+        x, y = self.gui.app.window.get_position()
+        x_padding = int(event.x_root)
+        y_padding = int(event.y_root)
+        w, h = widget.allocation.width, widget.allocation.height
+        w_padding = h_padding = 5
+        return ((x + w - w_padding) <=  x_padding <= x + w and 
+                (y + h - h_padding) <= y_padding <= y+ h)
 
     def __init_gui_screen(self):
         '''screen events init.'''
@@ -220,7 +253,7 @@ class MediaPlayer(object):
         self.gui.screen_frame_event.connect("button-release-event", self.screen_frame_event_button_release_event)
         self.gui.screen_frame_event.connect("motion-notify-event",  self.screen_frame_event_button_motoin_notify_event)
         self.gui.screen_frame_event.connect("leave-notify-event", self.screen_frame_event_leave_notify_event)
-
+    
     '''application event conect function.窗口事件连接函数.'''
     def app_window_min_button_clicked(self, widget): # 缩小按钮单击.
         print "app_window_min_button_clicked function", "-->>min window!!"
@@ -291,6 +324,7 @@ class MediaPlayer(object):
         self.media_play_fun   = MediaPlayFun(self)
         self.media_play_menus = MediaPlayMenus(self)
         self.media_play_kes   = MediaPlayKeys(self)
+        self.media_play_drag  = MediaPlayDrag(self)
         # 初始化插件系统.
         self.init_plugin_manage()
 
@@ -327,7 +361,9 @@ class MediaPlayer(object):
         self.ldmp.player.video_width = 0
         self.ldmp.player.video_height = 0
         self.set_draw_background(0, 0)
+        # 防止出现白屏幕的BUG,进行重绘!!
         self.gui.screen.queue_draw()
+        self.gui.screen_frame.queue_draw()
         # 设置菜单禁用(字幕/音频语言).
         self.media_play_menus.menus.screen_right_root_menu.set_menu_item_sensitive_by_index(11, False)
         self.media_play_menus.menus.subtitles_select.clear_menus()
@@ -534,6 +570,8 @@ class MediaPlayer(object):
         # 音轨选择初始化.
         self.ldmp.player.audio_index = 0
         self.ldmp.player.audio_list = []
+        self.ldmp.player.sub_index = -1
+        self.ldmp.player.subtitle = []
 
     # 上一曲.
     def prev(self):    
@@ -603,8 +641,21 @@ class MediaPlayer(object):
 
     def open_files_to_play_list(self, type_check=True):
         paths = self.open_file_dialog()
+        self.files_to_play_list(paths, type_check)
+
+    def files_to_play_list(self, paths, type_check=True):
         run_check = False
-        if type_check and paths:
+        sub_check = True
+        # 判断字幕和播放文件.
+        # 修复BUG：字幕和播放文件一起拖进去，没有清空播放列表.
+        # 修复BUG：字幕拖进去，清空了播放列表.
+        for path in paths:
+            if not is_file_sub_type(path):
+                sub_check = True
+            else:
+                sub_check = False
+
+        if type_check and paths and sub_check:
             self.gui.play_list_view.list_view.clear()
             self.play_list.set_index(-1)
             run_check = True
@@ -638,6 +689,9 @@ class MediaPlayer(object):
     def open_dirs_to_play_list(self, type_check=True):
         paths = self.open_dir_dialog()
         self.run_check = False
+        self.dirs_to_play_list(paths)
+
+    def dirs_to_play_list(self, paths, type_check=True):
         if type_check and paths:
             self.gui.play_list_view.list_view.clear()
             self.play_list.set_index(-1)
@@ -671,9 +725,12 @@ class MediaPlayer(object):
         # 判断文件类型是否可播放..
         # get_play_type(file_name)
         if True: #is_file_audio(file_name):
-            cmd_str = self.get_length(file_name)
-            if cmd_str:
-                self.gui.play_list_view.list_view.items.add([get_play_file_name(file_name), cmd_str, file_name])
+            if is_file_sub_type(file_name):
+                self.ldmp.sub_add(file_name)
+            else:
+                cmd_str = self.get_length(file_name)
+                if cmd_str:
+                    self.gui.play_list_view.list_view.items.add([get_play_file_name(file_name), cmd_str, file_name])
 
     def scan_end_event(self, scan_dir, sum):
         if self.run_check:
