@@ -25,6 +25,7 @@ import sys
 import os
 
 from widget.utils import get_ldmp_plugin_path, get_user_plugin_path
+from widget.utils import get_config_path
 
 '''
 name = "插件管理"
@@ -36,15 +37,23 @@ class_name = "PluginManager"
 
 class PluginManager(object):
     def __init__(self, this=None, load_check=True):
+        self.__init_plugins_dir()
         if load_check: # 是否加载插件.
             self.__init_values(this)
             # 判断插件是否超过 0 个.
             if not self.__plugin_modules_exist():
                 print "没有可用的插件!!"
-                return False
+                #return False
             else:
                 # 初始化插件管理.
                 self.__init_manager()
+    
+    def __init_plugins_dir(self):
+        path = get_config_path()
+        for dir_ in ["plugins"]:
+            path = os.path.join(path, dir_)
+            if not os.path.exists(path):
+                os.makedirs(path)
 
     def __init_manager(self):
         self.__insert_sys_paths()
@@ -83,9 +92,11 @@ class PluginManager(object):
                    self.__user_modules) > 0
 
     def get_plugin_modules(self, path):
-        files = [f[:-3] for f in os.listdir(path) \
-                if self.is_plugin_name_check(f)]
-        plugin_files = files
+        plugin_files = []
+        if os.path.exists(path):
+            files = [f[:-3] for f in os.listdir(path) \
+                    if self.is_plugin_name_check(f)]
+            plugin_files = files
         return plugin_files[:]
 
     def is_plugin_name_check(self, name):

@@ -77,19 +77,19 @@ class MediaPlayer(object):
         self.__init_config_file()
         #
         self.first_run = False
-        # 判断是否存在这个配置文件.
-        if not os.path.exists(os.path.join(get_config_path(), "deepin_media_config.ini")):
-            init_user_guide(self.start)
-            init_media_player_config()
-            self.first_run = True
-        # init dubs id.
-        self.__init_dbus_id()
         self.__init_values()
         # init double timer.
         self.__init_double_timer()
         self.__init_move_window()
         self.__init_gui_app_events()
         self.__init_gui_screen()
+        # 判断是否存在这个配置文件.
+        if not os.path.exists(os.path.join(get_config_path(), "deepin_media_config.ini")):
+            init_media_player_config(self.config)
+            init_user_guide(self.start, True)
+            self.first_run = True
+        # init dubs id.
+        self.__init_dbus_id()
         # show gui window.
         if not self.first_run:
             self.start()
@@ -116,7 +116,7 @@ class MediaPlayer(object):
             else:
                 dbus_id += "." + chr(random.randint(65, 90))
         self.dbus_id = dbus_id
-        print "dbus_id:", dbus_id
+        #print "dbus_id:", dbus_id
         #
         self.in_run_check()
 
@@ -162,6 +162,7 @@ class MediaPlayer(object):
 
     def __init_values(self):
         #
+        self.minimize_check  = False
         self.play_list_check = False
         self.ldmp = LDMP()
         self.gui = GUI()        
@@ -205,7 +206,7 @@ class MediaPlayer(object):
         self.gui.app.window.connect("check-resize", self.app_window_check_resize)
         self.gui.app.window.connect("button-press-event", self.app_window_button_press_event)
         self.gui.app.window.connect("motion-notify-event", self.app_window_motion_notify_event)
-        # self.app.window.connect("window-state-event", )
+        self.gui.app.window.connect("window-state-event", self.app_window_state_event)
         # self.app.window.connect("leave-notify-event", )
         # self.app.window.connect("focus-out-event", )
         # self.app.window.connect("focus-in-event", )
@@ -229,6 +230,24 @@ class MediaPlayer(object):
             widget.window.set_cursor(gtk.gdk.Cursor(drag))
         else:
             widget.window.set_cursor(None)
+
+    def app_window_state_event(self, widget, event):
+        #print widget.window.get_state()
+        win_state = widget.window.get_state()
+        # bUG: 全屏也暂停.
+        if  win_state == gtk.gdk.WINDOW_STATE_ICONIFIED:
+            if self.ldmp.player.state == STARTING_STATE:
+                self.minimize_pause_state()
+            self.minimize_check = True
+        elif win_state == 0 and self.minimize_check:
+            if self.ldmp.player.state == PAUSE_STATE:
+                self.minimize_pause_state()
+            self.minimize_check = False
+
+    def minimize_pause_state(self):
+        min_pause_check = self.config.get("FilePlay", "minimize_pause_play")
+        if "True" == min_pause_check:
+            self.key_pause()
 
     def in_drag_position(self, widget, event):
         # 判断是否在拖动大小的区域内.
@@ -256,11 +275,19 @@ class MediaPlayer(object):
     
     '''application event conect function.窗口事件连接函数.'''
     def app_window_min_button_clicked(self, widget): # 缩小按钮单击.
-        print "app_window_min_button_clicked function", "-->>min window!!"
+        pass
         
     def app_window_quit(self, widget): # 窗口销毁.destroy
         self.play_list_check  = True
         self.ldmp.quit()
+        # save media window size.
+        self.save_media_window_size()
+
+    def save_media_window_size(self):
+        rect = self.gui.app.window.allocation
+        self.config.set("Window", "width", rect.width)
+        self.config.set("Window", "height", rect.height)
+        self.config.save()
         
     def app_window_configure_event(self, widget, event): # configure-event
         self.set_ascept_restart() # 设置分辨率.
@@ -350,9 +377,9 @@ class MediaPlayer(object):
         
     def player_start_init(self):    
         pass
-    
+
     def ldmp_end_media_player(self, ldmp):
-        print "===========播放结束!!==========", ldmp.player.type
+        #print "===========播放结束!!==========", ldmp.player.type
         self.player_end_init()
         self.media_play_fun.ldmp_end_media_player(ldmp)
         
@@ -369,11 +396,47 @@ class MediaPlayer(object):
         self.media_play_menus.menus.subtitles_select.clear_menus()
         self.media_play_menus.menus.switch_audio_menu.clear_menus()
         self.media_play_menus.menus.channel_select.set_menu_item_sensitive_by_index(1, False)
+        # 保存播放完毕的进度.
+        self.save_play_position()
 
+    def save_play_position(self):
+        uri = '"%s"' % str(self.ldmp.player.uri)
+        pos = self.ldmp.player.position 
+        length = self.ldmp.player.length
+        if pos + 2 < length:
+            self.ini.set("PlayMemory", uri, pos) 
+            self.ini.save()
+        else:
+            # 如果超过length, 则是删除里面保存的选项.
+            if self.ini.get("PlayMemory", uri): # 判断是否存在.
+                # 删除原来保存的东西.
+                del self.ini.section_dict["PlayMemory"][uri] 
+                self.ini.save()
         
     def ldmp_screen_changed(self, ldmp, video_width, video_height):
         #print "ldmp_screen_changed...", "video_width:", video_width, "video_height:", video_height
         self.set_draw_background(video_width, video_height) # 是否画播放器屏幕显示的背景.
+        # 如果是 窗口适应视频.
+        win_to_video_check = self.config.get("FilePlay", "video_file_open")
+        screen = self.gui.app.window.get_screen()
+        screen_h = screen.get_height()
+        screen_w = screen.get_width()
+        min_app_w, min_app_h = 480, 300
+        if "1" == win_to_video_check: # 判断是否为 窗口适应视频.
+            video_h = int(self.ldmp.player.video_height)
+            video_w = int(self.ldmp.player.video_width)
+            app_h = max(min(video_h, screen_h), min_app_h)
+            app_w = max(min(video_w, screen_w), min_app_w)
+            self.gui.app.window.resize(app_w, app_h)
+        elif "3" == win_to_video_check: # 判断是否为 上次关闭尺寸.
+            app_w = self.config.get("Window", "width")
+            app_h = self.config.get("Window", "height")
+            if app_w and app_h: # 第一次没有初始化，不进行.
+                app_w = max(min(int(app_w), screen_w), min_app_w)
+                app_h = max(min(int(app_h), screen_h), min_app_h)
+                self.gui.app.window.resize(app_w, app_h)
+        elif "4" == win_to_video_check: # 全屏.
+            self.fullscreen_function()
         
     def set_draw_background(self, video_width, video_height):
         if video_width == 0 or video_height == 0:            
@@ -465,7 +528,7 @@ class MediaPlayer(object):
 
     def double_clicked_connect_function(self):
         double_check = self.config.get("OtherKey", "mouse_left_double_clicked")
-        if "Full Screen" == double_check:
+        if _("Full Screen") == double_check:
             self.fullscreen_function() # 全屏和退出全屏处理函数.
 
     def fullscreen_function(self):
@@ -506,7 +569,7 @@ class MediaPlayer(object):
         # 应该去连接后端事件,暂停/播放的时候去改变按钮状态.
         pause_play_check = self.config.get("OtherKey", "mouse_left_single_clicked")
         #[OtherKey] 其它快捷键.
-        if "Pause/Play" == pause_play_check:
+        if _("Pause/Play") == pause_play_check:
             self.ldmp.pause()
 
     def set_double_bit_false(self):
@@ -556,16 +619,23 @@ class MediaPlayer(object):
     def play(self, play_name):
         play_file = play_name
         if play_file:
-            self.init_ldmp_player()
+            self.init_ldmp_player(play_file)
             self.ldmp_play(play_file)
 
-    def init_ldmp_player(self):
+    def init_ldmp_player(self, play_file=None):
         self.play_list_check = True
         if self.ldmp.player.state: # 判断是否在播放,如果在播放就先退出.
             self.ldmp.quit()
         ####################################
         ## 初始化设置, 比如加载的字幕或者起始时间等等.
-        self.ldmp.player.start_time = 0
+        start_time = 0
+        pos_check = self.config.get("FilePlay", "memory_up_close_player_file_postion") 
+        if "True" == pos_check:
+            uri = '"%s"' % (play_file)
+            pos = self.ini.get("PlayMemory", uri)
+            if pos:
+                start_time = float(pos)
+        self.ldmp.player.start_time = start_time
         self.ldmp.player.subtitle = []
         # 音轨选择初始化.
         self.ldmp.player.audio_index = 0
@@ -577,14 +647,14 @@ class MediaPlayer(object):
     def prev(self):    
         play_file = self.play_list.get_prev_file()
         if play_file:
-            self.init_ldmp_player()
+            self.init_ldmp_player(play_file)
             self.ldmp_play(play_file)
     
     # 下一曲.
     def next(self):    
         play_file = self.play_list.get_next_file()
         if play_file:
-            self.init_ldmp_player()
+            self.init_ldmp_player(play_file)
             self.ldmp_play(play_file)
 
     def ldmp_play(self, play_file):
@@ -644,7 +714,8 @@ class MediaPlayer(object):
         self.files_to_play_list(paths, type_check)
 
     def files_to_play_list(self, paths, type_check=True):
-        run_check = False
+        self.run_check = False
+        run_check = self.run_check
         sub_check = True
         # 判断字幕和播放文件.
         # 修复BUG：字幕和播放文件一起拖进去，没有清空播放列表.
@@ -692,6 +763,8 @@ class MediaPlayer(object):
         self.dirs_to_play_list(paths)
 
     def dirs_to_play_list(self, paths, type_check=True):
+        self.type_check = type_check
+        self.run_check = False
         if type_check and paths:
             self.gui.play_list_view.list_view.clear()
             self.play_list.set_index(-1)
@@ -728,7 +801,14 @@ class MediaPlayer(object):
             if is_file_sub_type(file_name):
                 self.ldmp.sub_add(file_name)
             else:
-                cmd_str = self.get_length(file_name)
+                uri = '"%s"' % (file_name)
+                ini_len = self.ini.get("PlayTime", uri) 
+                if ini_len:
+                    cmd_str = ini_len
+                else:
+                    cmd_str = self.get_length(file_name)
+                    self.ini.set("PlayTime", uri, cmd_str)
+                    self.ini.save()
                 if cmd_str:
                     self.gui.play_list_view.list_view.items.add([get_play_file_name(file_name), cmd_str, file_name])
 
@@ -808,11 +888,7 @@ class MediaPlayer(object):
             self.gui.show_tooltip_text(text)
         # 还是使用系统的气泡垃圾提示.
         if "True" == sys_check:
-            print "气泡提示..."
-            if not icon_path:
-                path = os.path.abspath(os.path.dirname(sys.argv[0]))
-                image_path = os.path.join(path, "widget/logo.png")
-            self.gui.notify_msgbox("deepin-media-player", text, icon_path)
+            self.gui.notify_msgbox("deepin-media-player", text)
 
     def start_button_clicked(self):
         # 判断列表是否为空. 空->添加!!

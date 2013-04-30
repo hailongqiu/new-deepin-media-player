@@ -156,7 +156,7 @@ def is_file_audio(file_name):
     
 def open_file(file_name, type_check=True):
     if type_check:
-        os.system("xdg-open '%s'" % (file_name))
+        os.system("xdg-open '%s'" % (os.path.split(file_name)[0]))
     else:
         os.system("nautilus '%s'" % (file_name))
 
@@ -207,8 +207,15 @@ def get_user_plugin_path():
 
 def get_ldmp_plugin_path():
     # 获取系统自带插件目录.
-    path = os.path.abspath(os.path.dirname(sys.argv[0]))
-    return os.path.join(path, "plugins")
+    path = os.path.split(os.path.dirname(os.path.realpath(__file__)))[0]
+    ldmp_path = os.path.join(path, "plugins")
+    return ldmp_path
+
+def get_system_tooptil_icon(icon_name="logo.png"):
+    # 获取气泡提示的图标.
+    path = os.path.dirname(os.path.realpath(__file__))
+    icon_path = os.path.join(path, icon_name)
+    return icon_path
 
 def allocation(widget): # 返回 cr, rect.
     cr = widget.window.cairo_create()
@@ -239,6 +246,47 @@ def size_to_format(size, unit='Byte'): # size 转换成k/b/g/t/p/e->B显示.
     
         
 ##########################################
+## 线程扫描播放列表.
+##
+class ScanTreeview(gobject.GObject):
+    __gsignals__ = {
+        "scan-file-event" : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                             (gobject.TYPE_STRING,)),
+        "scan-end-event" : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                             (gobject.TYPE_PYOBJECT,)),        
+        }            
+    def __init__(self, youku_web, addr, check):
+        gobject.GObject.__init__(self)
+        self.event = threading.Event()
+        self.youku_web_parse = youku_web
+        self.addr = addr
+        self.check = check
+    
+    def run(self):
+        if self.check == True:
+            scan_th = threading.Thread(target=self.__run_parse_web_func)
+        elif self.check == 2:
+            scan_th = threading.Thread(target=self.__run_to_addr_func)
+        elif self.check == False:
+            scan_th = threading.Thread(target=self.__run_scan_3_leave_func)
+        scan_th.setDaemon(True) 
+        scan_th.start()
+
+    def __run_to_addr_func(self):
+        flvcd = self.youku_web_parse
+        addrs_list = []
+        flvcd_addr_list = flvcd.parse(self.addr)
+        addrs_list = flvcd_addr_list
+        self.emit("scan-end-event", addrs_list)
+
+    def __run_parse_web_func(self):
+        info_list, page_num, all_sum = self.youku_web_parse.parse_web(self.addr)
+        self.emit("scan-end-event", info_list)
+
+    def __run_scan_3_leave_func(self):
+        temp_list = self.youku_web_parse.scan_3_leave(self.addr)
+        self.emit("scan-end-event", temp_list)    
+
 ## 线程扫描目录.  
 ## scan_dir = ScanDir('/home')
 ## scan_dir.connect("scan-file-event",self.scan..  ..

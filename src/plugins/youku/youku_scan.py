@@ -1,6 +1,23 @@
-#!/usr/bin/env python
-#!coding:utf-8
-
+#! /usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2013 XXX, Inc.
+#               2013 红铭曼,王芳
+#
+# Author:     红铭曼,王芳 <hongmingman@sina.com>
+# Maintainer: 红铭曼,王芳 <hongmingman@sina.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from BeautifulSoup import BeautifulSoup
 import urllib2
@@ -14,7 +31,7 @@ def keyword_to_gb2312(keyword):
 def scan_page(page_index=1, keyword="linuxdeepin"):
     url_base = "http://www.soku.com/search_video/q_%s_orderby_1_page_%s"
     url = url_base % (keyword_to_gb2312(keyword), page_index)
-    print url
+    #print url
     data = urllib2.urlopen(url).read()
     if data.find("最新资讯") != -1: # 防止出现最新资讯，最新...的垃圾信息.
         data = data.decode("utf-8")
